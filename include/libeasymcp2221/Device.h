@@ -267,25 +267,54 @@ public:
      */
     void configureSram(const SramConfig& configuration);
 
-    /** @brief Read one raw persistent flash section. */
+    /**
+     * @brief Read one raw persistent flash section.
+     * @param section Section to read.
+     * @return Complete 60-byte raw section payload.
+     * @throws Error on flash-read, protocol, or transport failure.
+     */
     FlashData readFlash(FlashSection section);
 
-    /** @brief Write one raw persistent flash section. */
+    /**
+     * @brief Write one raw persistent flash section.
+     *
+     * @warning This is a low-level persistent write. The caller is responsible
+     *          for supplying a valid 60-byte payload for the selected section.
+     *
+     * @param section Section to write.
+     * @param data Complete 60-byte raw payload.
+     * @throws Error on flash-write, protocol, or transport failure.
+     */
     void writeFlash(FlashSection section, const FlashData& data);
 
-    /** @brief Send the eight-byte flash access password. */
+    /**
+     * @brief Send the eight-byte flash access password.
+     * @param password Password bytes.
+     * @throws Error if the device rejects the password or transport fails.
+     */
     void sendFlashPassword(const FlashPassword& password);
 
-    /** @brief Read aggregate persistent flash information. */
+    /**
+     * @brief Read aggregate persistent flash information.
+     *
+     * USB string descriptors are decoded by the underlying C library using its
+     * existing best-effort UTF-16LE-to-UTF-8 conversion.
+     */
     FlashInfo flashInfo();
 
-    /** @brief Read raw persistent chip and GPIO flash settings. */
+    /**
+     * @brief Read raw persistent chip and GPIO flash settings.
+     * @return Raw chip-settings and GP-settings snapshots.
+     */
     FlashSettings flashSettings();
 
     /**
      * @brief Persist the current staged/runtime configuration to flash.
      *
-     * This operation performs persistent hardware writes.
+     * @warning This operation performs persistent writes and is not atomic.
+     *          Chip settings are written before GP settings; if the second
+     *          write fails, chip settings may already have been persisted.
+     *          Staged USB settings remain staged when the save fails.
      */
     void saveConfigurationToFlash();
 

@@ -5,6 +5,8 @@
 
 #include "libeasymcp2221/Device.h"
 
+#include <algorithm>
+#include <iterator>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -250,6 +252,26 @@ const char* toInterruptEdgeString(InterruptEdge edge)
     }
 
     detail::throwInvalid("Unknown interrupt edge selection");
+}
+
+std::uint8_t toNativeFlashSection(FlashSection section)
+{
+    switch (section) {
+    case FlashSection::ChipSettings:
+        return MCP2221_FLASH_DATA_CHIP_SETTINGS;
+    case FlashSection::GpSettings:
+        return MCP2221_FLASH_DATA_GP_SETTINGS;
+    case FlashSection::UsbManufacturer:
+        return MCP2221_FLASH_DATA_USB_MANUFACTURER;
+    case FlashSection::UsbProduct:
+        return MCP2221_FLASH_DATA_USB_PRODUCT;
+    case FlashSection::UsbSerial:
+        return MCP2221_FLASH_DATA_USB_SERIALNUM;
+    case FlashSection::ChipSerial:
+        return MCP2221_FLASH_DATA_CHIP_SERIALNUM;
+    }
+
+    detail::throwInvalid("Unknown flash section");
 }
 
 } // namespace
@@ -900,34 +922,132 @@ void Device::configureSram(const SramConfig& configuration)
         "Configuring runtime SRAM");
 }
 
-FlashData Device::readFlash(FlashSection)
+FlashData Device::readFlash(FlashSection section)
 {
-    notImplemented("Device::readFlash");
+    requireOpen(state_);
+
+    FlashData data{};
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_flash_read(
+            state_->handle(),
+            toNativeFlashSection(section),
+            data.data()),
+        "Reading flash section");
+
+    return data;
 }
 
-void Device::writeFlash(FlashSection, const FlashData&)
+void Device::writeFlash(
+    FlashSection section,
+    const FlashData& data)
 {
-    notImplemented("Device::writeFlash");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_flash_write(
+            state_->handle(),
+            toNativeFlashSection(section),
+            data.data()),
+        "Writing flash section");
 }
 
-void Device::sendFlashPassword(const FlashPassword&)
+void Device::sendFlashPassword(const FlashPassword& password)
 {
-    notImplemented("Device::sendFlashPassword");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_flash_send_password(
+            state_->handle(),
+            password.data()),
+        "Sending flash access password");
 }
 
 FlashInfo Device::flashInfo()
 {
-    notImplemented("Device::flashInfo");
+    requireOpen(state_);
+
+    mcp2221_flash_info_t native{};
+    {
+        std::lock_guard<std::mutex> lock(state_->mutex());
+        detail::checkError(
+            mcp2221_flash_read_info(
+                state_->handle(),
+                &native),
+            "Reading flash information");
+    }
+
+    FlashInfo info;
+    std::copy(
+        std::begin(native.chip_settings),
+        std::end(native.chip_settings),
+        info.chipSettings.begin());
+    std::copy(
+        std::begin(native.gp_settings),
+        std::end(native.gp_settings),
+        info.gpSettings.begin());
+    std::copy(
+        std::begin(native.usb_manufacturer),
+        std::end(native.usb_manufacturer),
+        info.usbManufacturerRaw.begin());
+    std::copy(
+        std::begin(native.usb_product),
+        std::end(native.usb_product),
+        info.usbProductRaw.begin());
+    std::copy(
+        std::begin(native.usb_serial),
+        std::end(native.usb_serial),
+        info.usbSerialRaw.begin());
+    std::copy(
+        std::begin(native.usb_factory_serial),
+        std::end(native.usb_factory_serial),
+        info.factorySerialRaw.begin());
+
+    info.usbManufacturer = native.usb_manufacturer_str;
+    info.usbProduct = native.usb_product_str;
+    info.usbSerial = native.usb_serial_str;
+    info.factorySerial = native.usb_factory_serial_str;
+
+    return info;
 }
 
 FlashSettings Device::flashSettings()
 {
-    notImplemented("Device::flashSettings");
+    requireOpen(state_);
+
+    mcp2221_flash_settings_t native{};
+    {
+        std::lock_guard<std::mutex> lock(state_->mutex());
+        detail::checkError(
+            mcp2221_flash_get_settings(
+                state_->handle(),
+                &native),
+            "Reading flash settings");
+    }
+
+    FlashSettings settings;
+    std::copy(
+        std::begin(native.chip_settings),
+        std::end(native.chip_settings),
+        settings.chip.begin());
+    std::copy(
+        std::begin(native.gp_settings),
+        std::end(native.gp_settings),
+        settings.gpio.begin());
+
+    return settings;
 }
 
 void Device::saveConfigurationToFlash()
 {
-    notImplemented("Device::saveConfigurationToFlash");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_flash_save_config(state_->handle()),
+        "Saving configuration to flash");
 }
 
 void Device::stageUsbRemoteWakeup(bool)

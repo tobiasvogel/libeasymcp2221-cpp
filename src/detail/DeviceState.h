@@ -20,6 +20,9 @@ extern "C" {
 #include <libeasymcp2221/mcp2221_sram.h>
 #include <libeasymcp2221/mcp2221_constants.h>
 #include <libeasymcp2221/mcp2221_analog.h>
+#include <libeasymcp2221/mcp2221_flash_settings.h>
+#include <libeasymcp2221/mcp2221_flash_info.h>
+#include <libeasymcp2221/mcp2221_flash.h>
 }
 
 namespace libeasymcp2221 {
