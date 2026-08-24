@@ -23,3 +23,8 @@ syntax from the beginning. Build documentation with:
 cmake -S . -B build -DLIBEASYMCP2221_CPP_BUILD_DOCS=ON
 cmake --build build --target docs
 ```
+
+[Doxygen Awesome](https://github.com/jothepro/doxygen-awesome-css) is enabled
+by default for documentation builds and pinned to release `v2.4.2`. Disable it
+with `-DLIBEASYMCP2221_CPP_DOXYGEN_AWESOME=OFF` when plain Doxygen HTML is
+preferred or when configuring without network access.

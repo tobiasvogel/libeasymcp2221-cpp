@@ -11,6 +11,11 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 option(LIBEASYMCP2221_CPP_BUILD_EXAMPLES "Build examples" ON)
 option(LIBEASYMCP2221_CPP_BUILD_TESTS "Build unit tests" OFF)
 option(LIBEASYMCP2221_CPP_BUILD_DOCS "Build API documentation with Doxygen" OFF)
+option(
+    LIBEASYMCP2221_CPP_DOXYGEN_AWESOME
+    "Use Doxygen Awesome for generated HTML documentation"
+    ON
+)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBEASYMCP2221 REQUIRED IMPORTED_TARGET libeasymcp2221)
@@ -73,6 +78,32 @@ endif()
 
 if (LIBEASYMCP2221_CPP_BUILD_DOCS)
     find_package(Doxygen REQUIRED)
+
+    set(LIBEASYMCP2221_CPP_DOXYGEN_EXTRA_STYLESHEETS "")
+
+    if (LIBEASYMCP2221_CPP_DOXYGEN_AWESOME)
+        include(FetchContent)
+
+        FetchContent_Declare(
+            doxygen-awesome-css
+            GIT_REPOSITORY https://github.com/jothepro/doxygen-awesome-css.git
+            GIT_TAG v2.4.2
+            GIT_SHALLOW TRUE
+        )
+        FetchContent_MakeAvailable(doxygen-awesome-css)
+
+        FetchContent_GetProperties(
+            doxygen-awesome-css
+            SOURCE_DIR DOXYGEN_AWESOME_CSS_DIR
+        )
+
+        set(
+            LIBEASYMCP2221_CPP_DOXYGEN_EXTRA_STYLESHEETS
+            "${DOXYGEN_AWESOME_CSS_DIR}/doxygen-awesome.css "
+            "${DOXYGEN_AWESOME_CSS_DIR}/doxygen-awesome-sidebar-only.css"
+        )
+
+    endif()
 
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in
