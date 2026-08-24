@@ -1050,34 +1050,91 @@ void Device::saveConfigurationToFlash()
         "Saving configuration to flash");
 }
 
-void Device::stageUsbRemoteWakeup(bool)
+void Device::stageUsbRemoteWakeup(bool enabled)
 {
-    notImplemented("Device::stageUsbRemoteWakeup");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_usb_set_remote_wakeup(
+            state_->handle(),
+            enabled ? 1 : 0),
+        "Staging USB Remote Wake-up");
 }
 
 bool Device::usbRemoteWakeup()
 {
-    notImplemented("Device::usbRemoteWakeup");
+    requireOpen(state_);
+
+    int enabled = 0;
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_usb_get_remote_wakeup(
+            state_->handle(),
+            &enabled),
+        "Reading USB Remote Wake-up setting");
+
+    return enabled != 0;
 }
 
-void Device::stageUsbSelfPowered(bool)
+void Device::stageUsbSelfPowered(bool enabled)
 {
-    notImplemented("Device::stageUsbSelfPowered");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_usb_set_self_powered(
+            state_->handle(),
+            enabled ? 1 : 0),
+        "Staging USB self-powered setting");
 }
 
 bool Device::usbSelfPowered()
 {
-    notImplemented("Device::usbSelfPowered");
+    requireOpen(state_);
+
+    int enabled = 0;
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_usb_get_self_powered(
+            state_->handle(),
+            &enabled),
+        "Reading USB self-powered setting");
+
+    return enabled != 0;
 }
 
-void Device::stageUsbRequestedCurrent(unsigned)
+void Device::stageUsbRequestedCurrent(unsigned milliamps)
 {
-    notImplemented("Device::stageUsbRequestedCurrent");
+    requireOpen(state_);
+
+    if (milliamps > constants::MaxUsbCurrentMa ||
+        (milliamps % 2u) != 0u) {
+        detail::throwInvalid(
+            "USB requested current must be an even value from 0 through 500 mA");
+    }
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_usb_set_requested_current(
+            state_->handle(),
+            milliamps),
+        "Staging USB requested current");
 }
 
 unsigned Device::usbRequestedCurrent()
 {
-    notImplemented("Device::usbRequestedCurrent");
+    requireOpen(state_);
+
+    unsigned milliamps = 0;
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_usb_get_requested_current(
+            state_->handle(),
+            &milliamps),
+        "Reading USB requested current");
+
+    return milliamps;
 }
 
 std::array<std::uint8_t, 64> Device::rawCommand(

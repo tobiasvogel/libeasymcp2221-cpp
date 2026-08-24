@@ -318,22 +318,62 @@ public:
      */
     void saveConfigurationToFlash();
 
-    /** @brief Stage the USB Remote Wake-up capability value. */
+    /**
+     * @brief Stage the USB Remote Wake-up capability.
+     *
+     * This changes only the configuration cached in the device context.
+     * Persist it with saveConfigurationToFlash(). The USB host observes the
+     * persisted value only after device re-enumeration.
+     *
+     * @param enabled true to advertise Remote Wake-up capability.
+     */
     void stageUsbRemoteWakeup(bool enabled);
 
-    /** @brief Return the effective staged/persisted USB Remote Wake-up value. */
+    /**
+     * @brief Return the effective USB Remote Wake-up setting.
+     *
+     * A staged value takes precedence over the value currently stored in flash.
+     * This does not report whether the host OS has enabled wake-up for the
+     * device.
+     */
     bool usbRemoteWakeup();
 
-    /** @brief Stage the USB self-powered enumeration attribute. */
+    /**
+     * @brief Stage whether the device advertises itself as self-powered.
+     *
+     * This changes only the USB enumeration attribute; it does not change the
+     * physical power source. Persist with saveConfigurationToFlash().
+     *
+     * @param enabled true for self-powered, false for bus-powered.
+     */
     void stageUsbSelfPowered(bool enabled);
 
-    /** @brief Return the effective staged/persisted self-powered value. */
+    /**
+     * @brief Return the effective self-powered enumeration setting.
+     *
+     * A staged value takes precedence over the value currently stored in flash.
+     */
     bool usbSelfPowered();
 
-    /** @brief Stage the requested USB bus current in milliamperes. */
+    /**
+     * @brief Stage the requested USB bus current in milliamperes.
+     *
+     * The value describes the device to the USB host; it does not electrically
+     * limit or regulate current. Valid values are even numbers from 0 through
+     * 500 mA inclusive. Persist with saveConfigurationToFlash().
+     *
+     * @param milliamps Requested current in mA.
+     * @throws Error when the value is odd, exceeds 500 mA, or the device
+     *         operation fails.
+     */
     void stageUsbRequestedCurrent(unsigned milliamps);
 
-    /** @brief Return the effective staged/persisted requested USB current. */
+    /**
+     * @brief Return the effective requested USB bus current in milliamperes.
+     *
+     * A staged value takes precedence over the value currently stored in flash.
+     * The returned value is decoded to mA, not a raw USBREQCRT register value.
+     */
     unsigned usbRequestedCurrent();
 
     /**
