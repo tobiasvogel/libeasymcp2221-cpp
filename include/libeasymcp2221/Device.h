@@ -229,6 +229,9 @@ public:
      *
      * This is an advanced escape hatch. Prefer typed high-level methods when
      * an equivalent operation exists.
+     *
+     * @note The MCP2221 reset command does not return a protocol response.
+     *       For that command the returned array remains zero-initialized.
      */
     std::array<std::uint8_t, 64> rawCommand(
         const std::uint8_t* command,

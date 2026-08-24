@@ -96,13 +96,31 @@ Device::Device(const DeviceOptions& options)
             &handle),
         "Opening MCP2221");
 
+    /*
+     * Own the acquired C reference immediately so every later initialization
+     * failure releases it automatically.
+     */
     auto state = std::make_shared<detail::DeviceState>(handle);
 
     {
         std::lock_guard<std::mutex> lock(state->mutex());
+
+        /*
+         * Mirror the public C API's open_simple_scan() initialization sequence:
+         * stale I2C state is released best-effort, then a safe 100 kHz clock is
+         * established before applying the requested target speed.
+         */
+        (void)mcp2221_i2c_release(state->handle());
+
         detail::checkError(
-            mcp2221_i2c_set_speed(state->handle(), options.i2cSpeedHz),
-            "Setting initial I2C speed");
+            mcp2221_i2c_set_speed(state->handle(), 100000),
+            "Setting safe initial I2C speed");
+
+        if (options.i2cSpeedHz != 100000) {
+            detail::checkError(
+                mcp2221_i2c_set_speed(state->handle(), options.i2cSpeedHz),
+                "Setting requested I2C speed");
+        }
     }
 
     state_ = std::move(state);
@@ -166,9 +184,8 @@ I2cDevice Device::i2cDevice(
 
 SmbusDevice Device::smbusDevice(std::uint8_t address)
 {
-    if (!state_) {
-        throw std::logic_error("Device is closed");
-    }
+    requireOpen(state_);
+    validateI2cAddress(address);
 
     auto child = std::make_shared<detail::SmbusDeviceState>();
     child->device = state_;
@@ -176,14 +193,16 @@ SmbusDevice Device::smbusDevice(std::uint8_t address)
 
     std::lock_guard<std::mutex> lock(state_->mutex());
 
-    detail::checkError(mcp2221_smbus_init(
-        &child->bus,
-        state_->handle(),
-        0,
-        0,
-        0,
-        nullptr,
-        0));
+    detail::checkError(
+        mcp2221_smbus_init(
+            &child->bus,
+            state_->handle(),
+            0,
+            0,
+            0,
+            nullptr,
+            0),
+        "Initializing SMBus target");
 
     return SmbusDevice(std::move(child));
 }

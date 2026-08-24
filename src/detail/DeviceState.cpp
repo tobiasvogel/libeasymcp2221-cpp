@@ -30,5 +30,11 @@ std::mutex& DeviceState::mutex() noexcept
     return mutex_;
 }
 
+
+SmbusDeviceState::~SmbusDeviceState() noexcept
+{
+    mcp2221_smbus_close(&bus);
+}
+
 } // namespace detail
 } // namespace libeasymcp2221

@@ -25,8 +25,8 @@ struct DeviceOptions {
     int deviceIndex = 0;
     std::string usbSerial;
 
-    int usbReadTimeoutMs = 0;
-    int commandRetries = 0;
+    int usbReadTimeoutMs = 500;
+    int commandRetries = 3;
     bool debugMessages = false;
     bool tracePackets = false;
     bool scanFlashSerial = false;

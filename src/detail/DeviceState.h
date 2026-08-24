@@ -55,6 +55,8 @@ public:
 /** @brief Internal state backing a copyable SmbusDevice adapter. */
 class SmbusDeviceState {
 public:
+    ~SmbusDeviceState() noexcept;
+
     std::shared_ptr<DeviceState> device;
     mcp2221_smbus_t bus{};
     std::uint8_t address = 0;
