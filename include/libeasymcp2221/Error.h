@@ -1,0 +1,65 @@
+/**
+ * @file Error.h
+ * @brief C++ exception and error-code types for libeasymcp2221++.
+ */
+
+#ifndef LIBEASYMCP2221_CPP_ERROR_H
+#define LIBEASYMCP2221_CPP_ERROR_H
+
+#include <stdexcept>
+#include <string>
+
+namespace libeasymcp2221 {
+
+/** @brief Strongly typed counterpart of the libeasymcp2221 C error codes. */
+enum class ErrorCode {
+    Usb,
+    Timeout,
+    NotAcknowledged,
+    LowScl,
+    LowSda,
+    Invalid,
+    I2c,
+    FlashWrite,
+    FlashPassword,
+    GpioMode,
+    Generic,
+    I2cShortRead,
+    FlashRead,
+    NotFound,
+    NoMemory,
+    Access,
+    Busy,
+    UsbInit,
+    UsbEnumeration,
+    UsbOpen,
+    UsbClaim,
+    CommandFailed,
+    Protocol
+};
+
+/**
+ * @brief Exception thrown when an underlying libeasymcp2221 operation fails.
+ */
+class Error : public std::runtime_error {
+public:
+    /**
+     * @brief Construct an error.
+     * @param code Typed error code.
+     * @param message Human-readable diagnostic message.
+     */
+    Error(ErrorCode code, const std::string& message);
+
+    /**
+     * @brief Return the associated typed error code.
+     * @return Error code supplied at construction.
+     */
+    ErrorCode code() const noexcept;
+
+private:
+    ErrorCode code_;
+};
+
+} // namespace libeasymcp2221
+
+#endif // LIBEASYMCP2221_CPP_ERROR_H

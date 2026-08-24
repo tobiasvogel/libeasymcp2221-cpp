@@ -1,0 +1,35 @@
+PROJECT_NAME           = "libeasymcp2221++"
+PROJECT_NUMBER         = "@PROJECT_VERSION@"
+PROJECT_BRIEF          = "Object-oriented C++17 adapter for libeasymcp2221"
+
+OUTPUT_DIRECTORY       = "@CMAKE_CURRENT_BINARY_DIR@/docs"
+INPUT                  = "@CMAKE_CURRENT_SOURCE_DIR@/include" \
+                         "@CMAKE_CURRENT_SOURCE_DIR@/src" \
+                         "@CMAKE_CURRENT_SOURCE_DIR@/examples"
+FILE_PATTERNS           = *.h *.cpp
+RECURSIVE               = YES
+
+EXTRACT_ALL             = NO
+EXTRACT_PRIVATE         = NO
+EXTRACT_STATIC          = NO
+HIDE_UNDOC_MEMBERS      = YES
+HIDE_UNDOC_CLASSES      = YES
+WARN_IF_UNDOCUMENTED    = YES
+WARN_IF_DOC_ERROR       = YES
+WARN_NO_PARAMDOC        = YES
+
+JAVADOC_AUTOBRIEF       = YES
+MULTILINE_CPP_IS_BRIEF  = YES
+
+GENERATE_HTML           = YES
+GENERATE_LATEX          = NO
+GENERATE_MAN            = NO
+
+QUIET                   = NO
+WARNINGS                = YES
+
+HAVE_DOT                = YES
+CLASS_DIAGRAMS          = YES
+UML_LOOK                = YES
+CALL_GRAPH              = NO
+CALLER_GRAPH            = NO
