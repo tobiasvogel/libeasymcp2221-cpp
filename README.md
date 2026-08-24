@@ -17,7 +17,7 @@ typed enums/value types, exceptions, and container-oriented return values.
 ## Documentation
 
 Public interfaces and implementation-facing types are documented in Doxygen
-syntax from the beginning. Build documentation with:
+syntax. Build documentation with:
 
 ```sh
 cmake -S . -B build -DLIBEASYMCP2221_CPP_BUILD_DOCS=ON
