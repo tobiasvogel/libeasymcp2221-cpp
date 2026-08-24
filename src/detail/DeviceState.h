@@ -15,6 +15,8 @@ extern "C" {
 #include <libeasymcp2221/mcp2221_i2c_slave.h>
 #include <libeasymcp2221/mcp2221_smbus.h>
 #include <libeasymcp2221/mcp2221_gpio_poll.h>
+#include <libeasymcp2221/mcp2221_gpio.h>
+#include <libeasymcp2221/mcp2221_pin.h>
 }
 
 namespace libeasymcp2221 {

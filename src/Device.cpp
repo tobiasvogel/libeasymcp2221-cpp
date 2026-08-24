@@ -64,6 +64,32 @@ void validateI2cTransferBuffer(const std::uint8_t* data, std::size_t size)
     }
 }
 
+mcp2221_gpio_pin_t toNativePin(Pin pin)
+{
+    switch (pin) {
+    case Pin::GP0: return MCP2221_GPIO_PIN_GP0;
+    case Pin::GP1: return MCP2221_GPIO_PIN_GP1;
+    case Pin::GP2: return MCP2221_GPIO_PIN_GP2;
+    case Pin::GP3: return MCP2221_GPIO_PIN_GP3;
+    }
+
+    detail::throwInvalid("Unknown GPIO pin");
+}
+
+mcp2221_pin_function_t toNativePinFunction(PinFunction function)
+{
+    switch (function) {
+    case PinFunction::Dedicated: return MCP2221_PIN_FUNC_DEDICATED;
+    case PinFunction::Alt0: return MCP2221_PIN_FUNC_ALT0;
+    case PinFunction::Alt1: return MCP2221_PIN_FUNC_ALT1;
+    case PinFunction::Alt2: return MCP2221_PIN_FUNC_ALT2;
+    case PinFunction::GpioInput: return MCP2221_PIN_FUNC_GPIO_IN;
+    case PinFunction::GpioOutput: return MCP2221_PIN_FUNC_GPIO_OUT;
+    }
+
+    detail::throwInvalid("Unknown GPIO pin function");
+}
+
 } // namespace
 
 Device::Device()
@@ -326,22 +352,125 @@ void Device::releaseI2c()
 
 GpioState Device::readGpio()
 {
-    notImplemented("Device::readGpio");
+    requireOpen(state_);
+
+    int nativeState[4] = {-1, -1, -1, -1};
+    std::uint8_t validMask = 0;
+
+    {
+        std::lock_guard<std::mutex> lock(state_->mutex());
+        detail::checkError(
+            mcp2221_gpio_read_mask(
+                state_->handle(),
+                nativeState,
+                &validMask),
+            "Reading GPIO state");
+    }
+
+    GpioState state;
+    for (std::size_t i = 0; i < state.pins.size(); ++i) {
+        if ((validMask & static_cast<std::uint8_t>(1u << i)) == 0) {
+            state.pins[i] = std::nullopt;
+            continue;
+        }
+
+        if (nativeState[i] == 0) {
+            state.pins[i] = false;
+        }
+        else if (nativeState[i] == 1) {
+            state.pins[i] = true;
+        }
+        else {
+            throw Error(
+                ErrorCode::Protocol,
+                static_cast<int>(MCP2221_ERR_PROTOCOL),
+                "Reading GPIO state: invalid GPIO value returned by C library");
+        }
+    }
+
+    return state;
 }
 
-void Device::writeGpio(const GpioWrite&)
+void Device::writeGpio(const GpioWrite& values)
 {
-    notImplemented("Device::writeGpio");
+    requireOpen(state_);
+
+    mcp2221_gpio_write_t request{
+        MCP2221_GPIO_KEEP,
+        MCP2221_GPIO_KEEP,
+        MCP2221_GPIO_KEEP,
+        MCP2221_GPIO_KEEP
+    };
+
+    int* nativeValues[4] = {
+        &request.gp0,
+        &request.gp1,
+        &request.gp2,
+        &request.gp3
+    };
+
+    for (std::size_t i = 0; i < values.pins.size(); ++i) {
+        if (values.pins[i].has_value()) {
+            *nativeValues[i] = *values.pins[i] ? 1 : 0;
+        }
+    }
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_gpio_write(state_->handle(), &request),
+        "Writing GPIO state");
 }
 
-void Device::setPinFunction(Pin, PinFunction)
+void Device::setPinFunction(Pin pin, PinFunction function)
 {
-    notImplemented("Device::setPinFunction");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_pin_set_function(
+            state_->handle(),
+            toNativePin(pin),
+            toNativePinFunction(function)),
+        "Setting GPIO pin function");
 }
 
-void Device::configurePins(const PinConfigurations&)
+void Device::configurePins(const PinConfigurations& configuration)
 {
-    notImplemented("Device::configurePins");
+    requireOpen(state_);
+
+    mcp2221_pin_functions_t native{};
+    for (std::size_t i = 0; i < configuration.size(); ++i) {
+        const auto& entry = configuration[i];
+
+        if (!entry.function.has_value()) {
+            if (entry.outputValue) {
+                detail::throwInvalid(
+                    "outputValue must be false when a pin function is preserved");
+            }
+
+            native.gp[i] = MCP2221_PIN_FUNC_KEEP;
+            native.out[i] = 0;
+            continue;
+        }
+
+        native.gp[i] = toNativePinFunction(*entry.function);
+
+        if (*entry.function == PinFunction::GpioOutput) {
+            native.out[i] = entry.outputValue ? 1 : 0;
+        }
+        else {
+            if (entry.outputValue) {
+                detail::throwInvalid(
+                    "outputValue may be true only for PinFunction::GpioOutput");
+            }
+            native.out[i] = 0;
+        }
+    }
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_pin_set_functions(state_->handle(), &native),
+        "Configuring GPIO pin functions");
 }
 
 void Device::setVdd(double)

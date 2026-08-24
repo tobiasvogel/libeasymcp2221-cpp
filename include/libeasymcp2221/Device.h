@@ -124,16 +124,54 @@ public:
     /** @brief Release/reset the MCP2221 I2C engine. */
     void releaseI2c();
 
-    /** @brief Read the current logical GPIO states. */
+    /**
+     * @brief Read the current logical GPIO states.
+     *
+     * Pins that are not configured as GPIO are returned as std::nullopt.
+     *
+     * @return Logical state for GP0 through GP3.
+     * @throws Error on transport or protocol failure.
+     */
     GpioState readGpio();
 
-    /** @brief Apply a partial GPIO output update. */
+    /**
+     * @brief Apply a partial GPIO output update.
+     *
+     * Disengaged std::optional entries preserve the corresponding output.
+     *
+     * @warning The underlying MCP2221 GPIO command can partially succeed.
+     *          If ErrorCode::GpioMode is thrown, other requested GPIO pins may
+     *          already have been updated successfully.
+     *
+     * @param values Partial GP0-through-GP3 output update.
+     * @throws Error on invalid mode, protocol, or transport failure.
+     */
     void writeGpio(const GpioWrite& values);
 
-    /** @brief Configure one GP pin function. */
+    /**
+     * @brief Configure one GP pin function.
+     *
+     * GPIO outputs configured through this single-pin helper are initialized
+     * low, matching the underlying C API.
+     *
+     * @param pin GP pin to configure.
+     * @param function Requested pin function.
+     * @throws Error if the function is unsupported for the selected pin or the
+     *         device operation fails.
+     */
     void setPinFunction(Pin pin, PinFunction function);
 
-    /** @brief Apply a partial four-pin batch configuration. */
+    /**
+     * @brief Apply a partial four-pin batch configuration.
+     *
+     * Entries with a disengaged function preserve the corresponding pin.
+     * For GpioOutput entries, outputValue selects the initial output level.
+     * For every other function outputValue must be false.
+     *
+     * @param configuration GP0-through-GP3 configuration.
+     * @throws Error for unsupported pin/function combinations or device
+     *         operation failures.
+     */
     void configurePins(const PinConfigurations& configuration);
 
     /** @brief Store the externally supplied MCP2221 VDD value. */
