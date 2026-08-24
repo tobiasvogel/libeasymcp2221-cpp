@@ -17,6 +17,8 @@ extern "C" {
 #include <libeasymcp2221/mcp2221_gpio_poll.h>
 #include <libeasymcp2221/mcp2221_gpio.h>
 #include <libeasymcp2221/mcp2221_pin.h>
+#include <libeasymcp2221/mcp2221_sram.h>
+#include <libeasymcp2221/mcp2221_constants.h>
 }
 
 namespace libeasymcp2221 {

@@ -32,6 +32,26 @@ enum class PinFunction {
     GpioOutput
 };
 
+/** @brief GPIO direction selector used by SRAM configuration. */
+enum class GpioDirection {
+    Output,
+    Input
+};
+
+/**
+ * @brief SRAM-level GP function selector.
+ *
+ * SRAM stores the GPIO function selector independently from GPIO direction,
+ * therefore this type deliberately does not encode input/output direction.
+ */
+enum class SramPinFunction {
+    Gpio,
+    Dedicated,
+    Alt0,
+    Alt1,
+    Alt2
+};
+
 /** @brief I2C transfer sequencing mode. */
 enum class I2cTransfer {
     Normal,
@@ -174,33 +194,77 @@ struct PinConfiguration {
 using PinConfigurations = std::array<PinConfiguration, 4>;
 
 /**
- * @brief Low-level partial SRAM configuration for one GP pin.
+ * @brief Partial SRAM configuration for one GP pin.
  *
- * Disengaged optionals preserve the currently configured field.
+ * Every disengaged field preserves the current device value.
  */
-struct SramGpConfig {
-    std::optional<bool> value;
-    std::optional<bool> input;
-    std::optional<PinFunction> function;
+struct SramPinConfig {
+    /** @brief Optional GPIO output latch value. */
+    std::optional<bool> outputValue;
+
+    /** @brief Optional GPIO direction. */
+    std::optional<GpioDirection> direction;
+
+    /** @brief Optional SRAM pin-function selector. */
+    std::optional<SramPinFunction> function;
 };
 
-/** @brief Low-level partial SRAM interrupt-on-change configuration. */
+/**
+ * @brief Partial SRAM interrupt-on-change configuration.
+ *
+ * Every disengaged field preserves the current device value.
+ */
 struct SramInterruptConfig {
-    std::optional<bool> positiveEdge;
-    std::optional<bool> negativeEdge;
+    std::optional<bool> risingEdge;
+    std::optional<bool> fallingEdge;
     std::optional<bool> clearFlag;
+};
+
+/**
+ * @brief Partial SRAM ADC reference configuration.
+ *
+ * The value maps to the pair of native VRM/reference-source fields.
+ */
+struct SramAdcConfig {
+    std::optional<VoltageReference> reference;
+};
+
+/**
+ * @brief Partial SRAM DAC configuration.
+ *
+ * The reference maps to the native VRM/reference-source fields. @ref value is
+ * the raw 5-bit DAC output code from 0 through 31.
+ */
+struct SramDacConfig {
+    std::optional<VoltageReference> reference;
+    std::optional<std::uint8_t> value;
+};
+
+/**
+ * @brief Partial SRAM clock-output configuration.
+ *
+ * Frequency and duty cycle are independently optional so either field can be
+ * changed without disturbing the other.
+ */
+struct SramClockConfig {
+    std::optional<ClockFrequency> frequency;
+    std::optional<ClockDutyCycle> dutyCycle;
 };
 
 /**
  * @brief Aggregated runtime SRAM configuration.
  *
- * This initial scaffold intentionally models only the fields already covered
- * by stable high-level C++ types. Analog/DAC/clock sub-settings can be added
- * without exposing raw C selector values.
+ * A default-constructed object changes nothing. Every disengaged
+ * std::optional preserves the corresponding current SRAM field.
+ *
+ * @note Applying this type changes runtime SRAM only. It does not write flash.
  */
 struct SramConfig {
-    std::array<SramGpConfig, 4> gpio{};
+    std::array<SramPinConfig, 4> gpio{};
     SramInterruptConfig interrupt{};
+    SramAdcConfig adc{};
+    SramDacConfig dac{};
+    SramClockConfig clock{};
 };
 
 /** @brief Raw persistent chip and GP flash settings. */

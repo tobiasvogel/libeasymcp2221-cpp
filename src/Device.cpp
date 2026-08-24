@@ -90,6 +90,116 @@ mcp2221_pin_function_t toNativePinFunction(PinFunction function)
     detail::throwInvalid("Unknown GPIO pin function");
 }
 
+int toNativeSramDirection(GpioDirection direction)
+{
+    switch (direction) {
+    case GpioDirection::Output: return MCP2221_DIR_OUTPUT;
+    case GpioDirection::Input: return MCP2221_DIR_INPUT;
+    }
+
+    detail::throwInvalid("Unknown GPIO direction");
+}
+
+int toNativeSramPinFunction(SramPinFunction function)
+{
+    switch (function) {
+    case SramPinFunction::Gpio: return MCP2221_GPIO_FUNC_GPIO;
+    case SramPinFunction::Dedicated: return MCP2221_GPIO_FUNC_DEDICATED;
+    case SramPinFunction::Alt0: return MCP2221_GPIO_FUNC_ALT_0;
+    case SramPinFunction::Alt1: return MCP2221_GPIO_FUNC_ALT_1;
+    case SramPinFunction::Alt2: return MCP2221_GPIO_FUNC_ALT_2;
+    }
+
+    detail::throwInvalid("Unknown SRAM pin function");
+}
+
+void applyAdcReference(
+    VoltageReference reference,
+    mcp2221_sram_adc_config_t& native)
+{
+    switch (reference) {
+    case VoltageReference::Off:
+        native.vrm = MCP2221_ADC_VRM_OFF;
+        native.ref_src = MCP2221_ADC_REF_VRM;
+        return;
+    case VoltageReference::Vdd:
+        native.vrm = MCP2221_CONFIG_KEEP;
+        native.ref_src = MCP2221_ADC_REF_VDD;
+        return;
+    case VoltageReference::Internal1V024:
+        native.vrm = MCP2221_ADC_VRM_1024;
+        native.ref_src = MCP2221_ADC_REF_VRM;
+        return;
+    case VoltageReference::Internal2V048:
+        native.vrm = MCP2221_ADC_VRM_2048;
+        native.ref_src = MCP2221_ADC_REF_VRM;
+        return;
+    case VoltageReference::Internal4V096:
+        native.vrm = MCP2221_ADC_VRM_4096;
+        native.ref_src = MCP2221_ADC_REF_VRM;
+        return;
+    }
+
+    detail::throwInvalid("Unknown ADC voltage reference");
+}
+
+void applyDacReference(
+    VoltageReference reference,
+    mcp2221_sram_dac_ref_config_t& native)
+{
+    switch (reference) {
+    case VoltageReference::Off:
+        native.vrm = MCP2221_DAC_VRM_OFF;
+        native.ref_src = MCP2221_DAC_REF_VRM;
+        return;
+    case VoltageReference::Vdd:
+        native.vrm = MCP2221_CONFIG_KEEP;
+        native.ref_src = MCP2221_DAC_REF_VDD;
+        return;
+    case VoltageReference::Internal1V024:
+        native.vrm = MCP2221_DAC_VRM_1024;
+        native.ref_src = MCP2221_DAC_REF_VRM;
+        return;
+    case VoltageReference::Internal2V048:
+        native.vrm = MCP2221_DAC_VRM_2048;
+        native.ref_src = MCP2221_DAC_REF_VRM;
+        return;
+    case VoltageReference::Internal4V096:
+        native.vrm = MCP2221_DAC_VRM_4096;
+        native.ref_src = MCP2221_DAC_REF_VRM;
+        return;
+    }
+
+    detail::throwInvalid("Unknown DAC voltage reference");
+}
+
+int toNativeClockFrequency(ClockFrequency frequency)
+{
+    switch (frequency) {
+    case ClockFrequency::KHz375: return MCP2221_CLK_FREQ_375kHz;
+    case ClockFrequency::KHz750: return MCP2221_CLK_FREQ_750kHz;
+    case ClockFrequency::MHz1_5: return MCP2221_CLK_FREQ_1_5MHz;
+    case ClockFrequency::MHz3: return MCP2221_CLK_FREQ_3MHz;
+    case ClockFrequency::MHz6: return MCP2221_CLK_FREQ_6MHz;
+    case ClockFrequency::MHz12: return MCP2221_CLK_FREQ_12MHz;
+    case ClockFrequency::MHz24: return MCP2221_CLK_FREQ_24MHz;
+    }
+
+    detail::throwInvalid("Unknown clock frequency");
+}
+
+int toNativeClockDuty(ClockDutyCycle duty)
+{
+    switch (duty) {
+    case ClockDutyCycle::Percent0: return MCP2221_CLK_DUTY_0;
+    case ClockDutyCycle::Percent25: return MCP2221_CLK_DUTY_25;
+    case ClockDutyCycle::Percent50: return MCP2221_CLK_DUTY_50;
+    case ClockDutyCycle::Percent75: return MCP2221_CLK_DUTY_75;
+    }
+
+    detail::throwInvalid("Unknown clock duty cycle");
+}
+
 } // namespace
 
 Device::Device()
@@ -548,9 +658,80 @@ void Device::configureInterrupt(InterruptEdge)
     notImplemented("Device::configureInterrupt");
 }
 
-void Device::configureSram(const SramConfig&)
+void Device::configureSram(const SramConfig& configuration)
 {
-    notImplemented("Device::configureSram");
+    requireOpen(state_);
+
+    mcp2221_sram_config_t native{};
+
+    for (std::size_t i = 0; i < configuration.gpio.size(); ++i) {
+        const auto& pin = configuration.gpio[i];
+
+        native.gp[i].value =
+            pin.outputValue.has_value()
+                ? (*pin.outputValue ? 1 : 0)
+                : MCP2221_CONFIG_KEEP;
+
+        native.gp[i].direction =
+            pin.direction.has_value()
+                ? toNativeSramDirection(*pin.direction)
+                : MCP2221_CONFIG_KEEP;
+
+        native.gp[i].function =
+            pin.function.has_value()
+                ? toNativeSramPinFunction(*pin.function)
+                : MCP2221_CONFIG_KEEP;
+    }
+
+    native.int_cfg.pos_edge =
+        configuration.interrupt.risingEdge.has_value()
+            ? (*configuration.interrupt.risingEdge ? 1 : 0)
+            : MCP2221_CONFIG_KEEP;
+
+    native.int_cfg.neg_edge =
+        configuration.interrupt.fallingEdge.has_value()
+            ? (*configuration.interrupt.fallingEdge ? 1 : 0)
+            : MCP2221_CONFIG_KEEP;
+
+    native.int_cfg.clear_flag =
+        configuration.interrupt.clearFlag.has_value()
+            ? (*configuration.interrupt.clearFlag ? 1 : 0)
+            : MCP2221_CONFIG_KEEP;
+
+    native.adc_cfg.vrm = MCP2221_CONFIG_KEEP;
+    native.adc_cfg.ref_src = MCP2221_CONFIG_KEEP;
+    if (configuration.adc.reference.has_value()) {
+        applyAdcReference(*configuration.adc.reference, native.adc_cfg);
+    }
+
+    native.dac_ref.vrm = MCP2221_CONFIG_KEEP;
+    native.dac_ref.ref_src = MCP2221_CONFIG_KEEP;
+    if (configuration.dac.reference.has_value()) {
+        applyDacReference(*configuration.dac.reference, native.dac_ref);
+    }
+
+    native.dac_val.value = MCP2221_CONFIG_KEEP;
+    if (configuration.dac.value.has_value()) {
+        if (*configuration.dac.value > 31) {
+            detail::throwInvalid("DAC SRAM value must be from 0 through 31");
+        }
+        native.dac_val.value = *configuration.dac.value;
+    }
+
+    native.clk_cfg.div =
+        configuration.clock.frequency.has_value()
+            ? toNativeClockFrequency(*configuration.clock.frequency)
+            : MCP2221_CONFIG_KEEP;
+
+    native.clk_cfg.duty =
+        configuration.clock.dutyCycle.has_value()
+            ? toNativeClockDuty(*configuration.clock.dutyCycle)
+            : MCP2221_CONFIG_KEEP;
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_sram_config(state_->handle(), &native),
+        "Configuring runtime SRAM");
 }
 
 FlashData Device::readFlash(FlashSection)

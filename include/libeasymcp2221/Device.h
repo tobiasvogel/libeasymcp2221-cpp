@@ -219,7 +219,20 @@ public:
     /** @brief Configure interrupt-on-change edge detection. */
     void configureInterrupt(InterruptEdge edge);
 
-    /** @brief Apply a low-level partial runtime SRAM configuration. */
+    /**
+     * @brief Apply a strongly typed partial runtime SRAM configuration.
+     *
+     * Every disengaged std::optional in @p configuration preserves the current
+     * device field. The C++ value types are translated to the native
+     * mcp2221_sram_config_t representation and the C library remains
+     * responsible for device-specific merge/validation behavior.
+     *
+     * @param configuration Partial GPIO, IOC, ADC, DAC, and clock settings.
+     * @throws Error on invalid values, unsupported pin/function combinations,
+     *         transport failures, or protocol failures.
+     *
+     * @note This method changes runtime SRAM only; it does not write flash.
+     */
     void configureSram(const SramConfig& configuration);
 
     /** @brief Read one raw persistent flash section. */
