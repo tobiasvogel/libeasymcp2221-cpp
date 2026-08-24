@@ -19,6 +19,7 @@ extern "C" {
 #include <libeasymcp2221/mcp2221_pin.h>
 #include <libeasymcp2221/mcp2221_sram.h>
 #include <libeasymcp2221/mcp2221_constants.h>
+#include <libeasymcp2221/mcp2221_analog.h>
 }
 
 namespace libeasymcp2221 {

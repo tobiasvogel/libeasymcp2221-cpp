@@ -174,13 +174,29 @@ public:
      */
     void configurePins(const PinConfigurations& configuration);
 
-    /** @brief Store the externally supplied MCP2221 VDD value. */
+    /**
+     * @brief Store the externally supplied MCP2221 VDD value.
+     *
+     * The value is retained by the C device context and is used for ADC/DAC
+     * voltage conversions whenever VDD is the selected reference.
+     *
+     * @param volts Supply voltage in volts.
+     * @throws Error if the value is outside the supported range.
+     */
     void setVdd(double volts);
 
-    /** @brief Return the currently stored MCP2221 VDD value. */
+    /**
+     * @brief Return the currently stored MCP2221 VDD value.
+     * @return Previously configured supply voltage.
+     * @throws Error if no VDD value has been configured.
+     */
     double vdd() const;
 
-    /** @brief Configure the ADC voltage reference. */
+    /**
+     * @brief Configure the ADC voltage reference.
+     * @param reference Strongly typed ADC reference selection.
+     * @throws Error on invalid configuration or device failure.
+     */
     void configureAdc(VoltageReference reference);
 
     /** @brief Read the three ADC channels as raw 10-bit values. */
@@ -192,10 +208,19 @@ public:
     /** @brief Read the three ADC channels as voltages. */
     std::array<double, 3> readAdcVolts();
 
-    /** @brief Configure the DAC voltage reference. */
+    /**
+     * @brief Configure the DAC voltage reference while preserving output code.
+     *
+     * The underlying C helper retains the EasyMCP2221 workaround for MCP2221
+     * reference-transition quirks.
+     */
     void configureDac(VoltageReference reference);
 
-    /** @brief Configure the DAC reference and output code. */
+    /**
+     * @brief Configure the DAC reference and raw 5-bit output code.
+     * @param reference Strongly typed DAC reference selection.
+     * @param outputCode Raw DAC code from 0 through 31.
+     */
     void configureDac(VoltageReference reference, std::uint8_t outputCode);
 
     /** @brief Write a raw 5-bit DAC code. */
@@ -207,7 +232,11 @@ public:
     /** @brief Write a DAC output voltage. */
     void writeDacVolts(double volts);
 
-    /** @brief Configure the MCP2221 clock output. */
+    /**
+     * @brief Configure the MCP2221 clock output.
+     * @param duty Clock duty-cycle selection.
+     * @param frequency Clock-output frequency selection.
+     */
     void configureClock(ClockDutyCycle duty, ClockFrequency frequency);
 
     /** @brief Read the interrupt-on-change flag. */
@@ -216,7 +245,10 @@ public:
     /** @brief Clear the interrupt-on-change flag. */
     void clearInterruptFlag();
 
-    /** @brief Configure interrupt-on-change edge detection. */
+    /**
+     * @brief Configure interrupt-on-change edge detection.
+     * @param edge Edge-detection mode.
+     */
     void configureInterrupt(InterruptEdge edge);
 
     /**

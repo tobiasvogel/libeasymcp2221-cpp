@@ -200,6 +200,58 @@ int toNativeClockDuty(ClockDutyCycle duty)
     detail::throwInvalid("Unknown clock duty cycle");
 }
 
+const char* toReferenceString(VoltageReference reference)
+{
+    switch (reference) {
+    case VoltageReference::Off: return "OFF";
+    case VoltageReference::Vdd: return "VDD";
+    case VoltageReference::Internal1V024: return "1.024V";
+    case VoltageReference::Internal2V048: return "2.048V";
+    case VoltageReference::Internal4V096: return "4.096V";
+    }
+
+    detail::throwInvalid("Unknown voltage reference");
+}
+
+const char* toClockFrequencyString(ClockFrequency frequency)
+{
+    switch (frequency) {
+    case ClockFrequency::KHz375: return "375kHz";
+    case ClockFrequency::KHz750: return "750kHz";
+    case ClockFrequency::MHz1_5: return "1.5MHz";
+    case ClockFrequency::MHz3: return "3MHz";
+    case ClockFrequency::MHz6: return "6MHz";
+    case ClockFrequency::MHz12: return "12MHz";
+    case ClockFrequency::MHz24: return "24MHz";
+    }
+
+    detail::throwInvalid("Unknown clock frequency");
+}
+
+int toDutyPercent(ClockDutyCycle duty)
+{
+    switch (duty) {
+    case ClockDutyCycle::Percent0: return 0;
+    case ClockDutyCycle::Percent25: return 25;
+    case ClockDutyCycle::Percent50: return 50;
+    case ClockDutyCycle::Percent75: return 75;
+    }
+
+    detail::throwInvalid("Unknown clock duty cycle");
+}
+
+const char* toInterruptEdgeString(InterruptEdge edge)
+{
+    switch (edge) {
+    case InterruptEdge::None: return "none";
+    case InterruptEdge::Rising: return "rising";
+    case InterruptEdge::Falling: return "falling";
+    case InterruptEdge::Both: return "both";
+    }
+
+    detail::throwInvalid("Unknown interrupt edge selection");
+}
+
 } // namespace
 
 Device::Device()
@@ -583,79 +635,193 @@ void Device::configurePins(const PinConfigurations& configuration)
         "Configuring GPIO pin functions");
 }
 
-void Device::setVdd(double)
+void Device::setVdd(double volts)
 {
-    notImplemented("Device::setVdd");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_analog_set_vdd(state_->handle(), volts),
+        "Setting VDD");
 }
 
 double Device::vdd() const
 {
-    notImplemented("Device::vdd");
+    requireOpen(state_);
+
+    double volts = 0.0;
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_analog_get_vdd(state_->handle(), &volts),
+        "Reading VDD");
+
+    return volts;
 }
 
-void Device::configureAdc(VoltageReference)
+void Device::configureAdc(VoltageReference reference)
 {
-    notImplemented("Device::configureAdc");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_adc_config(
+            state_->handle(),
+            toReferenceString(reference)),
+        "Configuring ADC reference");
 }
 
 std::array<std::uint16_t, 3> Device::readAdcRaw()
 {
-    notImplemented("Device::readAdcRaw");
+    requireOpen(state_);
+
+    std::array<std::uint16_t, 3> values{};
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_adc_read_raw(state_->handle(), values.data()),
+        "Reading raw ADC values");
+
+    return values;
 }
 
 std::array<double, 3> Device::readAdcNormalized()
 {
-    notImplemented("Device::readAdcNormalized");
+    requireOpen(state_);
+
+    std::array<double, 3> values{};
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_adc_read_normalized(state_->handle(), values.data()),
+        "Reading normalized ADC values");
+
+    return values;
 }
 
 std::array<double, 3> Device::readAdcVolts()
 {
-    notImplemented("Device::readAdcVolts");
+    requireOpen(state_);
+
+    std::array<double, 3> values{};
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_adc_read_volts(state_->handle(), values.data()),
+        "Reading ADC voltages");
+
+    return values;
 }
 
-void Device::configureDac(VoltageReference)
+void Device::configureDac(VoltageReference reference)
 {
-    notImplemented("Device::configureDac");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_dac_config(
+            state_->handle(),
+            toReferenceString(reference)),
+        "Configuring DAC reference");
 }
 
-void Device::configureDac(VoltageReference, std::uint8_t)
+void Device::configureDac(
+    VoltageReference reference,
+    std::uint8_t outputCode)
 {
-    notImplemented("Device::configureDac");
+    requireOpen(state_);
+
+    if (outputCode > 31) {
+        detail::throwInvalid("DAC output code must be from 0 through 31");
+    }
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_dac_config_out(
+            state_->handle(),
+            toReferenceString(reference),
+            outputCode),
+        "Configuring DAC reference and output");
 }
 
-void Device::writeDacRaw(std::uint8_t)
+void Device::writeDacRaw(std::uint8_t code)
 {
-    notImplemented("Device::writeDacRaw");
+    requireOpen(state_);
+
+    if (code > 31) {
+        detail::throwInvalid("DAC output code must be from 0 through 31");
+    }
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_dac_write_raw(state_->handle(), code),
+        "Writing raw DAC output");
 }
 
-void Device::writeDacNormalized(double)
+void Device::writeDacNormalized(double value)
 {
-    notImplemented("Device::writeDacNormalized");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_dac_write_normalized(state_->handle(), value),
+        "Writing normalized DAC output");
 }
 
-void Device::writeDacVolts(double)
+void Device::writeDacVolts(double volts)
 {
-    notImplemented("Device::writeDacVolts");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_dac_write_volts(state_->handle(), volts),
+        "Writing DAC voltage");
 }
 
-void Device::configureClock(ClockDutyCycle, ClockFrequency)
+void Device::configureClock(
+    ClockDutyCycle duty,
+    ClockFrequency frequency)
 {
-    notImplemented("Device::configureClock");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_clock_config(
+            state_->handle(),
+            toDutyPercent(duty),
+            toClockFrequencyString(frequency)),
+        "Configuring clock output");
 }
 
 bool Device::interruptFlag()
 {
-    notImplemented("Device::interruptFlag");
+    requireOpen(state_);
+
+    std::uint8_t flag = 0;
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_ioc_read(state_->handle(), &flag),
+        "Reading interrupt-on-change flag");
+
+    return flag != 0;
 }
 
 void Device::clearInterruptFlag()
 {
-    notImplemented("Device::clearInterruptFlag");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_ioc_clear(state_->handle()),
+        "Clearing interrupt-on-change flag");
 }
 
-void Device::configureInterrupt(InterruptEdge)
+void Device::configureInterrupt(InterruptEdge edge)
 {
-    notImplemented("Device::configureInterrupt");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_ioc_config(
+            state_->handle(),
+            toInterruptEdgeString(edge)),
+        "Configuring interrupt-on-change");
 }
 
 void Device::configureSram(const SramConfig& configuration)
