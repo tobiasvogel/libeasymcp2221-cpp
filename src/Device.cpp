@@ -6,6 +6,7 @@
 #include "libeasymcp2221/Device.h"
 
 #include <stdexcept>
+#include <string>
 #include <utility>
 
 #include "libeasymcp2221/GpioPoller.h"
@@ -23,6 +24,46 @@ namespace {
     throw std::logic_error(std::string(operation) + " is not implemented yet");
 }
 
+void requireOpen(const std::shared_ptr<detail::DeviceState>& state)
+{
+    if (!state) {
+        throw std::logic_error("Device is closed");
+    }
+}
+
+mcp2221_i2c_kind_t toNativeTransfer(I2cTransfer transfer, bool writing)
+{
+    switch (transfer) {
+    case I2cTransfer::Normal:
+        return MCP2221_I2C_KIND_NORMAL;
+    case I2cTransfer::RepeatedStart:
+        return MCP2221_I2C_KIND_REPEATED_START;
+    case I2cTransfer::NoStop:
+        if (writing) {
+            return MCP2221_I2C_KIND_NO_STOP;
+        }
+        detail::throwInvalid("I2cTransfer::NoStop is valid only for I2C writes");
+    }
+    detail::throwInvalid("Unknown I2C transfer kind");
+}
+
+void validateI2cAddress(std::uint8_t address)
+{
+    if (address > constants::MaxI2cAddress) {
+        detail::throwInvalid("I2C address must be a 7-bit address");
+    }
+}
+
+void validateI2cTransferBuffer(const std::uint8_t* data, std::size_t size)
+{
+    if (data == nullptr) {
+        detail::throwInvalid("I2C data pointer must not be null");
+    }
+    if (size == 0 || size > constants::MaxI2cTransfer) {
+        detail::throwInvalid("I2C transfer size must be from 1 through 65535 bytes");
+    }
+}
+
 } // namespace
 
 Device::Device()
@@ -32,33 +73,39 @@ Device::Device()
 
 Device::Device(const DeviceOptions& options)
 {
-    mcp2221_t* handle = nullptr;
+    if (options.i2cSpeedHz == 0 ||
+        options.i2cSpeedHz > constants::MaxI2cSpeedHz) {
+        detail::throwInvalid("Initial I2C speed must be from 1 through 400000 Hz");
+    }
 
+    mcp2221_t* handle = nullptr;
     const char* serial =
         options.usbSerial.empty() ? nullptr : options.usbSerial.c_str();
 
-    const auto result = mcp2221_open_simple_scan(
-        options.vendorId,
-        options.productId,
-        options.deviceIndex,
-        serial,
-        static_cast<int>(options.i2cSpeedHz),
-        options.scanFlashSerial ? 1 : 0,
-        &handle);
+    detail::checkError(
+        mcp2221_open_scan(
+            options.vendorId,
+            options.productId,
+            options.deviceIndex,
+            serial,
+            options.usbReadTimeoutMs,
+            options.commandRetries,
+            options.debugMessages ? 1 : 0,
+            options.tracePackets ? 1 : 0,
+            options.scanFlashSerial ? 1 : 0,
+            &handle),
+        "Opening MCP2221");
 
-    detail::checkError(result);
-    state_ = std::make_shared<detail::DeviceState>(handle);
+    auto state = std::make_shared<detail::DeviceState>(handle);
 
-    /*
-     * TODO: Decide whether non-simple transport options
-     * (usbReadTimeoutMs, commandRetries, debugMessages, tracePackets)
-     * should cause this constructor to use mcp2221_open_scan() followed by
-     * explicit I2C initialization instead of mcp2221_open_simple_scan().
-     */
-    (void)options.usbReadTimeoutMs;
-    (void)options.commandRetries;
-    (void)options.debugMessages;
-    (void)options.tracePackets;
+    {
+        std::lock_guard<std::mutex> lock(state->mutex());
+        detail::checkError(
+            mcp2221_i2c_set_speed(state->handle(), options.i2cSpeedHz),
+            "Setting initial I2C speed");
+    }
+
+    state_ = std::move(state);
 }
 
 Device::~Device() noexcept = default;
@@ -82,8 +129,15 @@ I2cDevice Device::i2cDevice(
     std::uint8_t address,
     const I2cDeviceOptions& options)
 {
-    if (!state_) {
-        throw std::logic_error("Device is closed");
+    requireOpen(state_);
+    validateI2cAddress(address);
+
+    if (options.speedHz == 0 ||
+        options.speedHz > constants::MaxI2cSpeedHz) {
+        detail::throwInvalid("I2C target speed must be from 1 through 400000 Hz");
+    }
+    if (options.registerBytes < 1 || options.registerBytes > 4) {
+        detail::throwInvalid("I2C target register width must be from 1 through 4 bytes");
     }
 
     auto child = std::make_shared<detail::I2cDeviceState>();
@@ -96,14 +150,16 @@ I2cDevice Device::i2cDevice(
             ? MCP2221_I2C_BYTE_ORDER_LITTLE
             : MCP2221_I2C_BYTE_ORDER_BIG;
 
-    detail::checkError(mcp2221_i2c_slave_init(
-        &child->slave,
-        state_->handle(),
-        address,
-        options.force ? 1 : 0,
-        options.speedHz,
-        options.registerBytes,
-        order));
+    detail::checkError(
+        mcp2221_i2c_slave_init(
+            &child->slave,
+            state_->handle(),
+            address,
+            options.force ? 1 : 0,
+            options.speedHz,
+            options.registerBytes,
+            order),
+        "Initializing I2C target");
 
     return I2cDevice(std::move(child));
 }
@@ -145,18 +201,37 @@ GpioPoller Device::gpioPoller()
     return GpioPoller(std::move(child));
 }
 
-void Device::setI2cSpeed(std::uint32_t)
+void Device::setI2cSpeed(std::uint32_t hz)
 {
-    notImplemented("Device::setI2cSpeed");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_i2c_set_speed(state_->handle(), hz),
+        "Setting I2C speed");
 }
 
 void Device::i2cWrite(
-    std::uint8_t,
-    const std::uint8_t*,
-    std::size_t,
-    I2cTransfer)
+    std::uint8_t address,
+    const std::uint8_t* data,
+    std::size_t size,
+    I2cTransfer transfer)
 {
-    notImplemented("Device::i2cWrite");
+    requireOpen(state_);
+    validateI2cAddress(address);
+    validateI2cTransferBuffer(data, size);
+
+    const auto nativeTransfer = toNativeTransfer(transfer, true);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_i2c_write_simple(
+            state_->handle(),
+            address,
+            data,
+            size,
+            nativeTransfer),
+        "Writing I2C data");
 }
 
 void Device::i2cWrite(
@@ -168,21 +243,66 @@ void Device::i2cWrite(
 }
 
 std::vector<std::uint8_t> Device::i2cRead(
-    std::uint8_t,
-    std::size_t,
-    I2cTransfer)
+    std::uint8_t address,
+    std::size_t size,
+    I2cTransfer transfer)
 {
-    notImplemented("Device::i2cRead");
+    requireOpen(state_);
+    validateI2cAddress(address);
+
+    if (size == 0 || size > constants::MaxI2cTransfer) {
+        detail::throwInvalid("I2C read size must be from 1 through 65535 bytes");
+    }
+
+    const auto nativeTransfer = toNativeTransfer(transfer, false);
+    std::vector<std::uint8_t> data(size);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_i2c_read_simple(
+            state_->handle(),
+            address,
+            data.data(),
+            data.size(),
+            nativeTransfer),
+        "Reading I2C data");
+
+    return data;
 }
 
 I2cStatus Device::i2cStatus()
 {
-    notImplemented("Device::i2cStatus");
+    requireOpen(state_);
+
+    mcp2221_i2c_status_t native{};
+    {
+        std::lock_guard<std::mutex> lock(state_->mutex());
+        detail::checkError(
+            mcp2221_i2c_status(state_->handle(), &native),
+            "Reading I2C status");
+    }
+
+    I2cStatus status;
+    status.requestedLength = native.rlen;
+    status.transmittedLength = native.txlen;
+    status.divider = native.div;
+    status.acknowledged = native.ack != 0;
+    status.state = native.st;
+    status.scl = native.scl != 0;
+    status.sda = native.sda != 0;
+    status.confused = native.confused != 0;
+    status.initialized = native.initialized != 0;
+    return status;
 }
 
 void Device::releaseI2c()
 {
-    notImplemented("Device::releaseI2c");
+    requireOpen(state_);
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_i2c_release(state_->handle()),
+        "Releasing I2C engine");
 }
 
 GpioState Device::readGpio()
@@ -346,10 +466,26 @@ unsigned Device::usbRequestedCurrent()
 }
 
 std::array<std::uint8_t, 64> Device::rawCommand(
-    const std::uint8_t*,
-    std::size_t)
+    const std::uint8_t* command,
+    std::size_t size)
 {
-    notImplemented("Device::rawCommand");
+    requireOpen(state_);
+
+    if (command == nullptr) {
+        detail::throwInvalid("Raw command pointer must not be null");
+    }
+    if (size == 0 || size > constants::PacketSize) {
+        detail::throwInvalid("Raw command size must be from 1 through 64 bytes");
+    }
+
+    std::array<std::uint8_t, 64> response{};
+
+    std::lock_guard<std::mutex> lock(state_->mutex());
+    detail::checkError(
+        mcp2221_send_cmd(state_->handle(), command, size, response.data()),
+        "Sending raw MCP2221 command");
+
+    return response;
 }
 
 } // namespace libeasymcp2221

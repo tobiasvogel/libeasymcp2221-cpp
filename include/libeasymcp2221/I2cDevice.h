@@ -78,6 +78,22 @@ public:
         const std::uint8_t* data,
         std::size_t size);
 
+    /**
+     * @brief Write bytes beginning at a register with an explicit layout.
+     * @param reg Register address.
+     * @param data Payload pointer, or nullptr when size is zero.
+     * @param size Number of payload bytes.
+     * @param registerBytes Register-address width from 1 through 4.
+     * @param byteOrder Register-address byte order.
+     * @throws Error on validation or transfer failure.
+     */
+    void writeRegister(
+        std::uint32_t reg,
+        const std::uint8_t* data,
+        std::size_t size,
+        int registerBytes,
+        ByteOrder byteOrder);
+
     /** @brief Convenience overload for std::vector payloads. */
     void writeRegister(
         std::uint32_t reg,

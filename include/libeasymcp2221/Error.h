@@ -48,7 +48,7 @@ public:
      * @param code Typed error code.
      * @param message Human-readable diagnostic message.
      */
-    Error(ErrorCode code, const std::string& message);
+    Error(ErrorCode code, int nativeCode, const std::string& message);
 
     /**
      * @brief Return the associated typed error code.
@@ -56,8 +56,15 @@ public:
      */
     ErrorCode code() const noexcept;
 
+    /**
+     * @brief Return the original integer error code from the C library.
+     * @return Native mcp2221_error_code_t value converted to int.
+     */
+    int nativeCode() const noexcept;
+
 private:
     ErrorCode code_;
+    int nativeCode_;
 };
 
 } // namespace libeasymcp2221

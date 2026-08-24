@@ -5,6 +5,8 @@
 
 #include "libeasymcp2221/Error.h"
 
+#include <string>
+
 extern "C" {
 #include <libeasymcp2221/mcp2221_errors.h>
 }
@@ -13,15 +15,21 @@ extern "C" {
 
 namespace libeasymcp2221 {
 
-Error::Error(ErrorCode code, const std::string& message)
+Error::Error(ErrorCode code, int nativeCode, const std::string& message)
     : std::runtime_error(message),
-      code_(code)
+      code_(code),
+      nativeCode_(nativeCode)
 {
 }
 
 ErrorCode Error::code() const noexcept
 {
     return code_;
+}
+
+int Error::nativeCode() const noexcept
+{
+    return nativeCode_;
 }
 
 namespace detail {
@@ -58,13 +66,28 @@ ErrorCode toErrorCode(mcp2221_error_code_t code)
     }
 }
 
-void checkError(mcp2221_error_code_t code)
+void checkError(mcp2221_error_code_t code, const char* operation)
 {
     if (code == MCP2221_ERR_OK) {
         return;
     }
 
-    throw Error(toErrorCode(code), mcp2221_error_code_to_string(code));
+    std::string message;
+    if (operation != nullptr && operation[0] != '\0') {
+        message += operation;
+        message += ": ";
+    }
+    message += mcp2221_error_code_to_string(code);
+
+    throw Error(toErrorCode(code), static_cast<int>(code), message);
+}
+
+[[noreturn]] void throwInvalid(const char* message)
+{
+    throw Error(
+        ErrorCode::Invalid,
+        static_cast<int>(MCP2221_ERR_INVALID),
+        message != nullptr ? message : "Invalid argument");
 }
 
 } // namespace detail
