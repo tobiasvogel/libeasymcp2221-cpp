@@ -35,12 +35,24 @@ public:
 
     ~GpioPoller();
 
-    /** @brief Poll GP0 through GP3 and report state changes. */
+    /**
+     * @brief Poll GP0 through GP3 and report state changes.
+     *
+     * The first successful poll establishes the initial snapshot and reports
+     * changed == false for every pin. A disengaged oldValue or newValue means
+     * that the pin was not configured as GPIO at that sample.
+     */
     std::array<GpioChange, 4> poll();
 
     /**
      * @brief Poll and return filtered edge events.
+     *
+     * The first successful poll establishes the initial snapshot and therefore
+     * returns no events. Excess matching events beyond @p maxEvents are
+     * discarded by the underlying stateful C poller.
+     *
      * @param maxEvents Maximum number of events to return.
+     * @note Event timestamps use wall-clock time.
      */
     std::vector<GpioEvent> pollEvents(std::size_t maxEvents = 4);
 
