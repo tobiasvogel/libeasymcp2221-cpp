@@ -1,6 +1,26 @@
-add_executable(libeasymcp2221_cpp_basic basic.cpp)
+function(libeasymcp2221_cpp_add_example name)
+    add_executable(
+        "libeasymcp2221_cpp_${name}"
+        "${name}.cpp"
+    )
 
-target_link_libraries(libeasymcp2221_cpp_basic
-    PRIVATE
-        ${LIBEASYMCP2221_CPP_EXAMPLE_LINK_TARGET}
-)
+    target_compile_features(
+        "libeasymcp2221_cpp_${name}"
+        PRIVATE
+            cxx_std_17
+    )
+
+    target_link_libraries(
+        "libeasymcp2221_cpp_${name}"
+        PRIVATE
+            ${LIBEASYMCP2221_CPP_EXAMPLE_LINK_TARGET}
+    )
+endfunction()
+
+libeasymcp2221_cpp_add_example(basic)
+libeasymcp2221_cpp_add_example(i2c_device)
+libeasymcp2221_cpp_add_example(smbus_device)
+libeasymcp2221_cpp_add_example(gpio)
+libeasymcp2221_cpp_add_example(analog)
+libeasymcp2221_cpp_add_example(sram)
+libeasymcp2221_cpp_add_example(flash_usb)
