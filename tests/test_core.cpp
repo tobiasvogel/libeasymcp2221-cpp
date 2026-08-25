@@ -11,6 +11,7 @@
 
 extern "C" {
 #include <libeasymcp2221/mcp2221_gpio.h>
+#include <libeasymcp2221/mcp2221_gpio_poll.h>
 }
 
 #include "MockControl.h"
