@@ -3,7 +3,7 @@
  * @brief Error and C error-code translation implementation.
  */
 
-#include "libeasymcp2221/Error.h"
+#include "libeasymcp2221++/Error.h"
 
 #include <string>
 

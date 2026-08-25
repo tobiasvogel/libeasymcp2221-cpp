@@ -6,7 +6,7 @@
 #ifndef LIBEASYMCP2221_CPP_DETAIL_CHECK_ERROR_H
 #define LIBEASYMCP2221_CPP_DETAIL_CHECK_ERROR_H
 
-#include "libeasymcp2221/Error.h"
+#include "libeasymcp2221++/Error.h"
 
 extern "C" {
 #include <libeasymcp2221/mcp2221_error_codes.h>

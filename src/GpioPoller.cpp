@@ -3,7 +3,7 @@
  * @brief GpioPoller implementation.
  */
 
-#include "libeasymcp2221/GpioPoller.h"
+#include "libeasymcp2221++/GpioPoller.h"
 
 #include <array>
 #include <limits>

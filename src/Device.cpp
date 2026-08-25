@@ -3,7 +3,7 @@
  * @brief Device implementation and initial API stubs.
  */
 
-#include "libeasymcp2221/Device.h"
+#include "libeasymcp2221++/Device.h"
 
 #include <algorithm>
 #include <iterator>
@@ -11,9 +11,9 @@
 #include <string>
 #include <utility>
 
-#include "libeasymcp2221/GpioPoller.h"
-#include "libeasymcp2221/I2cDevice.h"
-#include "libeasymcp2221/SmbusDevice.h"
+#include "libeasymcp2221++/GpioPoller.h"
+#include "libeasymcp2221++/I2cDevice.h"
+#include "libeasymcp2221++/SmbusDevice.h"
 #include "detail/CheckError.h"
 #include "detail/DeviceState.h"
 

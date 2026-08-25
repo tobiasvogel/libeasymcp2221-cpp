@@ -3,7 +3,7 @@
  * @brief I2cDevice implementation.
  */
 
-#include "libeasymcp2221/I2cDevice.h"
+#include "libeasymcp2221++/I2cDevice.h"
 
 #include <stdexcept>
 #include <utility>

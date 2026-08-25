@@ -3,7 +3,7 @@
  * @brief SmbusDevice implementation.
  */
 
-#include "libeasymcp2221/SmbusDevice.h"
+#include "libeasymcp2221++/SmbusDevice.h"
 
 #include <array>
 #include <stdexcept>
