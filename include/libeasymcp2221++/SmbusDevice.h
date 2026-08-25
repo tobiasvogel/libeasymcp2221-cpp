@@ -35,14 +35,14 @@ public:
      * @brief Return the configured 7-bit target address.
      * @return Configured 7-bit SMBus target address.
      */
-    std::uint8_t address() const noexcept;
+    [[nodiscard]] std::uint8_t address() const noexcept;
 
     /**
      * @brief Read one byte directly from the target.
      * @return Byte read from the target.
      * @throws Error on transfer failure.
      */
-    std::uint8_t readByte();
+    [[nodiscard]] std::uint8_t readByte();
 
     /**
      * @brief Write one byte directly to the target.
@@ -57,7 +57,7 @@ public:
      * @return Byte read from the target.
      * @throws Error on transfer failure.
      */
-    std::uint8_t readByteData(std::uint8_t command);
+    [[nodiscard]] std::uint8_t readByteData(std::uint8_t command);
 
     /**
      * @brief Write one byte to an SMBus command/register.
@@ -73,7 +73,7 @@ public:
      * @return Decoded signed word value.
      * @throws Error on transfer failure.
      */
-    std::int16_t readWordData(std::uint8_t command);
+    [[nodiscard]] std::int16_t readWordData(std::uint8_t command);
 
     /**
      * @brief Write one signed 16-bit SMBus word.
@@ -90,7 +90,7 @@ public:
      * @return Word response from the target.
      * @throws Error on transfer failure.
      */
-    std::int16_t processCall(std::uint8_t command, std::int16_t value);
+    [[nodiscard]] std::int16_t processCall(std::uint8_t command, std::int16_t value);
 
     /**
      * @brief Read a length-prefixed SMBus block.
@@ -98,7 +98,7 @@ public:
      * @return Payload bytes without the length prefix.
      * @throws Error on transfer failure.
      */
-    std::vector<std::uint8_t> readBlockData(std::uint8_t command);
+    [[nodiscard]] std::vector<std::uint8_t> readBlockData(std::uint8_t command);
 
     /**
      * @brief Write a length-prefixed SMBus block.
@@ -115,7 +115,7 @@ public:
      * @return Response payload.
      * @throws Error on transfer failure.
      */
-    std::vector<std::uint8_t> blockProcessCall(
+    [[nodiscard]] std::vector<std::uint8_t> blockProcessCall(
         std::uint8_t command,
         const std::vector<std::uint8_t>& data);
 
@@ -126,7 +126,7 @@ public:
      * @return Requested data bytes.
      * @throws Error on transfer failure or invalid size.
      */
-    std::vector<std::uint8_t> readI2cBlockData(
+    [[nodiscard]] std::vector<std::uint8_t> readI2cBlockData(
         std::uint8_t command,
         std::size_t size);
 

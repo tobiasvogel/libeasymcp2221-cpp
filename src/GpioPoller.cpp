@@ -79,7 +79,7 @@ GpioPoller::GpioPoller(std::unique_ptr<detail::GpioPollerState> state)
 {
 }
 
-GpioPoller::~GpioPoller() = default;
+GpioPoller::~GpioPoller() noexcept = default;
 
 void GpioPoller::setFilter(const GpioEventFilter& filter)
 {

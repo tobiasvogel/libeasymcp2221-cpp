@@ -45,21 +45,21 @@ public:
      * @brief Return the configured 7-bit I2C address.
      * @return Configured 7-bit target address.
      */
-    std::uint8_t address() const noexcept;
+    [[nodiscard]] std::uint8_t address() const noexcept;
 
     /**
      * @brief Check whether the target acknowledges its address.
      * @return true if present, false for an address NACK.
      * @throws Error for transport or protocol failures.
      */
-    bool isPresent();
+    [[nodiscard]] bool isPresent();
 
     /**
      * @brief Read bytes directly from the target.
      * @param size Number of bytes to read.
      * @return Received payload bytes.
      */
-    std::vector<std::uint8_t> read(std::size_t size);
+    [[nodiscard]] std::vector<std::uint8_t> read(std::size_t size);
 
     /**
      * @brief Write bytes directly to the target.
@@ -80,7 +80,7 @@ public:
      * @param size Number of bytes to read.
      * @return Received register payload bytes.
      */
-    std::vector<std::uint8_t> readRegister(
+    [[nodiscard]] std::vector<std::uint8_t> readRegister(
         std::uint32_t reg,
         std::size_t size);
 
@@ -92,7 +92,7 @@ public:
      * @param byteOrder Register-address byte order.
      * @return Received register payload bytes.
      */
-    std::vector<std::uint8_t> readRegister(
+    [[nodiscard]] std::vector<std::uint8_t> readRegister(
         std::uint32_t reg,
         std::size_t size,
         RegisterWidth registerWidth,

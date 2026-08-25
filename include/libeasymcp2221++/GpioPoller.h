@@ -33,7 +33,7 @@ public:
     GpioPoller(GpioPoller&&) noexcept = default;
     GpioPoller& operator=(GpioPoller&&) noexcept = default;
 
-    ~GpioPoller();
+    ~GpioPoller() noexcept;
 
     /**
      * @brief Poll GP0 through GP3 and report state changes.
@@ -44,7 +44,7 @@ public:
      *
      * @return Change information for GP0 through GP3.
      */
-    std::array<GpioChange, 4> poll();
+    [[nodiscard]] std::array<GpioChange, 4> poll();
 
     /**
      * @brief Poll and return filtered edge events.
@@ -57,7 +57,7 @@ public:
      * @return Filtered GPIO edge events observed during this poll.
      * @note Event timestamps use wall-clock time.
      */
-    std::vector<GpioEvent> pollEvents(std::size_t maxEvents = 4);
+    [[nodiscard]] std::vector<GpioEvent> pollEvents(std::size_t maxEvents = 4);
 
     /**
      * @brief Replace the persistent edge-event selection.
