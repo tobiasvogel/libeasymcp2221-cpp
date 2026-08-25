@@ -62,3 +62,19 @@ The underlying C library is discovered through its installed `libeasymcp2221`
 pkg-config metadata. A `libeasymcp2221-cpp.pc` file is installed as well for
 non-CMake consumers.
 
+## Tests
+
+The unit tests use a hardware-free mock implementation of the
+`libeasymcp2221` C API. An installed `libeasymcp2221` development package is
+still required for the public C headers, but no MCP2221 device needs to be
+connected.
+
+```sh
+cmake -S . -B build -DLIBEASYMCP2221_CPP_BUILD_TESTS=ON
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+The initial suite covers error translation, shared device lifetime, C++-side
+argument validation, enum/value translation, and GPIO sentinel mapping.
+
