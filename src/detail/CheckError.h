@@ -22,7 +22,11 @@ namespace detail {
  */
 void checkError(mcp2221_error_code_t code, const char* operation = nullptr);
 
-/** @brief Convert a C error code to the public C++ ErrorCode enum. */
+/**
+ * @brief Convert a C error code to the public C++ ErrorCode enum.
+ * @param code Native C error code to translate.
+ * @return Corresponding public C++ ErrorCode value.
+ */
 ErrorCode toErrorCode(mcp2221_error_code_t code);
 
 /**

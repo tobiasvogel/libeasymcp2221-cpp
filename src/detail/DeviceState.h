@@ -37,16 +37,27 @@ namespace detail {
  */
 class DeviceState {
 public:
+    /**
+     * @brief Construct shared state for an already-open C device handle.
+     * @param handle Owned C device handle. May be nullptr only for an empty
+     *               internal state.
+     */
     explicit DeviceState(mcp2221_t* handle) noexcept;
     ~DeviceState() noexcept;
 
     DeviceState(const DeviceState&) = delete;
     DeviceState& operator=(const DeviceState&) = delete;
 
-    /** @brief Return the underlying C device handle. */
+    /**
+     * @brief Return the underlying C device handle.
+     * @return Borrowed pointer to the owned C handle.
+     */
     mcp2221_t* handle() noexcept;
 
-    /** @brief Return the mutex serializing operations on this C handle. */
+    /**
+     * @brief Return the mutex serializing operations on this C handle.
+     * @return Reference to the shared operation mutex.
+     */
     std::mutex& mutex() noexcept;
 
 private:
