@@ -1,5 +1,5 @@
 /**
- * @file libeasymcp2221.h
+ * @file libeasymcp2221++.h
  * @brief Convenience header for the complete libeasymcp2221++ public API.
  */
 
