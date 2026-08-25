@@ -1,0 +1,292 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  C_LIBRARY_REPOSITORY: tobiasvogel/libeasymcp2221
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.compiler }} / unit tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: GCC
+            cc: gcc
+            cxx: g++
+          - compiler: Clang
+            cc: clang
+            cxx: clang++
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v4
+        with:
+          path: cpp
+
+      - name: Check out C dependency
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          path: c
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            build-essential \
+            clang \
+            cmake \
+            libusb-1.0-0-dev \
+            ninja-build \
+            pkg-config
+
+      - name: Build and install C dependency
+        run: |
+          cmake -S c -B build-c -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DLIBEASYMCP2221_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_BUILD_TESTS=OFF
+
+          cmake --build build-c --parallel
+          cmake --install build-c
+
+      - name: Configure C++ tests
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+          PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
+        run: |
+          cmake -S cpp -B build-cpp -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DLIBEASYMCP2221_CPP_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_CPP_BUILD_TESTS=ON
+
+      - name: Build C++ library and tests
+        run: cmake --build build-cpp --parallel
+
+      - name: Run unit tests
+        run: ctest --test-dir build-cpp --output-on-failure
+
+  linkage:
+    name: ${{ matrix.linkage }} build
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - linkage: Shared only
+            shared: "ON"
+            static: "OFF"
+          - linkage: Static only
+            shared: "OFF"
+            static: "ON"
+          - linkage: Shared and static
+            shared: "ON"
+            static: "ON"
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v4
+        with:
+          path: cpp
+
+      - name: Check out C dependency
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          path: c
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            build-essential \
+            cmake \
+            libusb-1.0-0-dev \
+            ninja-build \
+            pkg-config
+
+      - name: Build and install C dependency
+        run: |
+          cmake -S c -B build-c -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DLIBEASYMCP2221_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_BUILD_TESTS=OFF
+
+          cmake --build build-c --parallel
+          cmake --install build-c
+
+      - name: Configure C++ linkage variant
+        env:
+          PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
+        run: |
+          cmake -S cpp -B build-cpp -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLIBEASYMCP2221_CPP_BUILD_SHARED=${{ matrix.shared }} \
+            -DLIBEASYMCP2221_CPP_BUILD_STATIC=${{ matrix.static }} \
+            -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_TESTS=OFF
+
+      - name: Build
+        run: cmake --build build-cpp --parallel
+
+  install-consumer:
+    name: Install and find_package consumer
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v4
+        with:
+          path: cpp
+
+      - name: Check out C dependency
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          path: c
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            build-essential \
+            cmake \
+            libusb-1.0-0-dev \
+            ninja-build \
+            pkg-config
+
+      - name: Build and install C dependency
+        run: |
+          cmake -S c -B build-c -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DLIBEASYMCP2221_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_BUILD_TESTS=OFF
+
+          cmake --build build-c --parallel
+          cmake --install build-c
+
+      - name: Build and install C++ library
+        env:
+          PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
+        run: |
+          cmake -S cpp -B build-cpp -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DLIBEASYMCP2221_CPP_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_CPP_BUILD_TESTS=OFF
+
+          cmake --build build-cpp --parallel
+          cmake --install build-cpp
+
+      - name: Create external consumer
+        run: |
+          mkdir consumer
+          cat > consumer/CMakeLists.txt <<'EOF'
+          cmake_minimum_required(VERSION 3.10)
+          project(libeasymcp2221_cpp_consumer LANGUAGES CXX)
+
+          find_package(libeasymcp2221-cpp CONFIG REQUIRED)
+
+          add_executable(consumer main.cpp)
+          target_link_libraries(consumer PRIVATE libeasymcp2221::cpp)
+          EOF
+
+          cat > consumer/main.cpp <<'EOF'
+          #include <libeasymcp2221/libeasymcp2221.h>
+
+          int main()
+          {
+              libeasymcp2221::DeviceOptions options;
+              return options.i2cSpeedHz == 100000 ? 0 : 1;
+          }
+          EOF
+
+      - name: Configure and build external consumer
+        env:
+          PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
+        run: |
+          cmake -S consumer -B build-consumer -G Ninja \
+            -DCMAKE_PREFIX_PATH="${GITHUB_WORKSPACE}/prefix"
+          cmake --build build-consumer --parallel
+
+  documentation:
+    name: Doxygen documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v4
+        with:
+          path: cpp
+
+      - name: Check out C dependency
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          path: c
+
+      - name: Install documentation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            build-essential \
+            cmake \
+            doxygen \
+            graphviz \
+            libusb-1.0-0-dev \
+            ninja-build \
+            pkg-config
+
+      - name: Build and install C dependency
+        run: |
+          cmake -S c -B build-c -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DLIBEASYMCP2221_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_BUILD_STATIC=OFF \
+            -DLIBEASYMCP2221_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_BUILD_TESTS=OFF
+
+          cmake --build build-c --parallel
+          cmake --install build-c
+
+      - name: Configure documentation
+        env:
+          PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
+        run: |
+          cmake -S cpp -B build-docs -G Ninja \
+            -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_CPP_BUILD_TESTS=OFF \
+            -DLIBEASYMCP2221_CPP_BUILD_DOCS=ON \
+            -DLIBEASYMCP2221_CPP_DOXYGEN_AWESOME=ON
+
+      - name: Build documentation
+        run: cmake --build build-docs --target docs
