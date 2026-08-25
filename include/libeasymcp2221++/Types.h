@@ -175,7 +175,7 @@ struct GpioEvent {
 
     /**
      * @brief Return a compatibility identifier such as "GPIO0_RISE".
-     * @return Event identifier derived from @ref pin and @ref edge.
+     * @return Event identifier derived from @c pin and @c edge.
      */
     std::string id() const;
 };
@@ -183,7 +183,7 @@ struct GpioEvent {
 /**
  * @brief Partial configuration of one GP pin.
  *
- * A disengaged @ref function leaves the pin configuration unchanged.
+ * A disengaged @c function leaves the pin configuration unchanged.
  */
 struct PinConfiguration {
     std::optional<PinFunction> function;
@@ -232,7 +232,7 @@ struct SramAdcConfig {
 /**
  * @brief Partial SRAM DAC configuration.
  *
- * The reference maps to the native VRM/reference-source fields. @ref value is
+ * The reference maps to the native VRM/reference-source fields. @c value is
  * the raw 5-bit DAC output code from 0 through 31.
  */
 struct SramDacConfig {
