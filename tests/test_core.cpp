@@ -89,7 +89,7 @@ void testRawI2cAndI2cDevice()
     EXPECT_EQ(direct.size(), static_cast<std::size_t>(2));
     EXPECT_EQ(direct[0], static_cast<std::uint8_t>(0xA5));
 
-    const auto reg = target.readRegister(0x1234, 2, 2, ByteOrder::BigEndian);
+    const auto reg = target.readRegister(0x1234, 2, RegisterWidth::Bits16, ByteOrder::BigEndian);
     EXPECT_EQ(reg[0], static_cast<std::uint8_t>(0x3C));
 
     bool caught = false;
@@ -156,6 +156,29 @@ void testGpioOptionalTranslation()
     EXPECT_TRUE(*state.pins[1]);
     EXPECT_FALSE(state.pins[2].has_value());
     EXPECT_FALSE(state.pins[3].has_value());
+}
+
+
+void testTypedGpioEventFilter()
+{
+    resetMock();
+
+    Device device;
+    auto poller = device.gpioPoller();
+
+    GpioEventFilter filter;
+    filter.rising[0] = true;
+    filter.falling[2] = true;
+    poller.setFilter(filter);
+
+    EXPECT_EQ(
+        lastGpioFilterMask(),
+        static_cast<std::uint16_t>(
+            MCP2221_GPIO_POLL_MASK_RISE(0) |
+            MCP2221_GPIO_POLL_MASK_FALL(2)));
+
+    poller.clearFilter();
+    EXPECT_EQ(lastGpioFilterMask(), static_cast<std::uint16_t>(0));
 }
 
 void testAnalogClockAndUsb()
@@ -243,6 +266,11 @@ int main()
     test_harness::run(
         "GPIO optional values map to C sentinels",
         testGpioOptionalTranslation,
+        failures);
+
+    test_harness::run(
+        "Typed GPIO event filter maps to native mask",
+        testTypedGpioEventFilter,
         failures);
 
     test_harness::run(

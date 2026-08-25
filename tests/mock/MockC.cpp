@@ -41,6 +41,7 @@ struct MockState {
     int clockDuty = -1;
     std::string clockFrequency;
     std::array<int, 4> gpioWrite{{-1, -1, -1, -1}};
+    std::uint16_t gpioFilterMask = 0;
 };
 
 MockState state;
@@ -67,6 +68,7 @@ int lastGpio0() { return state.gpioWrite[0]; }
 int lastGpio1() { return state.gpioWrite[1]; }
 int lastGpio2() { return state.gpioWrite[2]; }
 int lastGpio3() { return state.gpioWrite[3]; }
+std::uint16_t lastGpioFilterMask() { return state.gpioFilterMask; }
 
 } // namespace libeasymcp2221_test
 
@@ -380,6 +382,7 @@ void mcp2221_gpio_poll_init(mcp2221_gpio_poll_state_t* poll)
 void mcp2221_gpio_poll_set_filter_mask(
     mcp2221_gpio_poll_state_t* poll, uint16_t mask)
 {
+    state.gpioFilterMask = mask;
     if (poll != nullptr) poll->filter_mask = mask;
 }
 

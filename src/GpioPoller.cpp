@@ -81,9 +81,21 @@ GpioPoller::GpioPoller(std::unique_ptr<detail::GpioPollerState> state)
 
 GpioPoller::~GpioPoller() = default;
 
-void GpioPoller::setFilterMask(std::uint16_t mask)
+void GpioPoller::setFilter(const GpioEventFilter& filter)
 {
     requireState(state_);
+
+    std::uint16_t mask = 0;
+    for (std::size_t pin = 0; pin < 4; ++pin) {
+        if (filter.rising[pin]) {
+            mask |= static_cast<std::uint16_t>(
+                MCP2221_GPIO_POLL_MASK_RISE(pin));
+        }
+        if (filter.falling[pin]) {
+            mask |= static_cast<std::uint16_t>(
+                MCP2221_GPIO_POLL_MASK_FALL(pin));
+        }
+    }
 
     std::lock_guard<std::mutex> lock(state_->device->mutex());
     mcp2221_gpio_poll_set_filter_mask(&state_->poll, mask);
@@ -91,7 +103,7 @@ void GpioPoller::setFilterMask(std::uint16_t mask)
 
 void GpioPoller::clearFilter()
 {
-    setFilterMask(0);
+    setFilter(GpioEventFilter{});
 }
 
 std::array<GpioChange, 4> GpioPoller::poll()

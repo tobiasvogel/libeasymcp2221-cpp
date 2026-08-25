@@ -29,6 +29,7 @@ int lastGpio0();
 int lastGpio1();
 int lastGpio2();
 int lastGpio3();
+std::uint16_t lastGpioFilterMask();
 
 } // namespace libeasymcp2221_test
 

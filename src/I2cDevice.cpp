@@ -22,6 +22,18 @@ void requireState(const std::shared_ptr<detail::I2cDeviceState>& state)
     }
 }
 
+int toNativeRegisterWidth(RegisterWidth width)
+{
+    switch (width) {
+    case RegisterWidth::Bits8: return 1;
+    case RegisterWidth::Bits16: return 2;
+    case RegisterWidth::Bits24: return 3;
+    case RegisterWidth::Bits32: return 4;
+    }
+
+    detail::throwInvalid("Unknown I2C register width");
+}
+
 mcp2221_i2c_byte_order_t toNativeByteOrder(ByteOrder byteOrder)
 {
     switch (byteOrder) {
@@ -129,7 +141,7 @@ std::vector<std::uint8_t> I2cDevice::readRegister(
 std::vector<std::uint8_t> I2cDevice::readRegister(
     std::uint32_t reg,
     std::size_t size,
-    int registerBytes,
+    RegisterWidth registerWidth,
     ByteOrder byteOrder)
 {
     requireState(state_);
@@ -138,10 +150,6 @@ std::vector<std::uint8_t> I2cDevice::readRegister(
         detail::throwInvalid(
             "I2cDevice register read size must be from 1 through 256 bytes");
     }
-    if (registerBytes < 1 || registerBytes > 4) {
-        detail::throwInvalid("Register width must be from 1 through 4 bytes");
-    }
-
     std::vector<std::uint8_t> data(size);
 
     std::lock_guard<std::mutex> lock(state_->device->mutex());
@@ -151,7 +159,7 @@ std::vector<std::uint8_t> I2cDevice::readRegister(
             reg,
             data.data(),
             data.size(),
-            registerBytes,
+            toNativeRegisterWidth(registerWidth),
             toNativeByteOrder(byteOrder)),
         "Reading I2C target register");
 
@@ -190,7 +198,7 @@ void I2cDevice::writeRegister(
     std::uint32_t reg,
     const std::uint8_t* data,
     std::size_t size,
-    int registerBytes,
+    RegisterWidth registerWidth,
     ByteOrder byteOrder)
 {
     requireState(state_);
@@ -203,10 +211,6 @@ void I2cDevice::writeRegister(
         detail::throwInvalid(
             "I2cDevice register write size must not exceed 256 bytes");
     }
-    if (registerBytes < 1 || registerBytes > 4) {
-        detail::throwInvalid("Register width must be from 1 through 4 bytes");
-    }
-
     std::lock_guard<std::mutex> lock(state_->device->mutex());
     detail::checkError(
         mcp2221_i2c_slave_write_register(
@@ -214,7 +218,7 @@ void I2cDevice::writeRegister(
             reg,
             data,
             size,
-            registerBytes,
+            toNativeRegisterWidth(registerWidth),
             toNativeByteOrder(byteOrder)),
         "Writing I2C target register");
 }

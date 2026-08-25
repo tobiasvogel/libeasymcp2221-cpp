@@ -60,15 +60,14 @@ public:
     std::vector<GpioEvent> pollEvents(std::size_t maxEvents = 4);
 
     /**
-     * @brief Replace the persistent raw edge-event filter mask.
+     * @brief Replace the persistent edge-event selection.
      *
-     * This low-level mask setter is retained initially because it maps exactly
-     * to the C API. A higher-level typed GpioEventFilter can replace or augment
-     * it later without changing GpioPoller's ownership model.
+     * A default-constructed filter accepts all events. Otherwise only events
+     * whose corresponding rising/falling entry is true are emitted.
      *
-     * @param mask Raw persistent edge-event filter mask.
+     * @param filter Typed persistent edge-event selection.
      */
-    void setFilterMask(std::uint16_t mask);
+    void setFilter(const GpioEventFilter& filter);
 
     /** @brief Clear the event filter so that all edges are accepted. */
     void clearFilter();

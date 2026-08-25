@@ -59,6 +59,14 @@ enum class I2cTransfer {
     NoStop
 };
 
+/** @brief Register-address width used by I2C target helpers. */
+enum class RegisterWidth : std::uint8_t {
+    Bits8 = 1,
+    Bits16 = 2,
+    Bits24 = 3,
+    Bits32 = 4
+};
+
 /** @brief Register-address byte order used by I2C target helpers. */
 enum class ByteOrder {
     BigEndian,
@@ -164,6 +172,18 @@ struct GpioChange {
     std::optional<bool> oldValue;
     std::optional<bool> newValue;
     bool changed = false;
+};
+
+/**
+ * @brief Persistent GPIO edge-event selection.
+ *
+ * Set a rising/falling entry to true to select that event. A
+ * default-constructed filter has no explicit selections and therefore accepts
+ * all events, matching the underlying C API's zero-mask behavior.
+ */
+struct GpioEventFilter {
+    std::array<bool, 4> rising{};
+    std::array<bool, 4> falling{};
 };
 
 /** @brief One GPIO edge event produced by a GpioPoller. */

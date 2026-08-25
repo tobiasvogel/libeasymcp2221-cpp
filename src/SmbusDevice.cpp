@@ -73,7 +73,7 @@ void SmbusDevice::writeByte(std::uint8_t value)
         "Writing SMBus byte");
 }
 
-std::uint8_t SmbusDevice::readByteData(std::uint8_t reg)
+std::uint8_t SmbusDevice::readByteData(std::uint8_t command)
 {
     requireState(state_);
 
@@ -83,14 +83,14 @@ std::uint8_t SmbusDevice::readByteData(std::uint8_t reg)
         mcp2221_smbus_read_byte_data(
             &state_->bus,
             state_->address,
-            reg,
+            command,
             &value),
         "Reading SMBus byte data");
 
     return value;
 }
 
-void SmbusDevice::writeByteData(std::uint8_t reg, std::uint8_t value)
+void SmbusDevice::writeByteData(std::uint8_t command, std::uint8_t value)
 {
     requireState(state_);
 
@@ -99,12 +99,12 @@ void SmbusDevice::writeByteData(std::uint8_t reg, std::uint8_t value)
         mcp2221_smbus_write_byte_data(
             &state_->bus,
             state_->address,
-            reg,
+            command,
             value),
         "Writing SMBus byte data");
 }
 
-std::int16_t SmbusDevice::readWordData(std::uint8_t reg)
+std::int16_t SmbusDevice::readWordData(std::uint8_t command)
 {
     requireState(state_);
 
@@ -114,14 +114,14 @@ std::int16_t SmbusDevice::readWordData(std::uint8_t reg)
         mcp2221_smbus_read_word_data(
             &state_->bus,
             state_->address,
-            reg,
+            command,
             &value),
         "Reading SMBus word data");
 
     return value;
 }
 
-void SmbusDevice::writeWordData(std::uint8_t reg, std::int16_t value)
+void SmbusDevice::writeWordData(std::uint8_t command, std::int16_t value)
 {
     requireState(state_);
 
@@ -130,12 +130,12 @@ void SmbusDevice::writeWordData(std::uint8_t reg, std::int16_t value)
         mcp2221_smbus_write_word_data(
             &state_->bus,
             state_->address,
-            reg,
+            command,
             value),
         "Writing SMBus word data");
 }
 
-std::int16_t SmbusDevice::processCall(std::uint8_t reg, std::int16_t value)
+std::int16_t SmbusDevice::processCall(std::uint8_t command, std::int16_t value)
 {
     requireState(state_);
 
@@ -145,7 +145,7 @@ std::int16_t SmbusDevice::processCall(std::uint8_t reg, std::int16_t value)
         mcp2221_smbus_process_call(
             &state_->bus,
             state_->address,
-            reg,
+            command,
             value,
             &response),
         "Performing SMBus process call");
@@ -153,7 +153,7 @@ std::int16_t SmbusDevice::processCall(std::uint8_t reg, std::int16_t value)
     return response;
 }
 
-std::vector<std::uint8_t> SmbusDevice::readBlockData(std::uint8_t reg)
+std::vector<std::uint8_t> SmbusDevice::readBlockData(std::uint8_t command)
 {
     requireState(state_);
 
@@ -165,7 +165,7 @@ std::vector<std::uint8_t> SmbusDevice::readBlockData(std::uint8_t reg)
         mcp2221_smbus_read_block_data(
             &state_->bus,
             state_->address,
-            reg,
+            command,
             buffer.data(),
             &length),
         "Reading SMBus block data");
@@ -180,7 +180,7 @@ std::vector<std::uint8_t> SmbusDevice::readBlockData(std::uint8_t reg)
 }
 
 void SmbusDevice::writeBlockData(
-    std::uint8_t reg,
+    std::uint8_t command,
     const std::vector<std::uint8_t>& data)
 {
     requireState(state_);
@@ -195,14 +195,14 @@ void SmbusDevice::writeBlockData(
         mcp2221_smbus_write_block_data(
             &state_->bus,
             state_->address,
-            reg,
+            command,
             ptr,
             data.size()),
         "Writing SMBus block data");
 }
 
 std::vector<std::uint8_t> SmbusDevice::blockProcessCall(
-    std::uint8_t reg,
+    std::uint8_t command,
     const std::vector<std::uint8_t>& data)
 {
     requireState(state_);
@@ -219,7 +219,7 @@ std::vector<std::uint8_t> SmbusDevice::blockProcessCall(
         mcp2221_smbus_block_process_call(
             &state_->bus,
             state_->address,
-            reg,
+            command,
             ptr,
             data.size(),
             response.data(),
@@ -236,7 +236,7 @@ std::vector<std::uint8_t> SmbusDevice::blockProcessCall(
 }
 
 std::vector<std::uint8_t> SmbusDevice::readI2cBlockData(
-    std::uint8_t reg,
+    std::uint8_t command,
     std::size_t size)
 {
     requireState(state_);
@@ -253,7 +253,7 @@ std::vector<std::uint8_t> SmbusDevice::readI2cBlockData(
         mcp2221_smbus_read_i2c_block_data(
             &state_->bus,
             state_->address,
-            reg,
+            command,
             data.data(),
             data.size()),
         "Reading SMBus I2C block data");
@@ -262,7 +262,7 @@ std::vector<std::uint8_t> SmbusDevice::readI2cBlockData(
 }
 
 void SmbusDevice::writeI2cBlockData(
-    std::uint8_t reg,
+    std::uint8_t command,
     const std::vector<std::uint8_t>& data)
 {
     requireState(state_);
@@ -277,7 +277,7 @@ void SmbusDevice::writeI2cBlockData(
         mcp2221_smbus_write_i2c_block_data(
             &state_->bus,
             state_->address,
-            reg,
+            command,
             ptr,
             data.size()),
         "Writing SMBus I2C block data");

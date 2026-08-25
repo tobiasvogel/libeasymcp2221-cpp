@@ -23,7 +23,7 @@ class I2cDeviceState;
 struct I2cDeviceOptions {
     bool force = false;
     std::uint32_t speedHz = 100000;
-    int registerBytes = 1;
+    RegisterWidth registerWidth = RegisterWidth::Bits8;
     ByteOrder byteOrder = ByteOrder::BigEndian;
 };
 
@@ -88,14 +88,14 @@ public:
      * @brief Read bytes beginning at a register with an explicit layout.
      * @param reg Register address.
      * @param size Number of bytes to read.
-     * @param registerBytes Register-address width from 1 through 4.
+     * @param registerWidth Register-address width.
      * @param byteOrder Register-address byte order.
      * @return Received register payload bytes.
      */
     std::vector<std::uint8_t> readRegister(
         std::uint32_t reg,
         std::size_t size,
-        int registerBytes,
+        RegisterWidth registerWidth,
         ByteOrder byteOrder);
 
     /**
@@ -114,7 +114,7 @@ public:
      * @param reg Register address.
      * @param data Payload pointer, or nullptr when size is zero.
      * @param size Number of payload bytes.
-     * @param registerBytes Register-address width from 1 through 4.
+     * @param registerWidth Register-address width.
      * @param byteOrder Register-address byte order.
      * @throws Error on validation or transfer failure.
      */
@@ -122,7 +122,7 @@ public:
         std::uint32_t reg,
         const std::uint8_t* data,
         std::size_t size,
-        int registerBytes,
+        RegisterWidth registerWidth,
         ByteOrder byteOrder);
 
     /**

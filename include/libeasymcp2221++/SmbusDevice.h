@@ -53,91 +53,91 @@ public:
 
     /**
      * @brief Read one byte from an SMBus command/register.
-     * @param reg SMBus command/register byte.
+     * @param command SMBus command byte.
      * @return Byte read from the target.
      * @throws Error on transfer failure.
      */
-    std::uint8_t readByteData(std::uint8_t reg);
+    std::uint8_t readByteData(std::uint8_t command);
 
     /**
      * @brief Write one byte to an SMBus command/register.
-     * @param reg SMBus command/register byte.
+     * @param command SMBus command byte.
      * @param value Byte to write.
      * @throws Error on transfer failure.
      */
-    void writeByteData(std::uint8_t reg, std::uint8_t value);
+    void writeByteData(std::uint8_t command, std::uint8_t value);
 
     /**
      * @brief Read one signed 16-bit SMBus word.
-     * @param reg SMBus command/register byte.
+     * @param command SMBus command byte.
      * @return Decoded signed word value.
      * @throws Error on transfer failure.
      */
-    std::int16_t readWordData(std::uint8_t reg);
+    std::int16_t readWordData(std::uint8_t command);
 
     /**
      * @brief Write one signed 16-bit SMBus word.
-     * @param reg SMBus command/register byte.
+     * @param command SMBus command byte.
      * @param value Word value to write.
      * @throws Error on transfer failure.
      */
-    void writeWordData(std::uint8_t reg, std::int16_t value);
+    void writeWordData(std::uint8_t command, std::int16_t value);
 
     /**
      * @brief Perform an SMBus process call.
-     * @param reg SMBus command/register byte.
+     * @param command SMBus command byte.
      * @param value Word value to send.
      * @return Word response from the target.
      * @throws Error on transfer failure.
      */
-    std::int16_t processCall(std::uint8_t reg, std::int16_t value);
+    std::int16_t processCall(std::uint8_t command, std::int16_t value);
 
     /**
      * @brief Read a length-prefixed SMBus block.
-     * @param reg SMBus command/register byte.
+     * @param command SMBus command byte.
      * @return Payload bytes without the length prefix.
      * @throws Error on transfer failure.
      */
-    std::vector<std::uint8_t> readBlockData(std::uint8_t reg);
+    std::vector<std::uint8_t> readBlockData(std::uint8_t command);
 
     /**
      * @brief Write a length-prefixed SMBus block.
-     * @param reg SMBus command/register byte.
+     * @param command SMBus command byte.
      * @param data Payload bytes.
      * @throws Error on transfer failure or invalid block size.
      */
-    void writeBlockData(std::uint8_t reg, const std::vector<std::uint8_t>& data);
+    void writeBlockData(std::uint8_t command, const std::vector<std::uint8_t>& data);
 
     /**
      * @brief Perform an SMBus block process call.
-     * @param reg SMBus command/register byte.
+     * @param command SMBus command byte.
      * @param data Payload bytes to send.
      * @return Response payload.
      * @throws Error on transfer failure.
      */
     std::vector<std::uint8_t> blockProcessCall(
-        std::uint8_t reg,
+        std::uint8_t command,
         const std::vector<std::uint8_t>& data);
 
     /**
      * @brief Read a fixed-length I2C-style block through SMBus helpers.
-     * @param reg SMBus command/register byte.
+     * @param command SMBus command byte.
      * @param size Number of bytes to read.
      * @return Requested data bytes.
      * @throws Error on transfer failure or invalid size.
      */
     std::vector<std::uint8_t> readI2cBlockData(
-        std::uint8_t reg,
+        std::uint8_t command,
         std::size_t size);
 
     /**
      * @brief Write a fixed-length I2C-style block through SMBus helpers.
-     * @param reg SMBus command/register byte.
+     * @param command SMBus command byte.
      * @param data Payload bytes.
      * @throws Error on transfer failure or invalid size.
      */
     void writeI2cBlockData(
-        std::uint8_t reg,
+        std::uint8_t command,
         const std::vector<std::uint8_t>& data);
 
 private:

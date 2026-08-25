@@ -33,6 +33,18 @@ void requireOpen(const std::shared_ptr<detail::DeviceState>& state)
     }
 }
 
+int toNativeRegisterWidth(RegisterWidth width)
+{
+    switch (width) {
+    case RegisterWidth::Bits8: return 1;
+    case RegisterWidth::Bits16: return 2;
+    case RegisterWidth::Bits24: return 3;
+    case RegisterWidth::Bits32: return 4;
+    }
+
+    detail::throwInvalid("Unknown I2C register width");
+}
+
 mcp2221_i2c_kind_t toNativeTransfer(I2cTransfer transfer, bool writing)
 {
     switch (transfer) {
@@ -364,10 +376,6 @@ I2cDevice Device::i2cDevice(
         options.speedHz > constants::MaxI2cSpeedHz) {
         detail::throwInvalid("I2C target speed must be from 1 through 400000 Hz");
     }
-    if (options.registerBytes < 1 || options.registerBytes > 4) {
-        detail::throwInvalid("I2C target register width must be from 1 through 4 bytes");
-    }
-
     auto child = std::make_shared<detail::I2cDeviceState>();
     child->device = state_;
 
@@ -385,7 +393,7 @@ I2cDevice Device::i2cDevice(
             address,
             options.force ? 1 : 0,
             options.speedHz,
-            options.registerBytes,
+            toNativeRegisterWidth(options.registerWidth),
             order),
         "Initializing I2C target");
 
