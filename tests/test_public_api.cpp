@@ -6,10 +6,10 @@
 #include <cstdint>
 #include <type_traits>
 
-#include <libeasymcp2221/Device.h>
-#include <libeasymcp2221/DeviceOptions.h>
-#include <libeasymcp2221/Error.h>
-#include <libeasymcp2221/Types.h>
+#include <libeasymcp2221++/Device.h>
+#include <libeasymcp2221++/DeviceOptions.h>
+#include <libeasymcp2221++/Error.h>
+#include <libeasymcp2221++/Types.h>
 
 int main()
 {

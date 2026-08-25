@@ -3,8 +3,8 @@
  * @brief Convenience header for the complete libeasymcp2221++ public API.
  */
 
-#ifndef LIBEASYMCP2221_CPP_H
-#define LIBEASYMCP2221_CPP_H
+#ifndef LIBEASYMCP2221_PLUSPLUS_H
+#define LIBEASYMCP2221_PLUSPLUS_H
 
 #include "Constants.h"
 #include "Device.h"
@@ -16,4 +16,4 @@
 #include "SmbusDevice.h"
 #include "Types.h"
 
-#endif // LIBEASYMCP2221_CPP_H
+#endif // LIBEASYMCP2221_PLUSPLUS_H

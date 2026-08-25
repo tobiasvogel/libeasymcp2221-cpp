@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-#include <libeasymcp2221/libeasymcp2221.h>
+#include <libeasymcp2221++/libeasymcp2221++.h>
 
 int main()
 {

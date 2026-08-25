@@ -78,3 +78,15 @@ ctest --test-dir build --output-on-failure
 The initial suite covers error translation, shared device lifetime, C++-side
 argument validation, enum/value translation, and GPIO sentinel mapping.
 
+## Public include path
+
+The C++ headers are installed below `include/libeasymcp2221++` so they can
+coexist with the C library headers below `include/libeasymcp2221`.
+
+For the complete public C++ API:
+
+```cpp
+#include <libeasymcp2221++/libeasymcp2221++.h>
+```
+
+The C++ namespace remains `libeasymcp2221`.
