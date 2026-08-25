@@ -31,7 +31,10 @@ public:
     SmbusDevice& operator=(SmbusDevice&&) noexcept = default;
     ~SmbusDevice() = default;
 
-    /** @brief Return the configured 7-bit target address. */
+    /**
+     * @brief Return the configured 7-bit target address.
+     * @return Configured 7-bit SMBus target address.
+     */
     std::uint8_t address() const noexcept;
 
     /**
@@ -140,6 +143,10 @@ public:
 private:
     friend class Device;
 
+    /**
+     * @brief Construct an adapter from shared internal SMBus state.
+     * @param state Shared internal SMBus target state.
+     */
     explicit SmbusDevice(std::shared_ptr<detail::SmbusDeviceState> state);
 
     std::shared_ptr<detail::SmbusDeviceState> state_;
