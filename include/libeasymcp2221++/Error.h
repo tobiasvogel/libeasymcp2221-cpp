@@ -46,6 +46,7 @@ public:
     /**
      * @brief Construct an error.
      * @param code Typed error code.
+     * @param nativeCode Original integer error code from the C library.
      * @param message Human-readable diagnostic message.
      */
     Error(ErrorCode code, int nativeCode, const std::string& message);
