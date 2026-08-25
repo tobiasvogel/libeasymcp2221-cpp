@@ -41,7 +41,10 @@ public:
     I2cDevice& operator=(I2cDevice&&) noexcept = default;
     ~I2cDevice() = default;
 
-    /** @brief Return the configured 7-bit I2C address. */
+    /**
+     * @brief Return the configured 7-bit I2C address.
+     * @return Configured 7-bit target address.
+     */
     std::uint8_t address() const noexcept;
 
     /**
@@ -51,28 +54,56 @@ public:
      */
     bool isPresent();
 
-    /** @brief Read bytes directly from the target. */
+    /**
+     * @brief Read bytes directly from the target.
+     * @param size Number of bytes to read.
+     * @return Received payload bytes.
+     */
     std::vector<std::uint8_t> read(std::size_t size);
 
-    /** @brief Write bytes directly to the target. */
+    /**
+     * @brief Write bytes directly to the target.
+     * @param data Payload pointer.
+     * @param size Number of payload bytes.
+     */
     void write(const std::uint8_t* data, std::size_t size);
 
-    /** @brief Convenience overload for std::vector payloads. */
+    /**
+     * @brief Convenience overload for std::vector payloads.
+     * @param data Payload bytes.
+     */
     void write(const std::vector<std::uint8_t>& data);
 
-    /** @brief Read bytes beginning at a register using the default layout. */
+    /**
+     * @brief Read bytes beginning at a register using the default layout.
+     * @param reg Register address.
+     * @param size Number of bytes to read.
+     * @return Received register payload bytes.
+     */
     std::vector<std::uint8_t> readRegister(
         std::uint32_t reg,
         std::size_t size);
 
-    /** @brief Read bytes beginning at a register with an explicit layout. */
+    /**
+     * @brief Read bytes beginning at a register with an explicit layout.
+     * @param reg Register address.
+     * @param size Number of bytes to read.
+     * @param registerBytes Register-address width from 1 through 4.
+     * @param byteOrder Register-address byte order.
+     * @return Received register payload bytes.
+     */
     std::vector<std::uint8_t> readRegister(
         std::uint32_t reg,
         std::size_t size,
         int registerBytes,
         ByteOrder byteOrder);
 
-    /** @brief Write bytes beginning at a register using the default layout. */
+    /**
+     * @brief Write bytes beginning at a register using the default layout.
+     * @param reg Register address.
+     * @param data Payload pointer.
+     * @param size Number of payload bytes.
+     */
     void writeRegister(
         std::uint32_t reg,
         const std::uint8_t* data,
@@ -94,7 +125,11 @@ public:
         int registerBytes,
         ByteOrder byteOrder);
 
-    /** @brief Convenience overload for std::vector payloads. */
+    /**
+     * @brief Convenience overload for std::vector payloads.
+     * @param reg Register address.
+     * @param data Payload bytes.
+     */
     void writeRegister(
         std::uint32_t reg,
         const std::vector<std::uint8_t>& data);
@@ -102,6 +137,10 @@ public:
 private:
     friend class Device;
 
+    /**
+     * @brief Construct an adapter from shared internal target state.
+     * @param state Shared internal I2C target state.
+     */
     explicit I2cDevice(std::shared_ptr<detail::I2cDeviceState> state);
 
     std::shared_ptr<detail::I2cDeviceState> state_;
