@@ -75,8 +75,9 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-The initial suite covers error translation, shared device lifetime, C++-side
-argument validation, enum/value translation, and GPIO sentinel mapping.
+The hardware-free suite covers error translation, shared device lifetime,
+raw and stateful I2C, SMBus, GPIO sentinel mapping, analog/clock value
+translation, and USB-side argument validation.
 
 ## Public include path
 
