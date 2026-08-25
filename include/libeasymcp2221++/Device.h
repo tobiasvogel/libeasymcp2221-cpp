@@ -70,6 +70,7 @@ public:
 
     /**
      * @brief Check whether this Device object currently references device state.
+     * @return true when this object still references shared device state.
      */
     bool isOpen() const noexcept;
 
@@ -90,35 +91,65 @@ public:
         std::uint8_t address,
         const I2cDeviceOptions& options);
 
-    /** @brief Create a stateful adapter for one SMBus target. */
+    /**
+     * @brief Create a stateful adapter for one SMBus target.
+     * @param address 7-bit SMBus target address.
+     * @return Stateful SMBus target adapter.
+     */
     SmbusDevice smbusDevice(std::uint8_t address);
 
-    /** @brief Create a move-only stateful GPIO poller. */
+    /**
+     * @brief Create a move-only stateful GPIO poller.
+     * @return Stateful GPIO poller sharing this device context.
+     */
     GpioPoller gpioPoller();
 
-    /** @brief Set the MCP2221 I2C bus clock frequency. */
+    /**
+     * @brief Set the MCP2221 I2C bus clock frequency.
+     * @param hz Requested I2C clock frequency in hertz.
+     */
     void setI2cSpeed(std::uint32_t hz);
 
-    /** @brief Perform a raw I2C write using the default transfer watchdog. */
+    /**
+     * @brief Perform a raw I2C write using the default transfer watchdog.
+     * @param address 7-bit I2C target address.
+     * @param data Payload pointer.
+     * @param size Number of payload bytes.
+     * @param transfer Transfer mode.
+     */
     void i2cWrite(
         std::uint8_t address,
         const std::uint8_t* data,
         std::size_t size,
         I2cTransfer transfer = I2cTransfer::Normal);
 
-    /** @brief Convenience overload for std::vector payloads. */
+    /**
+     * @brief Convenience overload for std::vector payloads.
+     * @param address 7-bit I2C target address.
+     * @param data Payload bytes.
+     * @param transfer Transfer mode.
+     */
     void i2cWrite(
         std::uint8_t address,
         const std::vector<std::uint8_t>& data,
         I2cTransfer transfer = I2cTransfer::Normal);
 
-    /** @brief Perform a raw I2C read using the default transfer watchdog. */
+    /**
+     * @brief Perform a raw I2C read using the default transfer watchdog.
+     * @param address 7-bit I2C target address.
+     * @param size Number of bytes to read.
+     * @param transfer Transfer mode.
+     * @return Received payload bytes.
+     */
     std::vector<std::uint8_t> i2cRead(
         std::uint8_t address,
         std::size_t size,
         I2cTransfer transfer = I2cTransfer::Normal);
 
-    /** @brief Return a typed I2C-engine status snapshot. */
+    /**
+     * @brief Return a typed I2C-engine status snapshot.
+     * @return Current I2C engine status.
+     */
     I2cStatus i2cStatus();
 
     /** @brief Release/reset the MCP2221 I2C engine. */
@@ -199,13 +230,22 @@ public:
      */
     void configureAdc(VoltageReference reference);
 
-    /** @brief Read the three ADC channels as raw 10-bit values. */
+    /**
+     * @brief Read the three ADC channels as raw 10-bit values.
+     * @return Raw ADC readings for the three channels.
+     */
     std::array<std::uint16_t, 3> readAdcRaw();
 
-    /** @brief Read the three ADC channels as normalized values. */
+    /**
+     * @brief Read the three ADC channels as normalized values.
+     * @return Normalized ADC readings for the three channels.
+     */
     std::array<double, 3> readAdcNormalized();
 
-    /** @brief Read the three ADC channels as voltages. */
+    /**
+     * @brief Read the three ADC channels as voltages.
+     * @return ADC readings in volts for the three channels.
+     */
     std::array<double, 3> readAdcVolts();
 
     /**
@@ -213,6 +253,8 @@ public:
      *
      * The underlying C helper retains the EasyMCP2221 workaround for MCP2221
      * reference-transition quirks.
+     *
+     * @param reference Strongly typed DAC reference selection.
      */
     void configureDac(VoltageReference reference);
 
@@ -223,13 +265,22 @@ public:
      */
     void configureDac(VoltageReference reference, std::uint8_t outputCode);
 
-    /** @brief Write a raw 5-bit DAC code. */
+    /**
+     * @brief Write a raw 5-bit DAC code.
+     * @param code Raw DAC output code from 0 through 31.
+     */
     void writeDacRaw(std::uint8_t code);
 
-    /** @brief Write a normalized DAC output value. */
+    /**
+     * @brief Write a normalized DAC output value.
+     * @param value Normalized DAC output value.
+     */
     void writeDacNormalized(double value);
 
-    /** @brief Write a DAC output voltage. */
+    /**
+     * @brief Write a DAC output voltage.
+     * @param volts Requested DAC output voltage.
+     */
     void writeDacVolts(double volts);
 
     /**
@@ -239,7 +290,10 @@ public:
      */
     void configureClock(ClockDutyCycle duty, ClockFrequency frequency);
 
-    /** @brief Read the interrupt-on-change flag. */
+    /**
+     * @brief Read the interrupt-on-change flag.
+     * @return true when the IOC flag is currently set.
+     */
     bool interruptFlag();
 
     /** @brief Clear the interrupt-on-change flag. */
@@ -299,6 +353,8 @@ public:
      *
      * USB string descriptors are decoded by the underlying C library using its
      * existing best-effort UTF-16LE-to-UTF-8 conversion.
+     *
+     * @return Aggregate raw and decoded persistent flash information.
      */
     FlashInfo flashInfo();
 
@@ -335,6 +391,8 @@ public:
      * A staged value takes precedence over the value currently stored in flash.
      * This does not report whether the host OS has enabled wake-up for the
      * device.
+     *
+     * @return Effective Remote Wake-up capability setting.
      */
     bool usbRemoteWakeup();
 
@@ -352,6 +410,8 @@ public:
      * @brief Return the effective self-powered enumeration setting.
      *
      * A staged value takes precedence over the value currently stored in flash.
+     *
+     * @return Effective self-powered USB enumeration setting.
      */
     bool usbSelfPowered();
 
@@ -373,6 +433,8 @@ public:
      *
      * A staged value takes precedence over the value currently stored in flash.
      * The returned value is decoded to mA, not a raw USBREQCRT register value.
+     *
+     * @return Effective requested USB current in milliamperes.
      */
     unsigned usbRequestedCurrent();
 
@@ -381,6 +443,10 @@ public:
      *
      * This is an advanced escape hatch. Prefer typed high-level methods when
      * an equivalent operation exists.
+     *
+     * @param command Command bytes.
+     * @param size Number of command bytes.
+     * @return 64-byte MCP2221 response buffer.
      *
      * @note The MCP2221 reset command does not return a protocol response.
      *       For that command the returned array remains zero-initialized.
