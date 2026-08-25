@@ -41,6 +41,8 @@ public:
      * The first successful poll establishes the initial snapshot and reports
      * changed == false for every pin. A disengaged oldValue or newValue means
      * that the pin was not configured as GPIO at that sample.
+     *
+     * @return Change information for GP0 through GP3.
      */
     std::array<GpioChange, 4> poll();
 
@@ -52,6 +54,7 @@ public:
      * discarded by the underlying stateful C poller.
      *
      * @param maxEvents Maximum number of events to return.
+     * @return Filtered GPIO edge events observed during this poll.
      * @note Event timestamps use wall-clock time.
      */
     std::vector<GpioEvent> pollEvents(std::size_t maxEvents = 4);
@@ -62,6 +65,8 @@ public:
      * This low-level mask setter is retained initially because it maps exactly
      * to the C API. A higher-level typed GpioEventFilter can replace or augment
      * it later without changing GpioPoller's ownership model.
+     *
+     * @param mask Raw persistent edge-event filter mask.
      */
     void setFilterMask(std::uint16_t mask);
 
@@ -71,6 +76,10 @@ public:
 private:
     friend class Device;
 
+    /**
+     * @brief Construct a poller from internal device state.
+     * @param state Owned internal polling state.
+     */
     explicit GpioPoller(std::unique_ptr<detail::GpioPollerState> state);
 
     std::unique_ptr<detail::GpioPollerState> state_;
