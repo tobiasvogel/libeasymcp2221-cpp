@@ -72,14 +72,14 @@ public:
      * @brief Check whether this Device object currently references device state.
      * @return true when this object still references shared device state.
      */
-    bool isOpen() const noexcept;
+    [[nodiscard]] bool isOpen() const noexcept;
 
     /**
      * @brief Create a stateful adapter for one I2C target using default options.
      * @param address 7-bit I2C target address.
      * @return Stateful I2C target adapter.
      */
-    I2cDevice i2cDevice(std::uint8_t address);
+    [[nodiscard]] I2cDevice i2cDevice(std::uint8_t address);
 
     /**
      * @brief Create a stateful adapter for one I2C target.
@@ -87,7 +87,7 @@ public:
      * @param options Target-specific adapter options.
      * @return Stateful I2C target adapter.
      */
-    I2cDevice i2cDevice(
+    [[nodiscard]] I2cDevice i2cDevice(
         std::uint8_t address,
         const I2cDeviceOptions& options);
 
@@ -96,13 +96,13 @@ public:
      * @param address 7-bit SMBus target address.
      * @return Stateful SMBus target adapter.
      */
-    SmbusDevice smbusDevice(std::uint8_t address);
+    [[nodiscard]] SmbusDevice smbusDevice(std::uint8_t address);
 
     /**
      * @brief Create a move-only stateful GPIO poller.
      * @return Stateful GPIO poller sharing this device context.
      */
-    GpioPoller gpioPoller();
+    [[nodiscard]] GpioPoller gpioPoller();
 
     /**
      * @brief Set the MCP2221 I2C bus clock frequency.
@@ -141,7 +141,7 @@ public:
      * @param transfer Transfer mode.
      * @return Received payload bytes.
      */
-    std::vector<std::uint8_t> i2cRead(
+    [[nodiscard]] std::vector<std::uint8_t> i2cRead(
         std::uint8_t address,
         std::size_t size,
         I2cTransfer transfer = I2cTransfer::Normal);
@@ -150,7 +150,7 @@ public:
      * @brief Return a typed I2C-engine status snapshot.
      * @return Current I2C engine status.
      */
-    I2cStatus i2cStatus();
+    [[nodiscard]] I2cStatus i2cStatus();
 
     /** @brief Release/reset the MCP2221 I2C engine. */
     void releaseI2c();
@@ -163,7 +163,7 @@ public:
      * @return Logical state for GP0 through GP3.
      * @throws Error on transport or protocol failure.
      */
-    GpioState readGpio();
+    [[nodiscard]] GpioState readGpio();
 
     /**
      * @brief Apply a partial GPIO output update.
@@ -221,7 +221,7 @@ public:
      * @return Previously configured supply voltage.
      * @throws Error if no VDD value has been configured.
      */
-    double vdd() const;
+    [[nodiscard]] double vdd() const;
 
     /**
      * @brief Configure the ADC voltage reference.
@@ -234,19 +234,19 @@ public:
      * @brief Read the three ADC channels as raw 10-bit values.
      * @return Raw ADC readings for the three channels.
      */
-    std::array<std::uint16_t, 3> readAdcRaw();
+    [[nodiscard]] std::array<std::uint16_t, 3> readAdcRaw();
 
     /**
      * @brief Read the three ADC channels as normalized values.
      * @return Normalized ADC readings for the three channels.
      */
-    std::array<double, 3> readAdcNormalized();
+    [[nodiscard]] std::array<double, 3> readAdcNormalized();
 
     /**
      * @brief Read the three ADC channels as voltages.
      * @return ADC readings in volts for the three channels.
      */
-    std::array<double, 3> readAdcVolts();
+    [[nodiscard]] std::array<double, 3> readAdcVolts();
 
     /**
      * @brief Configure the DAC voltage reference while preserving output code.
@@ -294,7 +294,7 @@ public:
      * @brief Read the interrupt-on-change flag.
      * @return true when the IOC flag is currently set.
      */
-    bool interruptFlag();
+    [[nodiscard]] bool interruptFlag();
 
     /** @brief Clear the interrupt-on-change flag. */
     void clearInterruptFlag();
@@ -327,7 +327,7 @@ public:
      * @return Complete 60-byte raw section payload.
      * @throws Error on flash-read, protocol, or transport failure.
      */
-    FlashData readFlash(FlashSection section);
+    [[nodiscard]] FlashData readFlash(FlashSection section);
 
     /**
      * @brief Write one raw persistent flash section.
@@ -356,13 +356,13 @@ public:
      *
      * @return Aggregate raw and decoded persistent flash information.
      */
-    FlashInfo flashInfo();
+    [[nodiscard]] FlashInfo flashInfo();
 
     /**
      * @brief Read raw persistent chip and GPIO flash settings.
      * @return Raw chip-settings and GP-settings snapshots.
      */
-    FlashSettings flashSettings();
+    [[nodiscard]] FlashSettings flashSettings();
 
     /**
      * @brief Persist the current staged/runtime configuration to flash.
@@ -394,7 +394,7 @@ public:
      *
      * @return Effective Remote Wake-up capability setting.
      */
-    bool usbRemoteWakeup();
+    [[nodiscard]] bool usbRemoteWakeup();
 
     /**
      * @brief Stage whether the device advertises itself as self-powered.
@@ -413,7 +413,7 @@ public:
      *
      * @return Effective self-powered USB enumeration setting.
      */
-    bool usbSelfPowered();
+    [[nodiscard]] bool usbSelfPowered();
 
     /**
      * @brief Stage the requested USB bus current in milliamperes.
@@ -436,7 +436,7 @@ public:
      *
      * @return Effective requested USB current in milliamperes.
      */
-    unsigned usbRequestedCurrent();
+    [[nodiscard]] unsigned usbRequestedCurrent();
 
     /**
      * @brief Send a raw MCP2221 protocol command.
@@ -451,7 +451,7 @@ public:
      * @note The MCP2221 reset command does not return a protocol response.
      *       For that command the returned array remains zero-initialized.
      */
-    std::array<std::uint8_t, 64> rawCommand(
+    [[nodiscard]] std::array<std::uint8_t, 64> rawCommand(
         const std::uint8_t* command,
         std::size_t size);
 
