@@ -35,7 +35,6 @@ WARNINGS                = YES
 WARN_AS_ERROR            = YES
 
 HAVE_DOT                = YES
-CLASS_DIAGRAMS          = YES
 UML_LOOK                = YES
 CALL_GRAPH              = NO
 CALLER_GRAPH            = NO

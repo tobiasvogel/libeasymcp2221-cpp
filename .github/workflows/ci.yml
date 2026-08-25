@@ -220,7 +220,7 @@ jobs:
           EOF
 
           cat > consumer/main.cpp <<'EOF'
-          #include <libeasymcp2221/libeasymcp2221.h>
+          #include <libeasymcp2221/DeviceOptions.h>
 
           int main()
           {

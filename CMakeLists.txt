@@ -212,10 +212,18 @@ if (LIBEASYMCP2221_CPP_BUILD_DOCS)
             SOURCE_DIR DOXYGEN_AWESOME_CSS_DIR
         )
 
-        set(
-            LIBEASYMCP2221_CPP_DOXYGEN_EXTRA_STYLESHEETS
+        set(LIBEASYMCP2221_CPP_DOXYGEN_AWESOME_STYLESHEETS
             "${DOXYGEN_AWESOME_CSS_DIR}/doxygen-awesome.css "
             "${DOXYGEN_AWESOME_CSS_DIR}/doxygen-awesome-sidebar-only.css"
+        )
+
+        # CMake lists are semicolon-separated. Doxygen expects
+        # HTML_EXTRA_STYLESHEET entries to be whitespace-separated, so join
+        # the list explicitly before substituting it into Doxyfile.
+        string(
+            JOIN " "
+            LIBEASYMCP2221_CPP_DOXYGEN_EXTRA_STYLESHEETS
+            ${LIBEASYMCP2221_CPP_DOXYGEN_AWESOME_STYLESHEETS}
         )
 
     endif()
