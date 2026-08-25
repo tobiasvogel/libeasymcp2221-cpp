@@ -153,7 +153,118 @@ jobs:
         run: cmake --build build-cpp --parallel
 
   install-consumer:
-    name: Install and find_package consumer
+    name: Install / ${{ matrix.variant }} / find_package
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: Shared only
+            shared: "ON"
+            static: "OFF"
+            target: libeasymcp2221::cpp
+          - variant: Static only
+            shared: "OFF"
+            static: "ON"
+            target: libeasymcp2221::cpp
+          - variant: Shared and static
+            shared: "ON"
+            static: "ON"
+            target: libeasymcp2221::cpp_static
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v4
+        with:
+          path: cpp
+
+      - name: Check out C dependency
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          path: c
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            build-essential \
+            cmake \
+            libusb-1.0-0-dev \
+            ninja-build \
+            pkg-config
+
+      - name: Build and install C dependency
+        run: |
+          cmake -S c -B build-c -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DLIBEASYMCP2221_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_BUILD_TESTS=OFF
+
+          cmake --build build-c --parallel
+          cmake --install build-c
+
+      - name: Build and install C++ library
+        env:
+          PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
+        run: |
+          cmake -S cpp -B build-cpp -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DLIBEASYMCP2221_CPP_BUILD_SHARED=${{ matrix.shared }} \
+            -DLIBEASYMCP2221_CPP_BUILD_STATIC=${{ matrix.static }} \
+            -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_CPP_BUILD_TESTS=OFF
+
+          cmake --build build-cpp --parallel
+          cmake --install build-cpp
+
+      - name: Create external consumer
+        run: |
+          mkdir consumer
+          cat > consumer/CMakeLists.txt <<'EOF'
+          cmake_minimum_required(VERSION 3.10)
+          project(libeasymcp2221_cpp_consumer LANGUAGES CXX)
+
+          find_package(libeasymcp2221-cpp 0.1 CONFIG REQUIRED)
+
+          if (NOT DEFINED LIBEASYMCP2221_CPP_CONSUMER_TARGET)
+              message(FATAL_ERROR "Consumer target was not provided")
+          endif()
+
+          add_executable(consumer main.cpp)
+          target_link_libraries(
+              consumer
+              PRIVATE
+                  ${LIBEASYMCP2221_CPP_CONSUMER_TARGET}
+          )
+          EOF
+
+          cat > consumer/main.cpp <<'EOF'
+          #include <libeasymcp2221++/DeviceOptions.h>
+
+          int main()
+          {
+              libeasymcp2221::DeviceOptions options;
+              return options.i2cSpeedHz == 100000 ? 0 : 1;
+          }
+          EOF
+
+      - name: Configure and build external consumer
+        env:
+          PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
+        run: |
+          cmake -S consumer -B build-consumer -G Ninja \
+            -DCMAKE_PREFIX_PATH="${GITHUB_WORKSPACE}/prefix" \
+            -DLIBEASYMCP2221_CPP_CONSUMER_TARGET="${{ matrix.target }}"
+          cmake --build build-consumer --parallel
+
+  pkg-config-consumer:
+    name: Install / pkg-config consumer
     runs-on: ubuntu-latest
 
     steps:
@@ -206,20 +317,10 @@ jobs:
           cmake --build build-cpp --parallel
           cmake --install build-cpp
 
-      - name: Create external consumer
+      - name: Create pkg-config consumer
         run: |
-          mkdir consumer
-          cat > consumer/CMakeLists.txt <<'EOF'
-          cmake_minimum_required(VERSION 3.10)
-          project(libeasymcp2221_cpp_consumer LANGUAGES CXX)
-
-          find_package(libeasymcp2221-cpp CONFIG REQUIRED)
-
-          add_executable(consumer main.cpp)
-          target_link_libraries(consumer PRIVATE libeasymcp2221::cpp)
-          EOF
-
-          cat > consumer/main.cpp <<'EOF'
+          mkdir consumer-pkgconfig
+          cat > consumer-pkgconfig/main.cpp <<'EOF'
           #include <libeasymcp2221++/DeviceOptions.h>
 
           int main()
@@ -229,13 +330,33 @@ jobs:
           }
           EOF
 
-      - name: Configure and build external consumer
+      - name: Validate pkg-config metadata
         env:
           PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
         run: |
-          cmake -S consumer -B build-consumer -G Ninja \
-            -DCMAKE_PREFIX_PATH="${GITHUB_WORKSPACE}/prefix"
-          cmake --build build-consumer --parallel
+          test "$(pkg-config --modversion 'libeasymcp2221++')" = "0.1.0"
+          pkg-config --exists 'libeasymcp2221 >= 2.0.0'
+          pkg-config --cflags --libs 'libeasymcp2221++'
+          pkg-config --static --cflags --libs 'libeasymcp2221++'
+
+      - name: Build shared pkg-config consumer
+        env:
+          PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
+        run: |
+          c++ -std=c++17 \
+            consumer-pkgconfig/main.cpp \
+            $(pkg-config --cflags --libs 'libeasymcp2221++') \
+            -o consumer-pkgconfig/shared-consumer
+
+      - name: Build static C++ pkg-config consumer
+        env:
+          PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
+        run: |
+          rm -f "${GITHUB_WORKSPACE}"/prefix/lib/libeasymcp2221++.so*
+          c++ -std=c++17 \
+            consumer-pkgconfig/main.cpp \
+            $(pkg-config --static --cflags --libs 'libeasymcp2221++') \
+            -o consumer-pkgconfig/static-consumer
 
   documentation:
     name: Doxygen documentation
