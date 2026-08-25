@@ -11,7 +11,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 option(LIBEASYMCP2221_CPP_BUILD_SHARED "Build shared C++ library" ON)
 option(LIBEASYMCP2221_CPP_BUILD_STATIC "Build static C++ library" ON)
-option(LIBEASYMCP2221_CPP_BUILD_EXAMPLES "Build examples" ON)
+option(LIBEASYMCP2221_CPP_BUILD_EXAMPLES "Build examples" OFF)
 option(LIBEASYMCP2221_CPP_BUILD_TESTS "Build unit tests" OFF)
 option(LIBEASYMCP2221_CPP_BUILD_DOCS "Build API documentation with Doxygen" OFF)
 option(
@@ -29,7 +29,7 @@ if (NOT LIBEASYMCP2221_CPP_BUILD_SHARED AND
 endif()
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBEASYMCP2221 REQUIRED IMPORTED_TARGET libeasymcp2221)
+pkg_check_modules(LIBEASYMCP2221 REQUIRED IMPORTED_TARGET "libeasymcp2221>=2.0.0")
 
 set(LIBEASYMCP2221_CPP_SOURCES
     src/Device.cpp
@@ -146,7 +146,7 @@ configure_package_config_file(
 write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/libeasymcp2221-cppConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion
+    COMPATIBILITY SameMinorVersion
 )
 
 install(EXPORT libeasymcp2221-cpp-targets
@@ -197,6 +197,13 @@ if (LIBEASYMCP2221_CPP_BUILD_DOCS)
     set(LIBEASYMCP2221_CPP_DOXYGEN_EXTRA_STYLESHEETS "")
 
     if (LIBEASYMCP2221_CPP_DOXYGEN_AWESOME)
+        if (CMAKE_VERSION VERSION_LESS 3.14)
+            message(FATAL_ERROR
+                "Doxygen Awesome documentation requires CMake 3.14 or newer. "
+                "Disable LIBEASYMCP2221_CPP_DOXYGEN_AWESOME or use a newer CMake."
+            )
+        endif()
+
         include(FetchContent)
 
         FetchContent_Declare(

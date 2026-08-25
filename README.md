@@ -3,7 +3,7 @@
 Object-oriented C++17 adapter for
 [`libeasymcp2221`](https://github.com/tobiasvogel/libeasymcp2221).
 
-This repository is initially scaffolded around four stateful public objects:
+The public API is centered around four stateful objects:
 
 - `libeasymcp2221::Device`
 - `libeasymcp2221::I2cDevice`
@@ -31,8 +31,12 @@ preferred or when configuring without network access.
 
 ## Build and install
 
-Both shared and static C++ libraries are built by default. Either variant can
-be disabled independently:
+The C++ adapter requires `libeasymcp2221` 2.0.0 or newer.
+
+Both shared and static C++ libraries are built by default. Examples are
+disabled by default and can be enabled with
+`-DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=ON`. Either library variant can be
+disabled independently:
 
 ```sh
 cmake -S . -B build \
@@ -44,8 +48,10 @@ cmake --install build
 
 The installed CMake package exports:
 
-- `libeasymcp2221::cpp` for the shared library, when built.
-- `libeasymcp2221::cpp_static` for the static library, when built.
+`libeasymcp2221::cpp` is the primary target. It refers to the shared library
+when a shared build is available, and to the static library in a static-only
+build. When shared and static variants are installed together, the static
+variant is additionally available as `libeasymcp2221::cpp_static`.
 
 A consuming CMake project can use:
 
@@ -59,7 +65,7 @@ target_link_libraries(my_application
 ```
 
 The underlying C library is discovered through its installed `libeasymcp2221`
-pkg-config metadata. A `libeasymcp2221-cpp.pc` file is installed as well for
+pkg-config metadata. A `libeasymcp2221++.pc` file is installed as well for
 non-CMake consumers.
 
 ## Tests
