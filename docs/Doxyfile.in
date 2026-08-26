@@ -36,6 +36,8 @@ WARNINGS                = YES
 WARN_AS_ERROR            = YES
 
 HAVE_DOT                = YES
+DOT_IMAGE_FORMAT        = svg
+INTERACTIVE_SVG         = YES
 UML_LOOK                = YES
 CALL_GRAPH              = NO
 CALLER_GRAPH            = NO
