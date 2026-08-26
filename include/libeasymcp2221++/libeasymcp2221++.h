@@ -16,4 +16,4 @@
 #include "SmbusDevice.h"
 #include "Types.h"
 
-#endif // LIBEASYMCP2221_PLUSPLUS_H
+#endif	// LIBEASYMCP2221_PLUSPLUS_H

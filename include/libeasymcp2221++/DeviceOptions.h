@@ -20,20 +20,20 @@ namespace libeasymcp2221 {
  * initial I2C bus speed.
  */
 struct DeviceOptions {
-    std::uint16_t vendorId = constants::DefaultVendorId;
-    std::uint16_t productId = constants::DefaultProductId;
-    int deviceIndex = 0;
-    std::string usbSerial;
+	std::uint16_t vendorId = constants::DefaultVendorId;
+	std::uint16_t productId = constants::DefaultProductId;
+	int deviceIndex = 0;
+	std::string usbSerial;
 
-    int usbReadTimeoutMs = 500;
-    int commandRetries = 3;
-    bool debugMessages = false;
-    bool tracePackets = false;
-    bool scanFlashSerial = false;
+	int usbReadTimeoutMs = 500;
+	int commandRetries = 3;
+	bool debugMessages = false;
+	bool tracePackets = false;
+	bool scanFlashSerial = false;
 
-    std::uint32_t i2cSpeedHz = 100000;
+	std::uint32_t i2cSpeedHz = 100000;
 };
 
-} // namespace libeasymcp2221
+}  // namespace libeasymcp2221
 
-#endif // LIBEASYMCP2221_CPP_DEVICE_OPTIONS_H
+#endif	// LIBEASYMCP2221_CPP_DEVICE_OPTIONS_H

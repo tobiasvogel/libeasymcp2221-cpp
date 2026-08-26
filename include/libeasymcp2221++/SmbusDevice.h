@@ -24,134 +24,129 @@ class SmbusDeviceState;
  * adapter state.
  */
 class SmbusDevice {
-public:
-    SmbusDevice(const SmbusDevice&) = default;
-    SmbusDevice& operator=(const SmbusDevice&) = default;
-    SmbusDevice(SmbusDevice&&) noexcept = default;
-    SmbusDevice& operator=(SmbusDevice&&) noexcept = default;
-    ~SmbusDevice() = default;
+  public:
+	SmbusDevice(const SmbusDevice&) = default;
+	SmbusDevice& operator=(const SmbusDevice&) = default;
+	SmbusDevice(SmbusDevice&&) noexcept = default;
+	SmbusDevice& operator=(SmbusDevice&&) noexcept = default;
+	~SmbusDevice() = default;
 
-    /**
-     * @brief Return the configured 7-bit target address.
-     * @return Configured 7-bit SMBus target address.
-     */
-    [[nodiscard]] std::uint8_t address() const noexcept;
+	/**
+	 * @brief Return the configured 7-bit target address.
+	 * @return Configured 7-bit SMBus target address.
+	 */
+	[[nodiscard]] std::uint8_t address() const noexcept;
 
-    /**
-     * @brief Read one byte directly from the target.
-     * @return Byte read from the target.
-     * @throws Error on transfer failure.
-     */
-    [[nodiscard]] std::uint8_t readByte();
+	/**
+	 * @brief Read one byte directly from the target.
+	 * @return Byte read from the target.
+	 * @throws Error on transfer failure.
+	 */
+	[[nodiscard]] std::uint8_t readByte();
 
-    /**
-     * @brief Write one byte directly to the target.
-     * @param value Byte to write.
-     * @throws Error on transfer failure.
-     */
-    void writeByte(std::uint8_t value);
+	/**
+	 * @brief Write one byte directly to the target.
+	 * @param value Byte to write.
+	 * @throws Error on transfer failure.
+	 */
+	void writeByte(std::uint8_t value);
 
-    /**
-     * @brief Read one byte from an SMBus command/register.
-     * @param command SMBus command byte.
-     * @return Byte read from the target.
-     * @throws Error on transfer failure.
-     */
-    [[nodiscard]] std::uint8_t readByteData(std::uint8_t command);
+	/**
+	 * @brief Read one byte from an SMBus command/register.
+	 * @param command SMBus command byte.
+	 * @return Byte read from the target.
+	 * @throws Error on transfer failure.
+	 */
+	[[nodiscard]] std::uint8_t readByteData(std::uint8_t command);
 
-    /**
-     * @brief Write one byte to an SMBus command/register.
-     * @param command SMBus command byte.
-     * @param value Byte to write.
-     * @throws Error on transfer failure.
-     */
-    void writeByteData(std::uint8_t command, std::uint8_t value);
+	/**
+	 * @brief Write one byte to an SMBus command/register.
+	 * @param command SMBus command byte.
+	 * @param value Byte to write.
+	 * @throws Error on transfer failure.
+	 */
+	void writeByteData(std::uint8_t command, std::uint8_t value);
 
-    /**
-     * @brief Read one signed 16-bit SMBus word.
-     * @param command SMBus command byte.
-     * @return Decoded signed word value.
-     * @throws Error on transfer failure.
-     */
-    [[nodiscard]] std::int16_t readWordData(std::uint8_t command);
+	/**
+	 * @brief Read one signed 16-bit SMBus word.
+	 * @param command SMBus command byte.
+	 * @return Decoded signed word value.
+	 * @throws Error on transfer failure.
+	 */
+	[[nodiscard]] std::int16_t readWordData(std::uint8_t command);
 
-    /**
-     * @brief Write one signed 16-bit SMBus word.
-     * @param command SMBus command byte.
-     * @param value Word value to write.
-     * @throws Error on transfer failure.
-     */
-    void writeWordData(std::uint8_t command, std::int16_t value);
+	/**
+	 * @brief Write one signed 16-bit SMBus word.
+	 * @param command SMBus command byte.
+	 * @param value Word value to write.
+	 * @throws Error on transfer failure.
+	 */
+	void writeWordData(std::uint8_t command, std::int16_t value);
 
-    /**
-     * @brief Perform an SMBus process call.
-     * @param command SMBus command byte.
-     * @param value Word value to send.
-     * @return Word response from the target.
-     * @throws Error on transfer failure.
-     */
-    [[nodiscard]] std::int16_t processCall(std::uint8_t command, std::int16_t value);
+	/**
+	 * @brief Perform an SMBus process call.
+	 * @param command SMBus command byte.
+	 * @param value Word value to send.
+	 * @return Word response from the target.
+	 * @throws Error on transfer failure.
+	 */
+	[[nodiscard]] std::int16_t processCall(std::uint8_t command, std::int16_t value);
 
-    /**
-     * @brief Read a length-prefixed SMBus block.
-     * @param command SMBus command byte.
-     * @return Payload bytes without the length prefix.
-     * @throws Error on transfer failure.
-     */
-    [[nodiscard]] std::vector<std::uint8_t> readBlockData(std::uint8_t command);
+	/**
+	 * @brief Read a length-prefixed SMBus block.
+	 * @param command SMBus command byte.
+	 * @return Payload bytes without the length prefix.
+	 * @throws Error on transfer failure.
+	 */
+	[[nodiscard]] std::vector<std::uint8_t> readBlockData(std::uint8_t command);
 
-    /**
-     * @brief Write a length-prefixed SMBus block.
-     * @param command SMBus command byte.
-     * @param data Payload bytes.
-     * @throws Error on transfer failure or invalid block size.
-     */
-    void writeBlockData(std::uint8_t command, const std::vector<std::uint8_t>& data);
+	/**
+	 * @brief Write a length-prefixed SMBus block.
+	 * @param command SMBus command byte.
+	 * @param data Payload bytes.
+	 * @throws Error on transfer failure or invalid block size.
+	 */
+	void writeBlockData(std::uint8_t command, const std::vector<std::uint8_t>& data);
 
-    /**
-     * @brief Perform an SMBus block process call.
-     * @param command SMBus command byte.
-     * @param data Payload bytes to send.
-     * @return Response payload.
-     * @throws Error on transfer failure.
-     */
-    [[nodiscard]] std::vector<std::uint8_t> blockProcessCall(
-        std::uint8_t command,
-        const std::vector<std::uint8_t>& data);
+	/**
+	 * @brief Perform an SMBus block process call.
+	 * @param command SMBus command byte.
+	 * @param data Payload bytes to send.
+	 * @return Response payload.
+	 * @throws Error on transfer failure.
+	 */
+	[[nodiscard]] std::vector<std::uint8_t> blockProcessCall(std::uint8_t command,
+															 const std::vector<std::uint8_t>& data);
 
-    /**
-     * @brief Read a fixed-length I2C-style block through SMBus helpers.
-     * @param command SMBus command byte.
-     * @param size Number of bytes to read.
-     * @return Requested data bytes.
-     * @throws Error on transfer failure or invalid size.
-     */
-    [[nodiscard]] std::vector<std::uint8_t> readI2cBlockData(
-        std::uint8_t command,
-        std::size_t size);
+	/**
+	 * @brief Read a fixed-length I2C-style block through SMBus helpers.
+	 * @param command SMBus command byte.
+	 * @param size Number of bytes to read.
+	 * @return Requested data bytes.
+	 * @throws Error on transfer failure or invalid size.
+	 */
+	[[nodiscard]] std::vector<std::uint8_t> readI2cBlockData(std::uint8_t command, std::size_t size);
 
-    /**
-     * @brief Write a fixed-length I2C-style block through SMBus helpers.
-     * @param command SMBus command byte.
-     * @param data Payload bytes.
-     * @throws Error on transfer failure or invalid size.
-     */
-    void writeI2cBlockData(
-        std::uint8_t command,
-        const std::vector<std::uint8_t>& data);
+	/**
+	 * @brief Write a fixed-length I2C-style block through SMBus helpers.
+	 * @param command SMBus command byte.
+	 * @param data Payload bytes.
+	 * @throws Error on transfer failure or invalid size.
+	 */
+	void writeI2cBlockData(std::uint8_t command, const std::vector<std::uint8_t>& data);
 
-private:
-    friend class Device;
+  private:
+	friend class Device;
 
-    /**
-     * @brief Construct an adapter from shared internal SMBus state.
-     * @param state Shared internal SMBus target state.
-     */
-    explicit SmbusDevice(std::shared_ptr<detail::SmbusDeviceState> state);
+	/**
+	 * @brief Construct an adapter from shared internal SMBus state.
+	 * @param state Shared internal SMBus target state.
+	 */
+	explicit SmbusDevice(std::shared_ptr<detail::SmbusDeviceState> state);
 
-    std::shared_ptr<detail::SmbusDeviceState> state_;
+	std::shared_ptr<detail::SmbusDeviceState> state_;
 };
 
-} // namespace libeasymcp2221
+}  // namespace libeasymcp2221
 
-#endif // LIBEASYMCP2221_CPP_SMBUS_DEVICE_H
+#endif	// LIBEASYMCP2221_CPP_SMBUS_DEVICE_H

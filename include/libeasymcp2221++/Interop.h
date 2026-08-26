@@ -17,6 +17,6 @@ class Device;
  * It can be introduced here later without exposing C headers through Device.h.
  */
 
-} // namespace libeasymcp2221
+}  // namespace libeasymcp2221
 
-#endif // LIBEASYMCP2221_CPP_INTEROP_H
+#endif	// LIBEASYMCP2221_CPP_INTEROP_H

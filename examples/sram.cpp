@@ -3,35 +3,33 @@
  * @brief Example applying a partial runtime SRAM configuration.
  */
 
-#include <iostream>
-
 #include <libeasymcp2221++/libeasymcp2221++.h>
 
-int main()
-{
-    using namespace libeasymcp2221;
+#include <iostream>
 
-    try {
-        Device device;
+int main() {
+	using namespace libeasymcp2221;
 
-        SramConfig config;
+	try {
+		Device device;
 
-        config.gpio[0].function = SramPinFunction::Gpio;
-        config.gpio[0].direction = GpioDirection::Output;
-        config.gpio[0].outputValue = false;
+		SramConfig config;
 
-        config.adc.reference = VoltageReference::Vdd;
-        config.clock.frequency = ClockFrequency::MHz6;
-        config.clock.dutyCycle = ClockDutyCycle::Percent50;
+		config.gpio[0].function = SramPinFunction::Gpio;
+		config.gpio[0].direction = GpioDirection::Output;
+		config.gpio[0].outputValue = false;
 
-        // Runtime SRAM only: this does not persist to flash.
-        device.configureSram(config);
+		config.adc.reference = VoltageReference::Vdd;
+		config.clock.frequency = ClockFrequency::MHz6;
+		config.clock.dutyCycle = ClockDutyCycle::Percent50;
 
-        std::cout << "Runtime SRAM configuration applied\n";
-        return 0;
-    }
-    catch (const Error& error) {
-        std::cerr << "MCP2221 error: " << error.what() << '\n';
-        return 1;
-    }
+		// Runtime SRAM only: this does not persist to flash.
+		device.configureSram(config);
+
+		std::cout << "Runtime SRAM configuration applied\n";
+		return 0;
+	} catch (const Error& error) {
+		std::cerr << "MCP2221 error: " << error.what() << '\n';
+		return 1;
+	}
 }

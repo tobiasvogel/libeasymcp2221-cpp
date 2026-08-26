@@ -39,7 +39,7 @@ constexpr double MinVddVolts = 3.0;
 /** @brief Maximum supported externally supplied VDD value in volts. */
 constexpr double MaxVddVolts = 5.5;
 
-} // namespace constants
-} // namespace libeasymcp2221
+}  // namespace constants
+}  // namespace libeasymcp2221
 
-#endif // LIBEASYMCP2221_CPP_CONSTANTS_H
+#endif	// LIBEASYMCP2221_CPP_CONSTANTS_H

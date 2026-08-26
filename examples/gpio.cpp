@@ -3,39 +3,37 @@
  * @brief Example configuring and reading MCP2221 GPIO pins.
  */
 
-#include <iostream>
-
 #include <libeasymcp2221++/libeasymcp2221++.h>
 
-int main()
-{
-    using namespace libeasymcp2221;
+#include <iostream>
 
-    try {
-        Device device;
+int main() {
+	using namespace libeasymcp2221;
 
-        PinConfigurations pins;
-        pins[0].function = PinFunction::GpioOutput;
-        pins[0].outputValue = false;
+	try {
+		Device device;
 
-        pins[1].function = PinFunction::GpioInput;
+		PinConfigurations pins;
+		pins[0].function = PinFunction::GpioOutput;
+		pins[0].outputValue = false;
 
-        device.configurePins(pins);
+		pins[1].function = PinFunction::GpioInput;
 
-        GpioWrite update;
-        update.pins[0] = true;
-        device.writeGpio(update);
+		device.configurePins(pins);
 
-        const GpioState state = device.readGpio();
+		GpioWrite update;
+		update.pins[0] = true;
+		device.writeGpio(update);
 
-        if (state.pins[1].has_value()) {
-            std::cout << "GP1 = " << (*state.pins[1] ? "high" : "low") << '\n';
-        }
+		const GpioState state = device.readGpio();
 
-        return 0;
-    }
-    catch (const Error& error) {
-        std::cerr << "MCP2221 error: " << error.what() << '\n';
-        return 1;
-    }
+		if (state.pins[1].has_value()) {
+			std::cout << "GP1 = " << (*state.pins[1] ? "high" : "low") << '\n';
+		}
+
+		return 0;
+	} catch (const Error& error) {
+		std::cerr << "MCP2221 error: " << error.what() << '\n';
+		return 1;
+	}
 }

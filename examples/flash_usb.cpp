@@ -6,43 +6,41 @@
  *          saveConfigurationToFlash() is enabled below.
  */
 
-#include <iostream>
-
 #include <libeasymcp2221++/libeasymcp2221++.h>
 
-int main()
-{
-    using namespace libeasymcp2221;
+#include <iostream>
 
-    try {
-        Device device;
+int main() {
+	using namespace libeasymcp2221;
 
-        const FlashInfo info = device.flashInfo();
+	try {
+		Device device;
 
-        std::cout << "Manufacturer: " << info.usbManufacturer << '\n';
-        std::cout << "Product:      " << info.usbProduct << '\n';
-        std::cout << "USB serial:   " << info.usbSerial << '\n';
+		const FlashInfo info = device.flashInfo();
 
-        // These calls stage values in the Device context only.
-        device.stageUsbRemoteWakeup(false);
-        device.stageUsbSelfPowered(false);
-        device.stageUsbRequestedCurrent(100);
+		std::cout << "Manufacturer: " << info.usbManufacturer << '\n';
+		std::cout << "Product:      " << info.usbProduct << '\n';
+		std::cout << "USB serial:   " << info.usbSerial << '\n';
 
-        std::cout << "USB settings staged but NOT persisted\n";
+		// These calls stage values in the Device context only.
+		device.stageUsbRemoteWakeup(false);
+		device.stageUsbSelfPowered(false);
+		device.stageUsbRequestedCurrent(100);
 
-        /*
-         * Persistent write:
-         *
-         * Uncomment only when you intentionally want to modify the MCP2221
-         * flash configuration. The operation is not atomic, and the USB host
-         * observes changed enumeration settings only after re-enumeration.
-         */
-        // device.saveConfigurationToFlash();
+		std::cout << "USB settings staged but NOT persisted\n";
 
-        return 0;
-    }
-    catch (const Error& error) {
-        std::cerr << "MCP2221 error: " << error.what() << '\n';
-        return 1;
-    }
+		/*
+		 * Persistent write:
+		 *
+		 * Uncomment only when you intentionally want to modify the MCP2221
+		 * flash configuration. The operation is not atomic, and the USB host
+		 * observes changed enumeration settings only after re-enumeration.
+		 */
+		// device.saveConfigurationToFlash();
+
+		return 0;
+	} catch (const Error& error) {
+		std::cerr << "MCP2221 error: " << error.what() << '\n';
+		return 1;
+	}
 }

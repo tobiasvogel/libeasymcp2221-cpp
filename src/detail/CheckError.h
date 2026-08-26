@@ -35,7 +35,7 @@ ErrorCode toErrorCode(mcp2221_error_code_t code);
  */
 [[noreturn]] void throwInvalid(const char* message);
 
-} // namespace detail
-} // namespace libeasymcp2221
+}  // namespace detail
+}  // namespace libeasymcp2221
 
-#endif // LIBEASYMCP2221_CPP_DETAIL_CHECK_ERROR_H
+#endif	// LIBEASYMCP2221_CPP_DETAIL_CHECK_ERROR_H
