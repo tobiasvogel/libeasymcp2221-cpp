@@ -1,4 +1,5 @@
 libeasymcp2221++.so.0 libeasymcp2221++0 #MINVER#
+* Build-Depends-Package: libeasymcp2221++-dev
  _ZN14libeasymcp222110GpioPoller11clearFilterEv@Base 0.1.0
  _ZN14libeasymcp222110GpioPoller4pollEv@Base 0.1.0
  _ZN14libeasymcp222110GpioPoller9setFilterERKNS_15GpioEventFilterE@Base 0.1.0
