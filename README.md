@@ -14,6 +14,10 @@ The C library remains the sole implementation of USB transport and MCP2221
 protocol logic. The C++ layer adds RAII, ownership, synchronization, strongly
 typed enums/value types, exceptions, and container-oriented return values.
 
+`libeasymcp2221++` is therefore an adapter rather than a second MCP2221
+protocol implementation: it keeps the tested C core while providing an
+idiomatic C++17 interface on top of it.
+
 ## Documentation
 
 Public interfaces and implementation-facing types are documented in Doxygen
@@ -97,3 +101,19 @@ For the complete public C++ API:
 ```
 
 The C++ namespace remains `libeasymcp2221`.
+
+
+## Versioning and releases
+
+The project follows semantic versioning. During the `0.x` series, compatibility
+is guaranteed within a minor release line; for example, `0.1.x` releases are
+intended to remain source-compatible with `0.1.0`.
+
+Release notes are maintained in [`CHANGELOG.md`](CHANGELOG.md). GitHub releases
+are source releases; users are expected to build against an installed
+`libeasymcp2221` dependency appropriate for their platform.
+
+## License
+
+`libeasymcp2221++` is distributed under the MIT License. See
+[`LICENSE`](LICENSE).

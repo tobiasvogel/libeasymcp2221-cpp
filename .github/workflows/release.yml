@@ -1,0 +1,118 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+env:
+  C_LIBRARY_REPOSITORY: tobiasvogel/libeasymcp2221
+  C_LIBRARY_REF: v2.0.0
+
+jobs:
+  release:
+    name: Verify and publish source release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v4
+        with:
+          path: cpp
+          fetch-depth: 0
+
+      - name: Check out pinned C dependency
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          ref: ${{ env.C_LIBRARY_REF }}
+          path: c
+
+      - name: Verify release metadata
+        working-directory: cpp
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          cmake_version="$(
+            sed -nE \
+              's/^project\(libeasymcp2221_cpp VERSION ([0-9]+\.[0-9]+\.[0-9]+) LANGUAGES CXX\)$/\1/p' \
+              CMakeLists.txt
+          )"
+
+          test -n "${cmake_version}"
+          test "${tag_version}" = "${cmake_version}"
+          grep -Fq "## [${tag_version}]" CHANGELOG.md
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            build-essential \
+            cmake \
+            libudev-dev \
+            libusb-1.0-0-dev \
+            ninja-build \
+            pkg-config
+
+      - name: Build and install pinned C dependency
+        run: |
+          cmake -S c -B build-c -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DLIBEASYMCP2221_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_BUILD_TESTS=OFF
+
+          cmake --build build-c --parallel
+          cmake --install build-c
+
+      - name: Configure C++ release verification
+        env:
+          PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
+        run: |
+          cmake -S cpp -B build-cpp -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DLIBEASYMCP2221_CPP_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_TESTS=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_DOCS=OFF
+
+      - name: Build and test release
+        run: |
+          cmake --build build-cpp --parallel
+          ctest --test-dir build-cpp --output-on-failure
+          cmake --install build-cpp
+
+      - name: Extract release notes
+        working-directory: cpp
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v version="${version}" '
+            $0 == "## [" version "]" {
+              capture = 1
+              next
+            }
+            capture && /^## \[/ {
+              exit
+            }
+            capture {
+              print
+            }
+          ' CHANGELOG.md > "${RUNNER_TEMP}/release-notes.md"
+
+          test -s "${RUNNER_TEMP}/release-notes.md"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: cpp
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "libeasymcp2221++ ${GITHUB_REF_NAME#v}" \
+            --notes-file "${RUNNER_TEMP}/release-notes.md" \
+            --verify-tag
