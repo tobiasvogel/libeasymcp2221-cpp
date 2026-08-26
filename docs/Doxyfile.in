@@ -5,8 +5,9 @@ PROJECT_BRIEF          = "Object-oriented C++17 adapter for libeasymcp2221"
 OUTPUT_DIRECTORY       = "@CMAKE_CURRENT_BINARY_DIR@/docs"
 INPUT                  = "@CMAKE_CURRENT_SOURCE_DIR@/include" \
                          "@CMAKE_CURRENT_SOURCE_DIR@/src" \
-                         "@CMAKE_CURRENT_SOURCE_DIR@/examples"
-FILE_PATTERNS           = *.h *.cpp
+                         "@CMAKE_CURRENT_SOURCE_DIR@/examples" \
+                         "@CMAKE_CURRENT_SOURCE_DIR@/docs"
+FILE_PATTERNS           = *.h *.cpp *.dox
 RECURSIVE               = YES
 
 EXTRACT_ALL             = NO

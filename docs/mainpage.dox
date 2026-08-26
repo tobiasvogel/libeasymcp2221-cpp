@@ -1,0 +1,63 @@
+/**
+ * @mainpage libeasymcp2221++
+ *
+ * @brief Object-oriented C++17 adapter for libeasymcp2221.
+ *
+ * libeasymcp2221++ provides an idiomatic C++17 interface on top of
+ * <a href="https://github.com/tobiasvogel/libeasymcp2221">libeasymcp2221</a>.
+ * The C library remains responsible for USB transport and MCP2221 protocol
+ * handling, while this adapter adds C++ ownership, strong value types,
+ * stateful child objects, exceptions, and container-oriented APIs.
+ *
+ * @section main_features Features
+ *
+ * - RAII-based root device ownership with explicit close() support.
+ * - Stateful @ref libeasymcp2221::I2cDevice "I2cDevice" and
+ *   @ref libeasymcp2221::SmbusDevice "SmbusDevice" adapters.
+ * - Typed GPIO polling through @ref libeasymcp2221::GpioPoller "GpioPoller".
+ * - Strongly typed GPIO, ADC, DAC, clock, SRAM, flash, and USB configuration.
+ * - Exception-based error translation while preserving native C error codes.
+ * - Shared and static library support with CMake and pkg-config integration.
+ *
+ * @section main_start Getting started
+ *
+ * The root @ref libeasymcp2221::Device "Device" object opens an MCP2221(A)
+ * and provides access to the stateful child adapters:
+ *
+ * @code{.cpp}
+ * #include <libeasymcp2221++/libeasymcp2221++.h>
+ *
+ * int main()
+ * {
+ *     libeasymcp2221::Device device;
+ *     auto sensor = device.i2cDevice(0x48);
+ *
+ *     // Use the stateful I2C adapter here.
+ *     return 0;
+ * }
+ * @endcode
+ *
+ * @section main_objects Core objects
+ *
+ * - @ref libeasymcp2221::Device "Device" — root MCP2221(A) object and
+ *   lifetime owner.
+ * - @ref libeasymcp2221::I2cDevice "I2cDevice" — stateful adapter for one
+ *   7-bit I2C target.
+ * - @ref libeasymcp2221::SmbusDevice "SmbusDevice" — stateful SMBus adapter.
+ * - @ref libeasymcp2221::GpioPoller "GpioPoller" — typed GPIO edge/event
+ *   polling helper.
+ *
+ * @section main_relationship Relationship to libeasymcp2221
+ *
+ * libeasymcp2221++ is an adapter, not a second MCP2221 protocol
+ * implementation. It intentionally reuses the mature C implementation from
+ * <a href="https://github.com/tobiasvogel/libeasymcp2221">libeasymcp2221</a>
+ * and exposes it through a C++17 object-oriented API.
+ *
+ * @section main_links Further information
+ *
+ * - <a href="https://github.com/tobiasvogel/libeasymcp2221-cpp">
+ *   libeasymcp2221++ on GitHub</a>
+ * - <a href="https://github.com/tobiasvogel/libeasymcp2221">
+ *   libeasymcp2221 C library on GitHub</a>
+ */
