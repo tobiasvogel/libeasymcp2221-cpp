@@ -112,7 +112,27 @@ jobs:
               mk-build-deps -i -t "apt-get -y --no-install-recommends" -r debian/control
               rm -f ./*build-deps*.deb || true
               dpkg-buildpackage -us -uc -B
-              dpkg -i ../libeasymcp2221-2_*.deb ../libeasymcp2221-dev_*.deb
+              c_runtime_deb="$(
+                find .. -maxdepth 1 -type f -name "*.deb" -print \
+                  | while IFS= read -r deb; do
+                      if [ "$(dpkg-deb -f "${deb}" Package)" = "libeasymcp2221-2" ]; then
+                        printf "%s\n" "${deb}"
+                        break
+                      fi
+                    done
+              )"
+              c_dev_deb="$(
+                find .. -maxdepth 1 -type f -name "*.deb" -print \
+                  | while IFS= read -r deb; do
+                      if [ "$(dpkg-deb -f "${deb}" Package)" = "libeasymcp2221-dev" ]; then
+                        printf "%s\n" "${deb}"
+                        break
+                      fi
+                    done
+              )"
+              test -n "${c_runtime_deb}"
+              test -n "${c_dev_deb}"
+              apt-get install -y "${c_runtime_deb}" "${c_dev_deb}"
 
               # Install the C++ package build dependencies now that the local
               # libeasymcp2221-dev package satisfies the >= 2.0.0 dependency.
@@ -225,7 +245,27 @@ jobs:
               mk-build-deps -i -t "apt-get -y --no-install-recommends" -r debian/control
               rm -f ./*build-deps*.deb || true
               dpkg-buildpackage -us -uc -B
-              dpkg -i ../libeasymcp2221-2_*.deb ../libeasymcp2221-dev_*.deb
+              c_runtime_deb="$(
+                find .. -maxdepth 1 -type f -name "*.deb" -print \
+                  | while IFS= read -r deb; do
+                      if [ "$(dpkg-deb -f "${deb}" Package)" = "libeasymcp2221-2" ]; then
+                        printf "%s\n" "${deb}"
+                        break
+                      fi
+                    done
+              )"
+              c_dev_deb="$(
+                find .. -maxdepth 1 -type f -name "*.deb" -print \
+                  | while IFS= read -r deb; do
+                      if [ "$(dpkg-deb -f "${deb}" Package)" = "libeasymcp2221-dev" ]; then
+                        printf "%s\n" "${deb}"
+                        break
+                      fi
+                    done
+              )"
+              test -n "${c_runtime_deb}"
+              test -n "${c_dev_deb}"
+              apt-get install -y "${c_runtime_deb}" "${c_dev_deb}"
 
               cd /src
               mk-build-deps -i -t "apt-get -y --no-install-recommends" -r debian/control
