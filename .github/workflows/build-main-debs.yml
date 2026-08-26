@@ -1,0 +1,269 @@
+name: Build main Debian snapshots
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: build-main-debs-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  C_LIBRARY_REPOSITORY: tobiasvogel/libeasymcp2221
+  C_LIBRARY_REF: v2.0.0
+
+jobs:
+  build:
+    name: Build ${{ matrix.distro.name }} ${{ matrix.distro.suite }} ${{ matrix.arch.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          - { name: debian, suite: bookworm, image: "debian:bookworm" }
+          - { name: debian, suite: trixie, image: "debian:trixie" }
+          - { name: ubuntu, suite: "22.04", image: "ubuntu:22.04" }
+          - { name: ubuntu, suite: "24.04", image: "ubuntu:24.04" }
+        arch:
+          - { name: amd64, platform: "linux/amd64" }
+          - { name: arm64, platform: "linux/arm64" }
+          - { name: armhf, platform: "linux/arm/v7" }
+        include:
+          - distro: { name: rpios, suite: bookworm, image: "balenalib/rpi-raspbian:bookworm" }
+            arch: { name: armv6, platform: "linux/arm/v6" }
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v5
+        with:
+          path: cpp
+
+      - name: Check out pinned C dependency
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          ref: ${{ env.C_LIBRARY_REF }}
+          path: c
+
+      - name: Generate snapshot version
+        id: version
+        working-directory: cpp
+        shell: bash
+        run: |
+          project_version="$(
+            sed -nE \
+              's/^project\(libeasymcp2221_cpp VERSION ([0-9]+\.[0-9]+\.[0-9]+) LANGUAGES CXX\)$/\1/p' \
+              CMakeLists.txt
+          )"
+          test -n "${project_version}"
+          build_date="$(date -u +%Y%m%d)"
+          short_sha="$(git rev-parse --short=8 HEAD)"
+          snapshot_version="${project_version}+git${build_date}.${short_sha}-1"
+          echo "version=${snapshot_version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Enable QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: all
+
+      - name: Build architecture packages
+        env:
+          IMAGE: ${{ matrix.distro.image }}
+          PLATFORM: ${{ matrix.arch.platform }}
+          SNAPSHOT_VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf out
+          mkdir -p out
+
+          docker run --rm -t \
+            --platform "${PLATFORM}" \
+            -e SNAPSHOT_VERSION="${SNAPSHOT_VERSION}" \
+            -v "${PWD}/cpp:/src" \
+            -v "${PWD}/c:/cdep:ro" \
+            -w /src \
+            "${IMAGE}" bash -lc '
+              set -euxo pipefail
+              export DEBIAN_FRONTEND=noninteractive
+              export DEBFULLNAME="GitHub Actions"
+              export DEBEMAIL="github-actions@users.noreply.github.com"
+
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                ca-certificates \
+                build-essential \
+                devscripts \
+                equivs \
+                debhelper \
+                dpkg-dev \
+                fakeroot \
+                ninja-build
+
+              # Build and install the pinned libeasymcp2221 dependency first.
+              cp -a /cdep /tmp/cdep
+              cd /tmp/cdep
+              mk-build-deps -i -t "apt-get -y --no-install-recommends" -r debian/control
+              rm -f ./*build-deps*.deb || true
+              dpkg-buildpackage -us -uc -B
+              dpkg -i ../libeasymcp2221-2_*.deb ../libeasymcp2221-dev_*.deb
+
+              # Install the C++ package build dependencies now that the local
+              # libeasymcp2221-dev package satisfies the >= 2.0.0 dependency.
+              cd /src
+              mk-build-deps -i -t "apt-get -y --no-install-recommends" -r debian/control
+              rm -f ./*build-deps*.deb || true
+
+              dch \
+                -b \
+                --newversion "${SNAPSHOT_VERSION}" \
+                --distribution UNRELEASED \
+                "Automated development snapshot from the main branch."
+
+              dpkg-buildpackage -us -uc -B
+
+              mkdir -p /src/out
+              cp -v ../*.deb ../*.buildinfo ../*.changes /src/out/ || true
+              chown -R --reference=/src /src/out
+            '
+
+      - name: Normalize snapshot asset names
+        working-directory: cpp
+        env:
+          TARGET_SUFFIX: ${{ matrix.distro.name }}-${{ matrix.distro.suite }}-${{ matrix.arch.name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for deb in out/*.deb; do
+            test -e "${deb}" || continue
+            package="$(dpkg-deb -f "${deb}" Package)"
+            version="$(dpkg-deb -f "${deb}" Version)"
+            mv -v "${deb}" "out/${package}_${version}_${TARGET_SUFFIX}.deb"
+          done
+
+      - name: Upload architecture snapshot artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: debs-main-${{ steps.version.outputs.version }}-${{ matrix.distro.name }}-${{ matrix.distro.suite }}-${{ matrix.arch.name }}
+          path: cpp/out/
+          if-no-files-found: error
+          retention-days: 30
+
+  build-doc:
+    name: Build Debian bookworm all documentation package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v5
+        with:
+          path: cpp
+
+      - name: Check out pinned C dependency
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          ref: ${{ env.C_LIBRARY_REF }}
+          path: c
+
+      - name: Generate snapshot version
+        id: version
+        working-directory: cpp
+        shell: bash
+        run: |
+          project_version="$(
+            sed -nE \
+              's/^project\(libeasymcp2221_cpp VERSION ([0-9]+\.[0-9]+\.[0-9]+) LANGUAGES CXX\)$/\1/p' \
+              CMakeLists.txt
+          )"
+          test -n "${project_version}"
+          build_date="$(date -u +%Y%m%d)"
+          short_sha="$(git rev-parse --short=8 HEAD)"
+          snapshot_version="${project_version}+git${build_date}.${short_sha}-1"
+          echo "version=${snapshot_version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build architecture-independent documentation package
+        env:
+          SNAPSHOT_VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf cpp/out-doc
+          mkdir -p cpp/out-doc
+
+          docker run --rm -t \
+            --platform linux/amd64 \
+            -e SNAPSHOT_VERSION="${SNAPSHOT_VERSION}" \
+            -v "${PWD}/cpp:/src" \
+            -v "${PWD}/c:/cdep:ro" \
+            -w /src \
+            debian:bookworm bash -lc '
+              set -euxo pipefail
+              export DEBIAN_FRONTEND=noninteractive
+              export DEBFULLNAME="GitHub Actions"
+              export DEBEMAIL="github-actions@users.noreply.github.com"
+
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                ca-certificates \
+                build-essential \
+                devscripts \
+                equivs \
+                debhelper \
+                dpkg-dev \
+                fakeroot \
+                ninja-build
+
+              cp -a /cdep /tmp/cdep
+              cd /tmp/cdep
+              mk-build-deps -i -t "apt-get -y --no-install-recommends" -r debian/control
+              rm -f ./*build-deps*.deb || true
+              dpkg-buildpackage -us -uc -B
+              dpkg -i ../libeasymcp2221-2_*.deb ../libeasymcp2221-dev_*.deb
+
+              cd /src
+              mk-build-deps -i -t "apt-get -y --no-install-recommends" -r debian/control
+              rm -f ./*build-deps*.deb || true
+
+              dch \
+                -b \
+                --newversion "${SNAPSHOT_VERSION}" \
+                --distribution UNRELEASED \
+                "Automated development snapshot from the main branch."
+
+              dpkg-buildpackage -us -uc -A
+
+              doc_deb="$(find .. -maxdepth 1 -type f -name "libeasymcp2221++-doc_*_all.deb" -print -quit)"
+              test -n "${doc_deb}"
+              cp -v "${doc_deb}" /src/out-doc/
+              chown -R --reference=/src /src/out-doc
+            '
+
+      - name: Validate documentation package
+        working-directory: cpp
+        shell: bash
+        run: |
+          set -euo pipefail
+          doc_deb="$(find out-doc -type f -name 'libeasymcp2221++-doc_*_all.deb' -print -quit)"
+          test -n "${doc_deb}"
+          test "$(dpkg-deb -f "${doc_deb}" Package)" = "libeasymcp2221++-doc"
+          test "$(dpkg-deb -f "${doc_deb}" Architecture)" = "all"
+
+          rm -rf package-root
+          mkdir package-root
+          dpkg-deb -x "${doc_deb}" package-root
+          test -f "package-root/usr/share/doc/libeasymcp2221++-doc/html/index.html"
+
+      - name: Upload architecture-independent snapshot artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: debs-main-${{ steps.version.outputs.version }}-debian-bookworm-all
+          path: cpp/out-doc/
+          if-no-files-found: error
+          retention-days: 30
