@@ -25,6 +25,7 @@ Description: C++ adapter runtime for EasyMCP2221
  C++17 adapter to libeasymcp2221.
 
 Package: libeasymcp2221++-dev
+Section: libdevel
 Architecture: any
 Multi-Arch: same
 Depends:
