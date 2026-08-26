@@ -6,6 +6,7 @@ Build-Depends:
  debhelper-compat (= 13),
  cmake,
  doxygen,
+ doxygen-awesome-css,
  graphviz,
  pkgconf,
  libeasymcp2221-dev (>= 2.0.0)

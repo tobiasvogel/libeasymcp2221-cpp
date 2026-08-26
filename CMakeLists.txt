@@ -19,6 +19,12 @@ option(
     "Use Doxygen Awesome for generated HTML documentation"
     ON
 )
+set(
+    LIBEASYMCP2221_CPP_DOXYGEN_AWESOME_PATH
+    ""
+    CACHE PATH
+    "Path to an installed Doxygen Awesome CSS directory; avoids FetchContent"
+)
 
 if (NOT LIBEASYMCP2221_CPP_BUILD_SHARED AND
     NOT LIBEASYMCP2221_CPP_BUILD_STATIC)
@@ -197,30 +203,51 @@ if (LIBEASYMCP2221_CPP_BUILD_DOCS)
     set(LIBEASYMCP2221_CPP_DOXYGEN_EXTRA_STYLESHEETS "")
 
     if (LIBEASYMCP2221_CPP_DOXYGEN_AWESOME)
-        if (CMAKE_VERSION VERSION_LESS 3.14)
-            message(FATAL_ERROR
-                "Doxygen Awesome documentation requires CMake 3.14 or newer. "
-                "Disable LIBEASYMCP2221_CPP_DOXYGEN_AWESOME or use a newer CMake."
+        if (LIBEASYMCP2221_CPP_DOXYGEN_AWESOME_PATH)
+            set(
+                DOXYGEN_AWESOME_CSS_DIR
+                "${LIBEASYMCP2221_CPP_DOXYGEN_AWESOME_PATH}"
+            )
+
+            foreach(_stylesheet
+                doxygen-awesome.css
+                doxygen-awesome-sidebar-only.css
+            )
+                if (NOT EXISTS "${DOXYGEN_AWESOME_CSS_DIR}/${_stylesheet}")
+                    message(FATAL_ERROR
+                        "Doxygen Awesome stylesheet not found: "
+                        "${DOXYGEN_AWESOME_CSS_DIR}/${_stylesheet}"
+                    )
+                endif()
+            endforeach()
+        else()
+            if (CMAKE_VERSION VERSION_LESS 3.14)
+                message(FATAL_ERROR
+                    "Doxygen Awesome documentation requires CMake 3.14 or newer "
+                    "when it is downloaded with FetchContent. Set "
+                    "LIBEASYMCP2221_CPP_DOXYGEN_AWESOME_PATH to use a local "
+                    "installation with older CMake."
+                )
+            endif()
+
+            include(FetchContent)
+
+            FetchContent_Declare(
+                doxygen-awesome-css
+                GIT_REPOSITORY https://github.com/jothepro/doxygen-awesome-css.git
+                GIT_TAG v2.4.2
+                GIT_SHALLOW TRUE
+            )
+            FetchContent_MakeAvailable(doxygen-awesome-css)
+
+            FetchContent_GetProperties(
+                doxygen-awesome-css
+                SOURCE_DIR DOXYGEN_AWESOME_CSS_DIR
             )
         endif()
 
-        include(FetchContent)
-
-        FetchContent_Declare(
-            doxygen-awesome-css
-            GIT_REPOSITORY https://github.com/jothepro/doxygen-awesome-css.git
-            GIT_TAG v2.4.2
-            GIT_SHALLOW TRUE
-        )
-        FetchContent_MakeAvailable(doxygen-awesome-css)
-
-        FetchContent_GetProperties(
-            doxygen-awesome-css
-            SOURCE_DIR DOXYGEN_AWESOME_CSS_DIR
-        )
-
         set(LIBEASYMCP2221_CPP_DOXYGEN_AWESOME_STYLESHEETS
-            "${DOXYGEN_AWESOME_CSS_DIR}/doxygen-awesome.css "
+            "${DOXYGEN_AWESOME_CSS_DIR}/doxygen-awesome.css"
             "${DOXYGEN_AWESOME_CSS_DIR}/doxygen-awesome-sidebar-only.css"
         )
 
