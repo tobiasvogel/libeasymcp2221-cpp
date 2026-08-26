@@ -1,0 +1,5 @@
+libeasymcp2221++ (0.1.0-1) unstable; urgency=medium
+
+  * Initial Debian packaging for libeasymcp2221++.
+
+ -- Tobias X. Vogel <tobias.vogel@linux.com>  Wed, 26 Aug 2026 12:00:00 +0200
