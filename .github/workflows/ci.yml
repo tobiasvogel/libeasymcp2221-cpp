@@ -121,6 +121,7 @@ jobs:
           sudo apt-get install --yes \
             build-essential \
             cmake \
+            libudev-dev \
             libusb-1.0-0-dev \
             ninja-build \
             pkg-config
