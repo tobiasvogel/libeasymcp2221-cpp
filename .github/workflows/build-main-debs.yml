@@ -209,7 +209,7 @@ jobs:
               {
                   return 0;
               }
-              EOF
+          EOF
 
               c++ -std=c++17 /tmp/consumer.cpp \
                 $(pkg-config --cflags --libs "libeasymcp2221++") \
@@ -226,7 +226,7 @@ jobs:
                   PRIVATE
                   libeasymcp2221::cpp
               )
-              EOF
+          EOF
               cmake -S /tmp/cmake-consumer -B /tmp/cmake-consumer/build -GNinja
               cmake --build /tmp/cmake-consumer/build
 
