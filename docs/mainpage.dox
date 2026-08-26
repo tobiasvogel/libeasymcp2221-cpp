@@ -60,4 +60,11 @@
  *   libeasymcp2221++ on GitHub</a>
  * - <a href="https://github.com/tobiasvogel/libeasymcp2221">
  *   libeasymcp2221 C library on GitHub</a>
+ *
+ * @section author Author
+ *
+ * Tobias X. Vogel
+ *
+ * @section license License
+ * libeasymcp2221++ is distributed under the <a href="https://opensource.org/license/mit">MIT License</a>.
  */

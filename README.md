@@ -113,6 +113,9 @@ Release notes are maintained in [`CHANGELOG.md`](CHANGELOG.md). GitHub releases
 are source releases; users are expected to build against an installed
 `libeasymcp2221` dependency appropriate for their platform.
 
+## Author
+Tobias X. Vogel
+
 ## License
 
 `libeasymcp2221++` is distributed under the MIT License. See
