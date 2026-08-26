@@ -230,7 +230,12 @@ jobs:
               cmake -S /tmp/cmake-consumer -B /tmp/cmake-consumer/build -GNinja
               cmake --build /tmp/cmake-consumer/build
 
-              mkdir -p /src/out
+              # Consumer validation changes the shell working directory through
+              # CMake internals and must not affect where package artifacts are
+              # collected. Use the absolute package paths discovered above and
+              # collect metadata explicitly from the Debian build parent.
+              cp -v "${cpp_runtime_deb}" "${cpp_dev_deb}" /src/out/
+              find / -maxdepth 1 -type f \( -name "*.buildinfo" -o -name "*.changes" \) -exec cp -v {} /src/out/ \;
               cp -v ../*.deb ../*.buildinfo ../*.changes /src/out/ || true
               chown -R --reference=/src /src/out
             '
