@@ -140,7 +140,11 @@ jobs:
 
               # Install the C++ package build dependencies now that the local
               # libeasymcp2221-dev package satisfies the >= 2.0.0 dependency.
+              # Architecture-specific packages do not contain documentation;
+              # the separate Bookworm Architecture: all job builds the doc package.
               cd /src
+              export DEB_BUILD_PROFILES=nodoc
+              export DEB_BUILD_OPTIONS=nodoc
               mk-build-deps -i -t "apt-get -y --no-install-recommends" -r debian/control
               rm -f ./*build-deps*.deb || true
 

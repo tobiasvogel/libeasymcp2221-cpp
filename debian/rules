@@ -6,6 +6,12 @@ ifneq (,$(shell command -v ninja 2>/dev/null))
 BUILDSYS := cmake+ninja
 endif
 
+ifneq (,$(filter nodoc,$(DEB_BUILD_OPTIONS)))
+DOCS_ENABLED := OFF
+else
+DOCS_ENABLED := ON
+endif
+
 %:
 	dh $@ --buildsystem=$(BUILDSYS) --builddirectory=build
 
@@ -16,13 +22,15 @@ override_dh_auto_configure:
 	  -DLIBEASYMCP2221_CPP_BUILD_STATIC=ON \
 	  -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=OFF \
 	  -DLIBEASYMCP2221_CPP_BUILD_TESTS=ON \
-	  -DLIBEASYMCP2221_CPP_BUILD_DOCS=ON \
-	  -DLIBEASYMCP2221_CPP_DOXYGEN_AWESOME=ON \
+	  -DLIBEASYMCP2221_CPP_BUILD_DOCS=$(DOCS_ENABLED) \
+	  -DLIBEASYMCP2221_CPP_DOXYGEN_AWESOME=$(DOCS_ENABLED) \
 	  -DLIBEASYMCP2221_CPP_DOXYGEN_AWESOME_PATH=/usr/share/doxygen-awesome-css
 
 override_dh_auto_build:
 	dh_auto_build
+ifeq ($(DOCS_ENABLED),ON)
 	cmake --build build --target docs
+endif
 
 override_dh_installdocs:
 	dh_installdocs -plibeasymcp2221++-doc --doc-main-package=libeasymcp2221++-doc

@@ -5,9 +5,9 @@ Maintainer: Tobias X. Vogel <tobias.vogel@linux.com>
 Build-Depends:
  debhelper-compat (= 13),
  cmake,
- doxygen,
- doxygen-awesome-css,
- graphviz,
+ doxygen <!nodoc>,
+ doxygen-awesome-css <!nodoc>,
+ graphviz <!nodoc>,
  pkgconf,
  libeasymcp2221-dev (>= 2.0.0)
 Standards-Version: 4.6.2
