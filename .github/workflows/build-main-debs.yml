@@ -16,7 +16,7 @@ permissions:
 
 env:
   C_LIBRARY_REPOSITORY: tobiasvogel/libeasymcp2221
-  C_LIBRARY_REF: v2.0.0
+  C_LIBRARY_REF: v2.0.1
 
 jobs:
   build:
@@ -109,9 +109,6 @@ jobs:
               # Build and install the pinned libeasymcp2221 dependency first.
               cp -a /cdep /tmp/cdep
               cd /tmp/cdep
-              # TODO: Remove this workaround once the pinned libeasymcp2221
-              # release includes pkgconf in debian/control Build-Depends.
-              apt-get install -y --no-install-recommends pkgconf
 
               mk-build-deps -i -t "apt-get -y --no-install-recommends" -r debian/control
               rm -f ./*build-deps*.deb || true
@@ -338,9 +335,6 @@ jobs:
 
               cp -a /cdep /tmp/cdep
               cd /tmp/cdep
-              # TODO: Remove this workaround once the pinned libeasymcp2221
-              # release includes pkgconf in debian/control Build-Depends.
-              apt-get install -y --no-install-recommends pkgconf
 
               mk-build-deps -i -t "apt-get -y --no-install-recommends" -r debian/control
               rm -f ./*build-deps*.deb || true
