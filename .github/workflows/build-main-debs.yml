@@ -239,6 +239,16 @@ jobs:
               chown -R --reference=/src /src/out
             '
 
+      - name: Run Lintian on runtime and development packages
+        if: matrix.distro.name == 'debian' && matrix.distro.suite == 'bookworm' && matrix.arch.name == 'amd64'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends lintian
+          lintian --display-info --display-experimental cpp/out/*.deb
+
       - name: Normalize snapshot asset names
         working-directory: cpp
         env:
@@ -389,6 +399,15 @@ jobs:
           mkdir package-root
           dpkg-deb -x "${doc_deb}" package-root
           test -f "package-root/usr/share/doc/libeasymcp2221++-doc/html/index.html"
+
+      - name: Run Lintian on documentation package
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends lintian
+          lintian --display-info --display-experimental cpp/out-doc/*.deb
 
       - name: Upload architecture-independent snapshot artifact
         uses: actions/upload-artifact@v6

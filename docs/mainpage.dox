@@ -27,8 +27,7 @@
  * @code{.cpp}
  * #include <libeasymcp2221++/libeasymcp2221++.h>
  *
- * int main()
- * {
+ * int main() {
  *     libeasymcp2221::Device device;
  *     auto sensor = device.i2cDevice(0x48);
  *
