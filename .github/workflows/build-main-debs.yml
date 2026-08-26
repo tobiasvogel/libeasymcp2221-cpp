@@ -156,6 +156,80 @@ jobs:
 
               dpkg-buildpackage -us -uc -B
 
+              # Install the freshly built packages back into the same clean
+              # distribution container. The pinned C dependency is already
+              # installed here, so apt can validate the complete dependency
+              # chain without relying on a distribution copy of libeasymcp2221.
+              cpp_runtime_deb="$(
+                find .. -maxdepth 1 -type f -name "*.deb" -print \
+                  | while IFS= read -r deb; do
+                      if [ "$(dpkg-deb -f "${deb}" Package)" = "libeasymcp2221++0" ]; then
+                        printf "%s\n" "${deb}"
+                        break
+                      fi
+                    done
+              )"
+              cpp_dev_deb="$(
+                find .. -maxdepth 1 -type f -name "*.deb" -print \
+                  | while IFS= read -r deb; do
+                      if [ "$(dpkg-deb -f "${deb}" Package)" = "libeasymcp2221++-dev" ]; then
+                        printf "%s\n" "${deb}"
+                        break
+                      fi
+                    done
+              )"
+              test -n "${cpp_runtime_deb}"
+              test -n "${cpp_dev_deb}"
+
+              test "$(dpkg-deb -f "${cpp_runtime_deb}" Architecture)" = "$(dpkg --print-architecture)"
+              test "$(dpkg-deb -f "${cpp_dev_deb}" Architecture)" = "$(dpkg --print-architecture)"
+              dpkg-deb -c "${cpp_runtime_deb}" | grep -F "libeasymcp2221++.so.0"
+              dpkg-deb -c "${cpp_dev_deb}" | grep -F "/usr/include/libeasymcp2221++/Device.h"
+              dpkg-deb -c "${cpp_dev_deb}" | grep -F "libeasymcp2221++.a"
+              dpkg-deb -c "${cpp_dev_deb}" | grep -F "libeasymcp2221++.pc"
+              dpkg-deb -c "${cpp_dev_deb}" | grep -F "libeasymcp2221-cppConfig.cmake"
+
+              cpp_dev_depends="$(dpkg-deb -f "${cpp_dev_deb}" Depends)"
+              printf "%s\n" "${cpp_dev_depends}" | grep -F "libeasymcp2221++0"
+              printf "%s\n" "${cpp_dev_depends}" | grep -F "libeasymcp2221-dev"
+
+              apt-get install -y "${cpp_runtime_deb}" "${cpp_dev_deb}"
+
+              # Compile and link consumers against the installed package
+              # metadata. Do not execute them: CI has no MCP2221 hardware.
+              cat >/tmp/consumer.cpp <<'"'"'EOF'"'"'
+              #include <libeasymcp2221++/Device.h>
+
+              void instantiateDevice()
+              {
+                  libeasymcp2221::Device device;
+              }
+
+              int main()
+              {
+                  return 0;
+              }
+              EOF
+
+              c++ -std=c++17 /tmp/consumer.cpp \
+                $(pkg-config --cflags --libs "libeasymcp2221++") \
+                -o /tmp/pkgconfig-consumer
+
+              mkdir -p /tmp/cmake-consumer
+              cat >/tmp/cmake-consumer/CMakeLists.txt <<'"'"'EOF'"'"'
+              cmake_minimum_required(VERSION 3.10)
+              project(installed_package_consumer LANGUAGES CXX)
+              find_package(libeasymcp2221-cpp CONFIG REQUIRED)
+              add_executable(installed-package-consumer /tmp/consumer.cpp)
+              target_link_libraries(
+                  installed-package-consumer
+                  PRIVATE
+                  libeasymcp2221::cpp
+              )
+              EOF
+              cmake -S /tmp/cmake-consumer -B /tmp/cmake-consumer/build -GNinja
+              cmake --build /tmp/cmake-consumer/build
+
               mkdir -p /src/out
               cp -v ../*.deb ../*.buildinfo ../*.changes /src/out/ || true
               chown -R --reference=/src /src/out
