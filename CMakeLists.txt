@@ -97,6 +97,11 @@ if (LIBEASYMCP2221_CPP_BUILD_STATIC)
     )
     libeasymcp2221_cpp_configure_target(easymcp2221_cpp_static)
 
+    target_link_libraries(easymcp2221_cpp_static
+        INTERFACE
+            "$<LINK_ONLY:PkgConfig::LIBEASYMCP2221>"
+    )
+
     if (LIBEASYMCP2221_CPP_BUILD_SHARED)
         set_target_properties(easymcp2221_cpp_static PROPERTIES
             EXPORT_NAME cpp_static
