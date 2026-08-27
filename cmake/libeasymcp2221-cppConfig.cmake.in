@@ -7,9 +7,24 @@ pkg_check_modules(
     LIBEASYMCP2221
     REQUIRED
     IMPORTED_TARGET
-    "libeasymcp2221>=2.0.0"
+    "libeasymcp2221>=2.0.1"
 )
 
 include("${CMAKE_CURRENT_LIST_DIR}/libeasymcp2221-cppTargets.cmake")
+
+set(libeasymcp2221-cpp_Qt_FOUND FALSE)
+
+if ("Qt" IN_LIST libeasymcp2221-cpp_FIND_COMPONENTS)
+    if (@LIBEASYMCP2221_CPP_HAS_QT@)
+        find_dependency(Qt6 COMPONENTS Core)
+
+        include(
+            "${CMAKE_CURRENT_LIST_DIR}/libeasymcp2221-cppQtTargets.cmake"
+        )
+
+        set(libeasymcp2221-cpp_Qt_FOUND TRUE)
+    endif()
+endif()
+
 
 check_required_components(libeasymcp2221-cpp)

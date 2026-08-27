@@ -6,14 +6,13 @@
 #ifndef LIBEASYMCP2221_CPP_QT_GPIO_MONITOR_H
 #define LIBEASYMCP2221_CPP_QT_GPIO_MONITOR_H
 
-#include <chrono>
-#include <cstddef>
+#include <libeasymcp2221++/GpioPoller.h>
+#include <libeasymcp2221++/Types.h>
 
 #include <QObject>
 #include <QTimer>
-
-#include <libeasymcp2221++/GpioPoller.h>
-#include <libeasymcp2221++/Types.h>
+#include <chrono>
+#include <cstddef>
 
 #include "ErrorInfo.h"
 #include "QtTypes.h"
@@ -31,133 +30,142 @@ namespace libeasymcp2221::qt {
  * polling operations execute in the thread owning this object.
  */
 class GpioMonitor : public QObject {
-    Q_OBJECT
+	Q_OBJECT
 
   public:
-    /**
-     * @brief Construct a monitor from an existing GPIO poller.
-     *
-     * Ownership of @p poller is transferred to this object.
-     *
-     * @param poller Stateful GPIO poller.
-     * @param parent Optional QObject parent.
-     */
-    explicit GpioMonitor(
-        GpioPoller poller,
-        QObject* parent = nullptr);
+	/**
+	 * @brief Default interval used for periodic GPIO polling.
+	 *
+	 * The default polling interval is 20 milliseconds.
+	 */
+	static constexpr std::chrono::milliseconds DefaultInterval{20};
 
-    ~GpioMonitor() override;
+	/**
+	 * @brief Default maximum number of GPIO events collected per poll.
+	 */
+	static constexpr std::size_t DefaultMaxEventsPerPoll{4};
 
-    GpioMonitor(const GpioMonitor&) = delete;
-    GpioMonitor& operator=(const GpioMonitor&) = delete;
-    GpioMonitor(GpioMonitor&&) = delete;
-    GpioMonitor& operator=(GpioMonitor&&) = delete;
+	/**
+	 * @brief Construct a monitor from an existing GPIO poller.
+	 *
+	 * Ownership of @p poller is transferred to this object.
+	 *
+	 * @param poller Stateful GPIO poller.
+	 * @param parent Optional QObject parent.
+	 */
+	explicit GpioMonitor(GpioPoller poller, QObject* parent = nullptr);
 
-    /**
-     * @brief Return whether periodic polling is currently active.
-     */
-    [[nodiscard]] bool isActive() const noexcept;
+	~GpioMonitor() override;
 
-    /**
-     * @brief Return the current polling interval.
-     */
-    [[nodiscard]]
-    std::chrono::milliseconds interval() const noexcept;
+	GpioMonitor(const GpioMonitor&) = delete;
+	GpioMonitor& operator=(const GpioMonitor&) = delete;
+	GpioMonitor(GpioMonitor&&) = delete;
+	GpioMonitor& operator=(GpioMonitor&&) = delete;
 
-    /**
-     * @brief Set the periodic polling interval.
-     *
-     * @param interval Positive polling interval.
-     */
-    void setInterval(std::chrono::milliseconds interval);
+	/**
+	 * @brief Return whether periodic polling is currently active.
+	 */
+	[[nodiscard]] bool isActive() const noexcept;
 
-    /**
-     * @brief Return the maximum number of GPIO events collected per poll.
-     */
-    [[nodiscard]]
-    std::size_t maxEventsPerPoll() const noexcept;
+	/**
+	 * @brief Return the current polling interval.
+	 */
+	[[nodiscard]]
+	std::chrono::milliseconds interval() const noexcept;
 
-    /**
-     * @brief Set the maximum number of events collected per poll.
-     *
-     * The underlying GpioPoller discards matching events beyond this limit.
-     */
-    void setMaxEventsPerPoll(std::size_t maxEvents);
+	/**
+	 * @brief Set the periodic polling interval.
+	 *
+	 * @param interval Positive polling interval.
+	 */
+	void setInterval(std::chrono::milliseconds interval);
 
-    /**
-     * @brief Replace the persistent GPIO edge filter.
-     */
-    void setFilter(const GpioEventFilter& filter);
+	/**
+	 * @brief Return the maximum number of GPIO events collected per poll.
+	 */
+	[[nodiscard]]
+	std::size_t maxEventsPerPoll() const noexcept;
 
-    /**
-     * @brief Clear the edge filter so all GPIO edges are accepted.
-     */
-    void clearFilter();
+	/**
+	 * @brief Set the maximum number of events collected per poll.
+	 *
+	 * The underlying GpioPoller discards matching events beyond this limit.
+	 */
+	void setMaxEventsPerPoll(std::size_t maxEvents);
+
+	/**
+	 * @brief Replace the persistent GPIO edge filter.
+	 */
+	void setFilter(const GpioEventFilter& filter);
+
+	/**
+	 * @brief Clear the edge filter so all GPIO edges are accepted.
+	 */
+	void clearFilter();
 
   public Q_SLOTS:
-    /**
-     * @brief Start periodic GPIO polling.
-     *
-     * Calling start() while already active has no effect.
-     */
-    void start();
+	/**
+	 * @brief Start periodic GPIO polling.
+	 *
+	 * Calling start() while already active has no effect.
+	 */
+	void start();
 
-    /**
-     * @brief Stop periodic GPIO polling.
-     *
-     * Calling stop() while already stopped has no effect.
-     */
-    void stop();
+	/**
+	 * @brief Stop periodic GPIO polling.
+	 *
+	 * Calling stop() while already stopped has no effect.
+	 */
+	void stop();
 
-    /**
-     * @brief Perform one GPIO event poll immediately.
-     *
-     * Errors are reported through errorOccurred() and do not propagate as
-     * exceptions from this slot.
-     */
-    void pollOnce();
+	/**
+	 * @brief Perform one GPIO event poll immediately.
+	 *
+	 * Errors are reported through errorOccurred() and do not propagate as
+	 * exceptions from this slot.
+	 */
+	void pollOnce();
 
   Q_SIGNALS:
-    /**
-     * @brief Emitted when periodic polling becomes active.
-     */
-    void started();
+	/**
+	 * @brief Emitted when periodic polling becomes active.
+	 */
+	void started();
 
-    /**
-     * @brief Emitted when periodic polling stops.
-     */
-    void stopped();
+	/**
+	 * @brief Emitted when periodic polling stops.
+	 */
+	void stopped();
 
-    /**
-     * @brief Emitted for every GPIO event reported by the core poller.
-     */
-    void gpioEvent(const libeasymcp2221::GpioEvent& event);
+	/**
+	 * @brief Emitted for every GPIO event reported by the core poller.
+	 */
+	void gpioEvent(const libeasymcp2221::GpioEvent& event);
 
-    /**
-     * @brief Convenience signal emitted for rising GPIO edges.
-     */
-    void risingEdge(libeasymcp2221::Pin pin);
+	/**
+	 * @brief Convenience signal emitted for rising GPIO edges.
+	 */
+	void risingEdge(libeasymcp2221::Pin pin);
 
-    /**
-     * @brief Convenience signal emitted for falling GPIO edges.
-     */
-    void fallingEdge(libeasymcp2221::Pin pin);
+	/**
+	 * @brief Convenience signal emitted for falling GPIO edges.
+	 */
+	void fallingEdge(libeasymcp2221::Pin pin);
 
-    /**
-     * @brief Emitted when a polling operation fails.
-     *
-     * A polling error does not automatically stop periodic monitoring.
-     */
-    void errorOccurred(
-        const libeasymcp2221::qt::ErrorInfo& error);
+	/**
+	 * @brief Emitted when a polling operation fails.
+	 *
+	 * A polling error does not automatically stop periodic monitoring.
+	 */
+	void errorOccurred(const libeasymcp2221::qt::ErrorInfo& error);
 
   private:
-    QTimer timer_;
-    GpioPoller poller_;
+	QTimer timer_;
+	GpioPoller poller_;
 
-    std::size_t maxEventsPerPoll_ = 4;
+	std::size_t maxEventsPerPoll_ = DefaultMaxEventsPerPoll;
 };
 
 }  // namespace libeasymcp2221::qt
 
-#endif  // LIBEASYMCP2221_CPP_QT_GPIO_MONITOR_H
+#endif	// LIBEASYMCP2221_CPP_QT_GPIO_MONITOR_H

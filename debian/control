@@ -9,7 +9,7 @@ Build-Depends:
  doxygen-awesome-css <!nodoc>,
  graphviz <!nodoc>,
  pkgconf,
- libeasymcp2221-dev (>= 2.0.0)
+ libeasymcp2221-dev (>= 2.0.1)
 Standards-Version: 4.6.2
 Homepage: https://github.com/tobiasvogel/libeasymcp2221-cpp
 Rules-Requires-Root: no
@@ -30,7 +30,7 @@ Architecture: any
 Multi-Arch: same
 Depends:
  libeasymcp2221++0 (= ${binary:Version}),
- libeasymcp2221-dev (>= 2.0.0),
+ libeasymcp2221-dev (>= 2.0.1),
  ${misc:Depends}
 Description: Development files for the EasyMCP2221 C++ adapter
  Includes C++ headers, the static library, CMake package files, pkg-config
