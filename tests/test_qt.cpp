@@ -1,0 +1,220 @@
+#include <libeasymcp2221++/Device.h>
+#include <libeasymcp2221++/qt/ErrorInfo.h>
+#include <libeasymcp2221++/qt/GpioMonitor.h>
+#include <libeasymcp2221++/qt/I2c.h>
+#include <libeasymcp2221++/qt/Smbus.h>
+
+#include "mock/MockControl.h"
+
+#include <QtTest/QSignalSpy>
+#include <QtTest/QTest>
+
+#include <chrono>
+#include <stdexcept>
+
+extern "C" {
+#include <libeasymcp2221/mcp2221_gpio_poll.h>
+}
+
+namespace {
+
+using libeasymcp2221::Device;
+using libeasymcp2221::GpioEvent;
+using libeasymcp2221::GpioEventFilter;
+using libeasymcp2221::Pin;
+using libeasymcp2221::qt::ErrorInfo;
+using libeasymcp2221::qt::GpioMonitor;
+
+class QtIntegrationTest : public QObject {
+    Q_OBJECT
+
+  private Q_SLOTS:
+    void init()
+    {
+        libeasymcp2221_test::resetMock();
+    }
+
+    void i2cReadReturnsQByteArray()
+    {
+        Device device;
+        auto target = device.i2cDevice(0x48);
+
+        QCOMPARE(
+            libeasymcp2221::qt::read(target, 3),
+            QByteArray(3, static_cast<char>(0xA5)));
+    }
+
+    void i2cRegisterReadReturnsQByteArray()
+    {
+        Device device;
+        auto target = device.i2cDevice(0x48);
+
+        QCOMPARE(
+            libeasymcp2221::qt::readRegister(target, 0x10, 4),
+            QByteArray(4, static_cast<char>(0x3C)));
+    }
+
+    void i2cRejectsNegativeSize()
+    {
+        Device device;
+        auto target = device.i2cDevice(0x48);
+
+        QVERIFY_EXCEPTION_THROWN(
+            libeasymcp2221::qt::read(target, -1),
+            std::invalid_argument);
+    }
+
+    void smbusBlockReadReturnsQByteArray()
+    {
+        Device device;
+        auto target = device.smbusDevice(0x5A);
+
+        QCOMPARE(
+            libeasymcp2221::qt::readBlockData(target, 0x01),
+            QByteArray::fromHex("0102"));
+    }
+
+    void smbusBlockProcessCallReturnsQByteArray()
+    {
+        Device device;
+        auto target = device.smbusDevice(0x5A);
+
+        QCOMPARE(
+            libeasymcp2221::qt::blockProcessCall(
+                target,
+                0x02,
+                QByteArray::fromHex("1020")),
+            QByteArray::fromHex("55"));
+    }
+
+    void smbusI2cBlockReadReturnsQByteArray()
+    {
+        Device device;
+        auto target = device.smbusDevice(0x5A);
+
+        QCOMPARE(
+            libeasymcp2221::qt::readI2cBlockData(target, 0x03, 3),
+            QByteArray(3, static_cast<char>(0x66)));
+    }
+
+    void gpioMonitorDefaults()
+    {
+        Device device;
+        GpioMonitor monitor(device.gpioPoller());
+
+        QCOMPARE(
+            monitor.interval(),
+            GpioMonitor::DefaultInterval);
+        QCOMPARE(
+            monitor.maxEventsPerPoll(),
+            GpioMonitor::DefaultMaxEventsPerPoll);
+        QVERIFY(!monitor.isActive());
+    }
+
+    void gpioMonitorStartStopSignals()
+    {
+        Device device;
+        GpioMonitor monitor(device.gpioPoller());
+
+        QSignalSpy startedSpy(&monitor, &GpioMonitor::started);
+        QSignalSpy stoppedSpy(&monitor, &GpioMonitor::stopped);
+
+        monitor.start();
+        QVERIFY(monitor.isActive());
+        QCOMPARE(startedSpy.count(), 1);
+
+        monitor.start();
+        QCOMPARE(startedSpy.count(), 1);
+
+        monitor.stop();
+        QVERIFY(!monitor.isActive());
+        QCOMPARE(stoppedSpy.count(), 1);
+
+        monitor.stop();
+        QCOMPARE(stoppedSpy.count(), 1);
+    }
+
+    void gpioMonitorPollWithoutEvents()
+    {
+        qRegisterMetaType<GpioEvent>();
+        qRegisterMetaType<Pin>();
+
+        Device device;
+        GpioMonitor monitor(device.gpioPoller());
+
+        QSignalSpy eventSpy(&monitor, &GpioMonitor::gpioEvent);
+        QSignalSpy risingSpy(&monitor, &GpioMonitor::risingEdge);
+        QSignalSpy fallingSpy(&monitor, &GpioMonitor::fallingEdge);
+
+        monitor.pollOnce();
+
+        QCOMPARE(eventSpy.count(), 0);
+        QCOMPARE(risingSpy.count(), 0);
+        QCOMPARE(fallingSpy.count(), 0);
+    }
+
+    void gpioMonitorReportsPollingError()
+    {
+        qRegisterMetaType<ErrorInfo>();
+
+        Device device;
+        GpioMonitor monitor(device.gpioPoller());
+
+        QSignalSpy errorSpy(&monitor, &GpioMonitor::errorOccurred);
+
+        libeasymcp2221_test::failNext(MCP2221_ERR_TIMEOUT);
+        monitor.pollOnce();
+
+        QCOMPARE(errorSpy.count(), 1);
+
+        const auto error =
+            qvariant_cast<ErrorInfo>(errorSpy.at(0).at(0));
+
+        QCOMPARE(
+            error.code,
+            libeasymcp2221::ErrorCode::Timeout);
+        QCOMPARE(
+            error.nativeCode,
+            static_cast<int>(MCP2221_ERR_TIMEOUT));
+        QVERIFY(!error.message.isEmpty());
+    }
+
+    void gpioMonitorErrorDoesNotStopTimer()
+    {
+        Device device;
+        GpioMonitor monitor(device.gpioPoller());
+
+        monitor.start();
+        libeasymcp2221_test::failNext(MCP2221_ERR_TIMEOUT);
+        monitor.pollOnce();
+
+        QVERIFY(monitor.isActive());
+        monitor.stop();
+    }
+
+    void gpioMonitorForwardsFilter()
+    {
+        Device device;
+        GpioMonitor monitor(device.gpioPoller());
+
+        GpioEventFilter filter;
+        filter.rising[1] = true;
+        monitor.setFilter(filter);
+
+        QCOMPARE(
+            libeasymcp2221_test::lastGpioFilterMask(),
+            static_cast<std::uint16_t>(
+                MCP2221_GPIO_POLL_MASK_RISE(1)));
+
+        monitor.clearFilter();
+        QCOMPARE(
+            libeasymcp2221_test::lastGpioFilterMask(),
+            static_cast<std::uint16_t>(0));
+    }
+};
+
+}  // namespace
+
+QTEST_GUILESS_MAIN(QtIntegrationTest)
+
+#include "test_qt.moc"
