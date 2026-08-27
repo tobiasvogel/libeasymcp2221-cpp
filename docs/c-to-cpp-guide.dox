@@ -1,0 +1,294 @@
+/**
+ * @page c_to_cpp_guide C and C++ API comparison
+ *
+ * libeasymcp2221++ is a C++17 adapter around
+ * <a href="https://github.com/tobiasvogel/libeasymcp2221">libeasymcp2221</a>.
+ * The C library still performs USB transport and MCP2221 protocol handling;
+ * the C++ layer changes how applications express ownership, errors, state,
+ * and configuration.
+ *
+ * This page is organized by task rather than by class. It is intended both
+ * for users migrating existing C code and for users who want to understand
+ * how the C++ API maps onto the underlying C API.
+ *
+ * @section ccpp_summary Quick mapping
+ *
+ * | C API concept | C++ API counterpart | Main difference |
+ * | --- | --- | --- |
+ * | `mcp2221_t *` | @ref libeasymcp2221::Device "Device" | RAII lifetime; move-only root object |
+ * | `mcp2221_error_code_t` | @ref libeasymcp2221::Error "Error" / @ref libeasymcp2221::ErrorCode "ErrorCode" | Exceptions plus preserved native error code |
+ * | `mcp2221_close()` | `Device` destructor or `Device::close()` | Automatic cleanup by default |
+ * | `mcp2221_i2c_slave_t` | @ref libeasymcp2221::I2cDevice "I2cDevice" | Stateful target object with typed options |
+ * | SMBus helper functions | @ref libeasymcp2221::SmbusDevice "SmbusDevice" | Target address retained by the object |
+ * | GPIO read/write structs | @ref libeasymcp2221::GpioState "GpioState" / @ref libeasymcp2221::GpioWrite "GpioWrite" | `std::optional` represents unavailable/preserved pins |
+ * | GPIO poll state + filter mask | @ref libeasymcp2221::GpioPoller "GpioPoller" / @ref libeasymcp2221::GpioEventFilter "GpioEventFilter" | Poll history and filter owned by an object |
+ * | string/magic-value configuration | strongly typed enums | Compile-time type checking |
+ * | raw flash-info output struct | @ref libeasymcp2221::FlashInfo "FlashInfo" | Raw data plus decoded `std::string` fields |
+ *
+ * @section ccpp_open Opening and closing a device
+ *
+ * In C, the caller owns the handle and must explicitly close it:
+ *
+ * @code{.c}
+ * mcp2221_t *dev = NULL;
+ * mcp2221_error_code_t err =
+ *     mcp2221_open_simple(0x04D8, 0x00DD, 0, NULL, 100000, &dev);
+ *
+ * if (err != MCP2221_ERR_OK)
+ *     return 1;
+ *
+ * // use dev
+ * mcp2221_close(dev);
+ * @endcode
+ *
+ * In C++, construction opens the device and destruction releases the root
+ * object's reference automatically:
+ *
+ * @code{.cpp}
+ * using namespace libeasymcp2221;
+ *
+ * Device device;
+ * // use device
+ * @endcode
+ *
+ * `Device::close()` is available when explicit early release is useful.
+ *
+ * @section ccpp_errors Error handling
+ *
+ * C code normally checks every returned `mcp2221_error_code_t`:
+ *
+ * @code{.c}
+ * mcp2221_error_code_t err = mcp2221_i2c_set_speed(dev, 100000);
+ * if (err != MCP2221_ERR_OK) {
+ *     fprintf(stderr, "%s\n", mcp2221_error_code_to_string(err));
+ *     return 1;
+ * }
+ * @endcode
+ *
+ * The C++ adapter translates failures to @ref libeasymcp2221::Error "Error":
+ *
+ * @code{.cpp}
+ * try {
+ *     Device device;
+ *     device.setI2cSpeed(100000);
+ * }
+ * catch (const Error& error) {
+ *     std::cerr << error.what() << '\n';
+ *     std::cerr << "typed code: " << static_cast<int>(error.code()) << '\n';
+ *     std::cerr << "native C code: " << error.nativeCode() << '\n';
+ * }
+ * @endcode
+ *
+ * `Error::nativeCode()` preserves the original C error value for applications
+ * that need to interoperate with existing diagnostics or policy.
+ *
+ * @section ccpp_i2c Raw I2C access
+ *
+ * Bus-wide operations remain methods on @ref libeasymcp2221::Device "Device":
+ *
+ * @code{.cpp}
+ * Device device;
+ * device.setI2cSpeed(100000);
+ *
+ * device.i2cWrite(0x50, std::vector<std::uint8_t>{0x00, 0x10});
+ * const auto data = device.i2cRead(0x50, 16);
+ * @endcode
+ *
+ * For repeated access to one target, prefer @ref libeasymcp2221::I2cDevice
+ * "I2cDevice".
+ *
+ * @section ccpp_i2c_device Stateful I2C targets
+ *
+ * The C API stores target settings in `mcp2221_i2c_slave_t`:
+ *
+ * @code{.c}
+ * mcp2221_i2c_slave_t ee;
+ * mcp2221_i2c_slave_init(
+ *     &ee, dev, 0x50, 1, 100000, 2, MCP2221_I2C_BYTE_ORDER_BIG);
+ *
+ * uint8_t data[16];
+ * mcp2221_i2c_slave_read_register(
+ *     &ee, 0x0000, data, sizeof(data), 0,
+ *     MCP2221_I2C_BYTE_ORDER_DEFAULT);
+ * @endcode
+ *
+ * The C++ counterpart expresses the same configuration through typed options:
+ *
+ * @code{.cpp}
+ * I2cDeviceOptions options{};
+ * options.force = true;
+ * options.speedHz = 100000;
+ * options.registerWidth = RegisterWidth::Bits16;
+ * options.byteOrder = ByteOrder::BigEndian;
+ *
+ * auto eeprom = device.i2cDevice(0x50, options);
+ * const auto data = eeprom.readRegister(0x0000, 16);
+ * @endcode
+ *
+ * See the parallel examples:
+ * - C: `examples/test_i2c.c` in libeasymcp2221 v2.0.1
+ * - C++: `examples/test_i2c.cpp`
+ *
+ * The same object-oriented pattern is used by `scan_i2c.cpp` and
+ * `ssd1306_i2c.cpp`.
+ *
+ * @section ccpp_smbus SMBus
+ *
+ * Instead of passing a device handle and target information into each SMBus
+ * helper, create a stateful target:
+ *
+ * @code{.cpp}
+ * auto sensor = device.smbusDevice(0x5A);
+ *
+ * const auto status = sensor.readByteData(0x01);
+ * const auto word = sensor.readWordData(0x02);
+ * sensor.writeByteData(0x03, 0x7F);
+ * @endcode
+ *
+ * @ref libeasymcp2221::SmbusDevice "SmbusDevice" also exposes process calls,
+ * SMBus block operations, and fixed-length I2C-style block operations.
+ *
+ * @section ccpp_gpio GPIO configuration and I/O
+ *
+ * C uses explicit pin-function and GPIO read/write structures. The C++ layer
+ * uses typed pin identifiers, typed functions, and `std::optional` for partial
+ * updates.
+ *
+ * @code{.cpp}
+ * PinConfigurations configuration{};
+ * configuration[0] = {PinFunction::GpioOutput, true};
+ * configuration[1] = {PinFunction::GpioInput, false};
+ * device.configurePins(configuration);
+ *
+ * GpioWrite write{};
+ * write.pins[0] = false;
+ * device.writeGpio(write);
+ *
+ * const auto state = device.readGpio();
+ * @endcode
+ *
+ * A disengaged `GpioWrite::pins` entry means "preserve this output". A
+ * disengaged `GpioState::pins` entry means the pin is currently not configured
+ * as GPIO.
+ *
+ * Parallel examples:
+ * - `gpio_basic.c` / `gpio_basic.cpp`
+ * - `set_pin_functions.c` / `set_pin_functions.cpp`
+ *
+ * @section ccpp_gpio_poll GPIO edge polling
+ *
+ * The C API requires a caller-owned poll state and a bit mask. The C++ API
+ * packages both into @ref libeasymcp2221::GpioPoller "GpioPoller":
+ *
+ * @code{.cpp}
+ * device.setPinFunction(Pin::GP0, PinFunction::GpioInput);
+ *
+ * auto poller = device.gpioPoller();
+ * GpioEventFilter filter{};
+ * filter.rising[0] = true;
+ * poller.setFilter(filter);
+ *
+ * for (;;) {
+ *     const auto events = poller.pollEvents(8);
+ *     if (!events.empty())
+ *         break;
+ * }
+ * @endcode
+ *
+ * See `gpio_poll_events.c` / `gpio_poll_events.cpp`.
+ *
+ * @section ccpp_analog ADC, DAC, and clock output
+ *
+ * C configuration strings and numeric selectors become strongly typed enum
+ * values:
+ *
+ * @code{.cpp}
+ * device.configureAdc(VoltageReference::Internal1V024);
+ * const auto adc = device.readAdcRaw();
+ *
+ * device.configureDac(VoltageReference::Internal2V048, 16);
+ * device.writeDacRaw(8);
+ *
+ * device.configureClock(ClockDutyCycle::Percent50, ClockFrequency::MHz12);
+ * @endcode
+ *
+ * This is the direct C++ counterpart of `analog_demo.c`; see
+ * `analog_demo.cpp`.
+ *
+ * @section ccpp_sram SRAM configuration
+ *
+ * @ref libeasymcp2221::SramConfig "SramConfig" is a partial update type.
+ * Every disengaged field preserves the corresponding runtime SRAM setting:
+ *
+ * @code{.cpp}
+ * SramConfig config{};
+ * config.gpio[0].function = SramPinFunction::Gpio;
+ * config.gpio[0].direction = GpioDirection::Output;
+ * config.gpio[0].outputValue = true;
+ * config.clock.frequency = ClockFrequency::MHz12;
+ *
+ * device.configureSram(config);
+ * @endcode
+ *
+ * This changes runtime SRAM only; it does not write flash.
+ *
+ * @section ccpp_flash Flash information and persistent configuration
+ *
+ * Aggregate flash information is returned as @ref libeasymcp2221::FlashInfo
+ * "FlashInfo":
+ *
+ * @code{.cpp}
+ * const auto info = device.flashInfo();
+ * std::cout << info.usbManufacturer << '\n';
+ * std::cout << info.usbProduct << '\n';
+ * std::cout << info.usbSerial << '\n';
+ * std::cout << info.factorySerial << '\n';
+ * @endcode
+ *
+ * Persistent configuration writes remain explicit:
+ *
+ * @code{.cpp}
+ * device.saveConfigurationToFlash();
+ * @endcode
+ *
+ * @warning `saveConfigurationToFlash()` performs persistent writes and is not
+ * atomic. Use it only when persistence is intended.
+ *
+ * See `flash_info_save.c` / `flash_info_save.cpp`.
+ *
+ * @section ccpp_usb USB enumeration attributes
+ *
+ * USB settings are first staged and then optionally persisted:
+ *
+ * @code{.cpp}
+ * device.stageUsbRemoteWakeup(true);
+ * device.stageUsbSelfPowered(false);
+ * device.stageUsbRequestedCurrent(100);
+ *
+ * device.saveConfigurationToFlash();
+ * @endcode
+ *
+ * The host sees persisted USB enumeration changes only after re-enumeration.
+ * See `usb_power.c` / `usb_power.cpp`.
+ *
+ * @section ccpp_examples Parallel example index
+ *
+ * The following C++ examples intentionally mirror examples from
+ * libeasymcp2221 v2.0.1:
+ *
+ * | C example | C++ counterpart | Demonstrates |
+ * | --- | --- | --- |
+ * | `analog_demo.c` | `analog_demo.cpp` | ADC, DAC, clock |
+ * | `flash_info_save.c` | `flash_info_save.cpp` | Flash info and persistent save |
+ * | `gpio_basic.c` | `gpio_basic.cpp` | GPIO configuration/read/write |
+ * | `gpio_poll_events.c` | `gpio_poll_events.cpp` | Filtered edge polling |
+ * | `scan_i2c.c` | `scan_i2c.cpp` | I2C bus scan |
+ * | `set_pin_functions.c` | `set_pin_functions.cpp` | Pin-function mapping |
+ * | `ssd1306_i2c.c` | `ssd1306_i2c.cpp` | Stateful I2C peripheral use |
+ * | `test_i2c.c` | `test_i2c.cpp` | Register-oriented EEPROM access |
+ * | `usb_power.c` | `usb_power.cpp` | USB enumeration attributes |
+ *
+ * The C++ repository also contains smaller API-oriented examples such as
+ * `basic.cpp`, `i2c_device.cpp`, `smbus_device.cpp`, `gpio.cpp`, `analog.cpp`,
+ * `sram.cpp`, and `flash_usb.cpp`.
+ */

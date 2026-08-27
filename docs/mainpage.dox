@@ -55,6 +55,7 @@
  *
  * @section main_links Further information
  *
+ * - @ref c_to_cpp_guide "C and C++ API comparison"
  * - <a href="https://github.com/tobiasvogel/libeasymcp2221-cpp">
  *   libeasymcp2221++ on GitHub</a>
  * - <a href="https://github.com/tobiasvogel/libeasymcp2221">
