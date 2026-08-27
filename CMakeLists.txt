@@ -279,8 +279,18 @@ endif()
 
 install(DIRECTORY include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    FILES_MATCHING PATTERN "*.h"
+    FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "qt" EXCLUDE
 )
+
+if (LIBEASYMCP2221_CPP_BUILD_QT)
+    install(
+        DIRECTORY include/libeasymcp2221++/qt/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libeasymcp2221++/qt
+        FILES_MATCHING PATTERN "*.h"
+    )
+endif()
 
 set(LIBEASYMCP2221_CPP_CMAKE_INSTALL_DIR
     "${CMAKE_INSTALL_LIBDIR}/cmake/libeasymcp2221-cpp"
