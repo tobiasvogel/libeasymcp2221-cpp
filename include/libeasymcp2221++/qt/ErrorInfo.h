@@ -30,6 +30,8 @@ struct ErrorInfo {
 
 /**
  * @brief Convert a core library exception to its Qt value representation.
+ * @param error Core libeasymcp2221++ exception to convert.
+ * @return Qt-friendly error information carrying code, native code, and message.
  */
 [[nodiscard]] ErrorInfo toErrorInfo(
     const libeasymcp2221::Error& error);
