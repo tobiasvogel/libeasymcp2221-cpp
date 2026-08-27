@@ -94,6 +94,10 @@ std::string GpioEvent::id() const
 
 GpioPoller::GpioPoller(std::unique_ptr<detail::GpioPollerState> state) : state_(std::move(state)) {}
 
+GpioPoller::GpioPoller(GpioPoller&&) noexcept = default;
+
+GpioPoller& GpioPoller::operator=(GpioPoller&&) noexcept = default;
+
 GpioPoller::~GpioPoller() noexcept = default;
 
 void GpioPoller::setFilter(const GpioEventFilter& filter) {

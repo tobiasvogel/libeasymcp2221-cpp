@@ -30,8 +30,8 @@ class GpioPoller {
 	GpioPoller(const GpioPoller&) = delete;
 	GpioPoller& operator=(const GpioPoller&) = delete;
 
-	GpioPoller(GpioPoller&&) noexcept = default;
-	GpioPoller& operator=(GpioPoller&&) noexcept = default;
+	GpioPoller(GpioPoller&&) noexcept;
+	GpioPoller& operator=(GpioPoller&&) noexcept;
 
 	~GpioPoller() noexcept;
 
