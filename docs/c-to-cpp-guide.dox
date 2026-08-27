@@ -16,7 +16,7 @@
  * | C API concept | C++ API counterpart | Main difference |
  * | --- | --- | --- |
  * | `mcp2221_t *` | @ref libeasymcp2221::Device "Device" | RAII lifetime; move-only root object |
- * | `mcp2221_error_code_t` | @ref libeasymcp2221::Error "Error" / @ref libeasymcp2221::ErrorCode "ErrorCode" | Exceptions plus preserved native error code |
+ * | `mcp2221_error_code_t` | @ref libeasymcp2221::Error "Error" / `ErrorCode` | Exceptions plus preserved native error code |
  * | `mcp2221_close()` | `Device` destructor or `Device::close()` | Automatic cleanup by default |
  * | `mcp2221_i2c_slave_t` | @ref libeasymcp2221::I2cDevice "I2cDevice" | Stateful target object with typed options |
  * | SMBus helper functions | @ref libeasymcp2221::SmbusDevice "SmbusDevice" | Target address retained by the object |
