@@ -64,11 +64,13 @@ class GpioMonitor : public QObject {
 
 	/**
 	 * @brief Return whether periodic polling is currently active.
+	 * @return true when the polling timer is active, otherwise false.
 	 */
 	[[nodiscard]] bool isActive() const noexcept;
 
 	/**
 	 * @brief Return the current polling interval.
+	 * @return Current interval between periodic GPIO polls.
 	 */
 	[[nodiscard]]
 	std::chrono::milliseconds interval() const noexcept;
@@ -82,6 +84,7 @@ class GpioMonitor : public QObject {
 
 	/**
 	 * @brief Return the maximum number of GPIO events collected per poll.
+	 * @return Maximum number of events requested from the core poller.
 	 */
 	[[nodiscard]]
 	std::size_t maxEventsPerPoll() const noexcept;
@@ -90,11 +93,15 @@ class GpioMonitor : public QObject {
 	 * @brief Set the maximum number of events collected per poll.
 	 *
 	 * The underlying GpioPoller discards matching events beyond this limit.
+	 *
+	 * @param maxEvents Maximum number of events requested per poll.
 	 */
 	void setMaxEventsPerPoll(std::size_t maxEvents);
 
 	/**
 	 * @brief Replace the persistent GPIO edge filter.
+	 *
+	 * @param filter Edge-event filter to apply to subsequent polls.
 	 */
 	void setFilter(const GpioEventFilter& filter);
 
@@ -139,16 +146,22 @@ class GpioMonitor : public QObject {
 
 	/**
 	 * @brief Emitted for every GPIO event reported by the core poller.
+	 *
+	 * @param event GPIO edge event reported by the poller.
 	 */
 	void gpioEvent(const libeasymcp2221::GpioEvent& event);
 
 	/**
 	 * @brief Convenience signal emitted for rising GPIO edges.
+	 *
+	 * @param pin GPIO pin on which the rising edge occurred.
 	 */
 	void risingEdge(libeasymcp2221::Pin pin);
 
 	/**
 	 * @brief Convenience signal emitted for falling GPIO edges.
+	 *
+	 * @param pin GPIO pin on which the falling edge occurred.
 	 */
 	void fallingEdge(libeasymcp2221::Pin pin);
 
@@ -156,6 +169,8 @@ class GpioMonitor : public QObject {
 	 * @brief Emitted when a polling operation fails.
 	 *
 	 * A polling error does not automatically stop periodic monitoring.
+	 *
+	 * @param error Qt-friendly description of the polling error.
 	 */
 	void errorOccurred(const libeasymcp2221::qt::ErrorInfo& error);
 

@@ -40,6 +40,11 @@ void write(I2cDevice& device, const QByteArray& data);
  * @brief Read bytes from an I2C register as a QByteArray.
  *
  * Uses the register width and byte order configured on @p device.
+ *
+ * @param device I2C target adapter.
+ * @param reg Register address.
+ * @param size Number of bytes to read.
+ * @return Received register payload bytes.
  */
 [[nodiscard]]
 QByteArray readRegister(
@@ -49,6 +54,13 @@ QByteArray readRegister(
 
 /**
  * @brief Read bytes from an I2C register using an explicit layout.
+ *
+ * @param device I2C target adapter.
+ * @param reg Register address.
+ * @param size Number of bytes to read.
+ * @param registerWidth Register-address width.
+ * @param byteOrder Register-address byte order.
+ * @return Received register payload bytes.
  */
 [[nodiscard]]
 QByteArray readRegister(
@@ -62,6 +74,10 @@ QByteArray readRegister(
  * @brief Write a QByteArray to an I2C register.
  *
  * Uses the register width and byte order configured on @p device.
+ *
+ * @param device I2C target adapter.
+ * @param reg Register address.
+ * @param data Payload bytes.
  */
 void writeRegister(
     I2cDevice& device,
@@ -70,6 +86,12 @@ void writeRegister(
 
 /**
  * @brief Write a QByteArray to an I2C register using an explicit layout.
+ *
+ * @param device I2C target adapter.
+ * @param reg Register address.
+ * @param data Payload bytes.
+ * @param registerWidth Register-address width.
+ * @param byteOrder Register-address byte order.
  */
 void writeRegister(
     I2cDevice& device,

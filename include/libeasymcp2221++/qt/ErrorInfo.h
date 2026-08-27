@@ -21,10 +21,14 @@ namespace libeasymcp2221::qt {
  * exception cannot be propagated directly to the caller.
  */
 struct ErrorInfo {
+    /** @brief Strongly typed libeasymcp2221++ error code. */
     libeasymcp2221::ErrorCode code =
         libeasymcp2221::ErrorCode::Generic;
 
+    /** @brief Original integer error code reported by the C library. */
     int nativeCode = 0;
+
+    /** @brief Human-readable error description. */
     QString message;
 };
 
