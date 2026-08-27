@@ -31,6 +31,17 @@ void requireOpen(const std::shared_ptr<detail::DeviceState>& state) {
 	}
 }
 
+mcp2221_i2c_byte_order_t toNativeByteOrder(ByteOrder byteOrder) {
+	switch (byteOrder) {
+		case ByteOrder::BigEndian:
+			return MCP2221_I2C_BYTE_ORDER_BIG;
+		case ByteOrder::LittleEndian:
+			return MCP2221_I2C_BYTE_ORDER_LITTLE;
+	}
+
+	detail::throwInvalid("Unknown I2C register byte order");
+}
+
 int toNativeRegisterWidth(RegisterWidth width) {
 	switch (width) {
 		case RegisterWidth::Bits8:
@@ -386,8 +397,7 @@ I2cDevice Device::i2cDevice(std::uint8_t address, const I2cDeviceOptions& option
 
 	std::lock_guard<std::mutex> lock(state_->mutex());
 
-	const auto order =
-		options.byteOrder == ByteOrder::LittleEndian ? MCP2221_I2C_BYTE_ORDER_LITTLE : MCP2221_I2C_BYTE_ORDER_BIG;
+	const auto order = toNativeByteOrder(options.byteOrder);
 
 	detail::checkError(mcp2221_i2c_slave_init(&child->slave, state_->handle(), address, options.force ? 1 : 0,
 											  options.speedHz, toNativeRegisterWidth(options.registerWidth), order),

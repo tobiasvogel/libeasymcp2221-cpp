@@ -104,6 +104,27 @@ void testRawI2cAndI2cDevice()
     EXPECT_TRUE(caught);
 }
 
+void testInvalidI2cDeviceByteOrder()
+{
+    resetMock();
+
+    Device device;
+    I2cDeviceOptions options;
+    options.force = true;
+    options.byteOrder = static_cast<ByteOrder>(0x7F);
+
+    bool caught = false;
+    try {
+        static_cast<void>(device.i2cDevice(0x50, options));
+    }
+    catch (const Error& error) {
+        caught = true;
+        EXPECT_EQ(error.code(), ErrorCode::Invalid);
+    }
+
+    EXPECT_TRUE(caught);
+}
+
 void testSmbusDevice()
 {
     resetMock();
@@ -280,6 +301,11 @@ int main()
     test_harness::run(
         "Raw I2C and I2cDevice behavior",
         testRawI2cAndI2cDevice,
+        failures);
+
+    test_harness::run(
+        "Invalid I2C target byte order is rejected",
+        testInvalidI2cDeviceByteOrder,
         failures);
 
     test_harness::run(
