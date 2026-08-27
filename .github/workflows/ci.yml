@@ -360,6 +360,106 @@ jobs:
             $(pkg-config --static --cflags --libs 'libeasymcp2221++') \
             -o consumer-pkgconfig/static-consumer
 
+  qt-component:
+    name: Qt component / build and consumer
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v4
+        with:
+          path: cpp
+
+      - name: Check out C dependency
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          path: c
+
+      - name: Install Qt build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            build-essential \
+            cmake \
+            libusb-1.0-0-dev \
+            ninja-build \
+            pkg-config \
+            qt6-base-dev
+
+      - name: Build and install C dependency
+        run: |
+          cmake -S c -B build-c -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DLIBEASYMCP2221_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_BUILD_TESTS=OFF
+
+          cmake --build build-c --parallel
+          cmake --install build-c
+
+      - name: Configure Qt component and tests
+        env:
+          PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
+        run: |
+          cmake -S cpp -B build-cpp-qt -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DLIBEASYMCP2221_CPP_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_QT=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_CPP_BUILD_TESTS=ON
+
+      - name: Build Qt component and tests
+        run: cmake --build build-cpp-qt --parallel
+
+      - name: Run tests in Qt-enabled build
+        run: ctest --test-dir build-cpp-qt --output-on-failure
+
+      - name: Install Qt-enabled build
+        run: cmake --install build-cpp-qt
+
+      - name: Create external Qt consumer
+        run: |
+          mkdir consumer-qt
+          cat > consumer-qt/CMakeLists.txt <<'EOF'
+          cmake_minimum_required(VERSION 3.16)
+          project(libeasymcp2221_cpp_qt_consumer LANGUAGES CXX)
+
+          find_package(
+              libeasymcp2221-cpp 0.1
+              CONFIG REQUIRED COMPONENTS Qt
+          )
+
+          add_executable(consumer main.cpp)
+          target_link_libraries(
+              consumer
+              PRIVATE
+                  libeasymcp2221::qt
+          )
+          EOF
+
+          cat > consumer-qt/main.cpp <<'EOF'
+          #include <libeasymcp2221++/qt/ErrorInfo.h>
+
+          int main()
+          {
+              auto* convert = &libeasymcp2221::qt::toErrorInfo;
+              return convert == nullptr ? 1 : 0;
+          }
+          EOF
+
+      - name: Configure and build external Qt consumer
+        env:
+          PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
+        run: |
+          cmake -S consumer-qt -B build-consumer-qt -G Ninja \
+            -DCMAKE_PREFIX_PATH="${GITHUB_WORKSPACE}/prefix"
+          cmake --build build-consumer-qt --parallel
+
   documentation:
     name: Doxygen documentation
     runs-on: ubuntu-latest
