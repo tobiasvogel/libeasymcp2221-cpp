@@ -31,3 +31,8 @@ libeasymcp2221_cpp_add_example(gpio_basic)
 libeasymcp2221_cpp_add_example(set_pin_functions)
 libeasymcp2221_cpp_add_example(analog_demo)
 libeasymcp2221_cpp_add_example(usb_power)
+
+libeasymcp2221_cpp_add_example(gpio_poll_events)
+libeasymcp2221_cpp_add_example(test_i2c)
+libeasymcp2221_cpp_add_example(flash_info_save)
+libeasymcp2221_cpp_add_example(ssd1306_i2c)

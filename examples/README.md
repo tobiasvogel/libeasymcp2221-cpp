@@ -26,6 +26,10 @@ hardware connected to it.
 | `set_pin_functions.cpp` | C++ counterpart of C `set_pin_functions.c` | Changes GP0-GP3 runtime functions |
 | `analog_demo.cpp` | C++ counterpart of C `analog_demo.c` | Changes ADC/DAC/clock runtime configuration |
 | `usb_power.cpp` | C++ counterpart of C `usb_power.c` | **Persists USB power attributes to flash** |
+| `gpio_poll_events.cpp` | C++ counterpart of C `gpio_poll_events.c` | Polls GP0 until a rising edge occurs |
+| `test_i2c.cpp` | C++ counterpart of C `test_i2c.c` | Reads 16 bytes from a 16-bit-addressed EEPROM at `0x50` |
+| `flash_info_save.cpp` | C++ counterpart of C `flash_info_save.c` | **Reads flash info and persists current configuration** |
+| `ssd1306_i2c.cpp` | C++ counterpart of C `ssd1306_i2c.c` | Initializes and writes to an SSD1306 OLED at `0x3C` |
 
 ## Parallel C/C++ examples
 
@@ -43,7 +47,9 @@ write fails.
 
 `usb_power.cpp`, unlike `flash_usb.cpp`, intentionally calls
 `saveConfigurationToFlash()` because it mirrors the C `usb_power.c` example.
-Running it therefore performs persistent flash writes.
+`flash_info_save.cpp` likewise persists the current configuration because
+the corresponding C example does so. Running either example therefore
+performs persistent flash writes.
 
 USB enumeration changes become visible to the host only after the device is
 re-enumerated.
@@ -51,5 +57,6 @@ re-enumerated.
 ## Addresses and registers
 
 The I2C and SMBus addresses and register numbers in these examples are
-placeholders. Replace them with values appropriate for your peripheral before
-running the programs.
+placeholders unless the example intentionally mirrors fixed hardware from the
+C repository. `test_i2c.cpp` assumes an EEPROM at `0x50`; `ssd1306_i2c.cpp`
+assumes a 128x32 SSD1306 at `0x3C`.
