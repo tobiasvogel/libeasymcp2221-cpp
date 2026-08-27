@@ -51,6 +51,8 @@ jobs:
           sudo apt-get install --yes \
             build-essential \
             cmake \
+            doxygen \
+            graphviz \
             libudev-dev \
             libusb-1.0-0-dev \
             ninja-build \
@@ -80,12 +82,15 @@ jobs:
             -DLIBEASYMCP2221_CPP_BUILD_STATIC=ON \
             -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=ON \
             -DLIBEASYMCP2221_CPP_BUILD_TESTS=ON \
-            -DLIBEASYMCP2221_CPP_BUILD_DOCS=OFF
+            -DLIBEASYMCP2221_CPP_BUILD_DOCS=ON \
+            -DLIBEASYMCP2221_CPP_DOXYGEN_AWESOME=OFF
 
-      - name: Build and test release
+      - name: Build, test, and verify documentation
         run: |
           cmake --build build-cpp --parallel
           ctest --test-dir build-cpp --output-on-failure
+          cmake --build build-cpp --target docs
+          test -f build-cpp/docs/html/index.html
           cmake --install build-cpp
 
       - name: Extract release notes
