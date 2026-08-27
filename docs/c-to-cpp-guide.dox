@@ -126,7 +126,7 @@
  * @endcode
  *
  * See the parallel examples:
- * - C: `examples/test_i2c.c` in libeasymcp2221 v2.0.1
+ * - C: `examples/test_i2c.c` in libeasymcp2221 v2.0.2
  * - C++: `examples/test_i2c.cpp`
  *
  * The same object-oriented pattern is used by `scan_i2c.cpp` and
@@ -274,7 +274,7 @@
  * @section ccpp_examples Parallel example index
  *
  * The following C++ examples intentionally mirror examples from
- * libeasymcp2221 v2.0.1:
+ * libeasymcp2221 v2.0.2:
  *
  * | C example | C++ counterpart | Demonstrates |
  * | --- | --- | --- |

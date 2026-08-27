@@ -16,7 +16,7 @@ permissions:
 
 env:
   C_LIBRARY_REPOSITORY: tobiasvogel/libeasymcp2221
-  C_LIBRARY_REF: v2.0.1
+  C_LIBRARY_REF: v2.0.2
 
 jobs:
   build:

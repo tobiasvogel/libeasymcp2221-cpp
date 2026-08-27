@@ -25,7 +25,7 @@ libeasymcp2221_cpp_add_example(analog)
 libeasymcp2221_cpp_add_example(sram)
 libeasymcp2221_cpp_add_example(flash_usb)
 
-# Parallel counterparts of libeasymcp2221 v2.0.1 examples.
+# Parallel counterparts of libeasymcp2221 v2.0.2 examples.
 libeasymcp2221_cpp_add_example(scan_i2c)
 libeasymcp2221_cpp_add_example(gpio_basic)
 libeasymcp2221_cpp_add_example(set_pin_functions)
