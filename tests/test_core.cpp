@@ -182,6 +182,18 @@ void testTypedGpioEventFilter()
     EXPECT_EQ(lastGpioFilterMask(), static_cast<std::uint16_t>(0));
 }
 
+void testGpioEventId()
+{
+    GpioEvent event;
+    event.pin = Pin::GP0;
+    event.edge = GpioEdge::Rising;
+    EXPECT_EQ(event.id(), std::string("GPIO0_RISE"));
+
+    event.pin = Pin::GP3;
+    event.edge = GpioEdge::Falling;
+    EXPECT_EQ(event.id(), std::string("GPIO3_FALL"));
+}
+
 void testAnalogClockAndUsb()
 {
     resetMock();
@@ -272,6 +284,11 @@ int main()
     test_harness::run(
         "Typed GPIO event filter maps to native mask",
         testTypedGpioEventFilter,
+        failures);
+
+    test_harness::run(
+        "GPIO event compatibility identifiers",
+        testGpioEventId,
         failures);
 
     test_harness::run(

@@ -70,6 +70,28 @@ GpioEdge toEdge(mcp2221_gpio_event_type_t type) {
 
 }  // namespace
 
+std::string GpioEvent::id() const
+{
+	const char* pinName = nullptr;
+	switch (pin) {
+		case Pin::GP0:
+			pinName = "GPIO0";
+			break;
+		case Pin::GP1:
+			pinName = "GPIO1";
+			break;
+		case Pin::GP2:
+			pinName = "GPIO2";
+			break;
+		case Pin::GP3:
+			pinName = "GPIO3";
+			break;
+	}
+
+	const char* edgeName = edge == GpioEdge::Rising ? "RISE" : "FALL";
+	return std::string(pinName) + "_" + edgeName;
+}
+
 GpioPoller::GpioPoller(std::unique_ptr<detail::GpioPollerState> state) : state_(std::move(state)) {}
 
 GpioPoller::~GpioPoller() noexcept = default;
