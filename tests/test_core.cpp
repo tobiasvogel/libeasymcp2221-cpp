@@ -95,7 +95,7 @@ void testRawI2cAndI2cDevice()
 
     bool caught = false;
     try {
-        target.read(0);
+        static_cast<void>(target.read(0));
     }
     catch (const Error& error) {
         caught = true;
@@ -228,7 +228,7 @@ void testInvalidI2cAddress()
 
     bool caught = false;
     try {
-        device.i2cRead(0x80, 1);
+        static_cast<void>(device.i2cRead(0x80, 1));
     }
     catch (const Error& error) {
         caught = true;
