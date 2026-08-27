@@ -236,6 +236,57 @@ jobs:
               chown -R --reference=/src /src/out
             '
 
+      - name: Show dpkg-gensymbols diff after package build failure
+        if: failure()
+        env:
+          IMAGE: ${{ matrix.distro.image }}
+          PLATFORM: ${{ matrix.arch.platform }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          docker run --rm -t \
+            --platform "${PLATFORM}" \
+            -v "${PWD}/cpp:/src" \
+            -w /src \
+            "${IMAGE}" bash -lc '
+              set -euxo pipefail
+              export DEBIAN_FRONTEND=noninteractive
+
+              apt-get update
+              apt-get install -y --no-install-recommends dpkg-dev binutils
+
+              echo "===== checked-in symbols file ====="
+              cat "debian/libeasymcp2221++0.symbols"
+
+              echo "===== staged runtime shared objects ====="
+              find "debian/libeasymcp2221++0" -type f -name "libeasymcp2221++.so*" -print || true
+
+              if ! find "debian/libeasymcp2221++0" -type f -name "libeasymcp2221++.so*" -print -quit | grep -q .; then
+                echo "No staged runtime shared library found; dpkg-gensymbols cannot be rerun."
+                exit 0
+              fi
+
+              version="$(dpkg-parsechangelog -S Version)"
+              arch="$(dpkg --print-architecture)"
+
+              echo "===== generated symbols file (${arch}, ${version}) ====="
+              dpkg-gensymbols \
+                -a"${arch}" \
+                -plibeasymcp2221++0 \
+                -P"debian/libeasymcp2221++0" \
+                -I"debian/libeasymcp2221++0.symbols" \
+                -v"${version}" \
+                -c0 \
+                -O/tmp/generated.symbols || true
+              cat /tmp/generated.symbols || true
+
+              echo "===== symbols diff ====="
+              diff -u \
+                "debian/libeasymcp2221++0.symbols" \
+                /tmp/generated.symbols || true
+            '
+
       - name: Run Lintian on runtime and development packages
         if: matrix.distro.name == 'debian' && matrix.distro.suite == 'bookworm' && matrix.arch.name == 'amd64'
         continue-on-error: true
