@@ -11,6 +11,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 option(LIBEASYMCP2221_CPP_BUILD_SHARED "Build shared C++ library" ON)
 option(LIBEASYMCP2221_CPP_BUILD_STATIC "Build static C++ library" ON)
+option(LIBEASYMCP2221_CPP_BUILD_QT "Build optional Qt integration library" OFF)
 option(LIBEASYMCP2221_CPP_BUILD_EXAMPLES "Build examples" OFF)
 option(LIBEASYMCP2221_CPP_BUILD_TESTS "Build unit tests" OFF)
 option(LIBEASYMCP2221_CPP_BUILD_DOCS "Build API documentation with Doxygen" OFF)
@@ -37,6 +38,16 @@ endif()
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBEASYMCP2221 REQUIRED IMPORTED_TARGET "libeasymcp2221>=2.0.0")
 
+if (LIBEASYMCP2221_CPP_BUILD_QT)
+    if (CMAKE_VERSION VERSION_LESS 3.16)
+        message(FATAL_ERROR
+            "The Qt integration requires CMake 3.16 or newer"
+        )
+    endif()
+
+    find_package(Qt6 REQUIRED COMPONENTS Core)
+endif()
+
 set(LIBEASYMCP2221_CPP_SOURCES
     src/Device.cpp
     src/I2cDevice.cpp
@@ -46,8 +57,22 @@ set(LIBEASYMCP2221_CPP_SOURCES
     src/detail/DeviceState.cpp
 )
 
+set(LIBEASYMCP2221_CPP_QT_SOURCES
+    src/qt/ErrorInfo.cpp
+    src/qt/GpioMonitor.cpp
+    src/qt/I2c.cpp
+    src/qt/Smbus.cpp
+    include/libeasymcp2221++/qt/GpioMonitor.h
+)
+
 set(LIBEASYMCP2221_CPP_INSTALL_TARGETS)
+set(LIBEASYMCP2221_CPP_QT_INSTALL_TARGETS)
 set(LIBEASYMCP2221_CPP_EXAMPLE_LINK_TARGET)
+
+set(
+    LIBEASYMCP2221_CPP_HAS_QT
+    ${LIBEASYMCP2221_CPP_BUILD_QT}
+)
 
 function(libeasymcp2221_cpp_configure_target target)
     target_compile_features(${target} PUBLIC cxx_std_17)
@@ -67,6 +92,26 @@ function(libeasymcp2221_cpp_configure_target target)
 
     set_target_properties(${target} PROPERTIES
         OUTPUT_NAME "easymcp2221++"
+    )
+endfunction()
+
+function(libeasymcp2221_cpp_configure_qt_target target)
+    target_compile_features(${target} PUBLIC cxx_std_17)
+
+    target_include_directories(${target}
+        PUBLIC
+            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    )
+
+    target_link_libraries(${target}
+        PUBLIC
+            Qt6::Core
+    )
+
+    set_target_properties(${target} PROPERTIES
+        AUTOMOC ON
+        OUTPUT_NAME "easymcp2221++-qt"
     )
 endfunction()
 
@@ -131,6 +176,88 @@ if (LIBEASYMCP2221_CPP_BUILD_STATIC)
     endif()
 endif()
 
+if (LIBEASYMCP2221_CPP_BUILD_QT)
+    if (LIBEASYMCP2221_CPP_BUILD_SHARED)
+        add_library(
+            easymcp2221_cpp_qt
+            SHARED
+            ${LIBEASYMCP2221_CPP_QT_SOURCES}
+        )
+
+        libeasymcp2221_cpp_configure_qt_target(
+            easymcp2221_cpp_qt
+        )
+
+        target_link_libraries(
+            easymcp2221_cpp_qt
+            PUBLIC
+                easymcp2221_cpp
+        )
+
+        set_target_properties(
+            easymcp2221_cpp_qt
+            PROPERTIES
+                EXPORT_NAME qt
+                VERSION ${PROJECT_VERSION}
+                SOVERSION ${PROJECT_VERSION_MAJOR}
+        )
+
+        add_library(
+            libeasymcp2221::qt
+            ALIAS
+            easymcp2221_cpp_qt
+        )
+
+        list(APPEND
+            LIBEASYMCP2221_CPP_QT_INSTALL_TARGETS
+            easymcp2221_cpp_qt
+        )
+    endif()
+
+    if (LIBEASYMCP2221_CPP_BUILD_STATIC)
+        add_library(
+            easymcp2221_cpp_qt_static
+            STATIC
+            ${LIBEASYMCP2221_CPP_QT_SOURCES}
+        )
+
+        libeasymcp2221_cpp_configure_qt_target(
+            easymcp2221_cpp_qt_static
+        )
+
+        target_link_libraries(
+            easymcp2221_cpp_qt_static
+            PUBLIC
+                easymcp2221_cpp_static
+        )
+
+        if (LIBEASYMCP2221_CPP_BUILD_SHARED)
+            set_target_properties(
+                easymcp2221_cpp_qt_static
+                PROPERTIES
+                    EXPORT_NAME qt_static
+            )
+        else()
+            set_target_properties(
+                easymcp2221_cpp_qt_static
+                PROPERTIES
+                    EXPORT_NAME qt
+            )
+        endif()
+
+        add_library(
+            libeasymcp2221::qt_static
+            ALIAS
+            easymcp2221_cpp_qt_static
+        )
+
+        list(APPEND
+            LIBEASYMCP2221_CPP_QT_INSTALL_TARGETS
+            easymcp2221_cpp_qt_static
+        )
+    endif()
+endif()
+
 install(TARGETS ${LIBEASYMCP2221_CPP_INSTALL_TARGETS}
     EXPORT libeasymcp2221-cpp-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -138,6 +265,17 @@ install(TARGETS ${LIBEASYMCP2221_CPP_INSTALL_TARGETS}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
+
+if (LIBEASYMCP2221_CPP_QT_INSTALL_TARGETS)
+    install(
+        TARGETS ${LIBEASYMCP2221_CPP_QT_INSTALL_TARGETS}
+        EXPORT libeasymcp2221-cpp-qt-targets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
+endif()
 
 install(DIRECTORY include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
@@ -165,6 +303,14 @@ install(EXPORT libeasymcp2221-cpp-targets
     NAMESPACE libeasymcp2221::
     DESTINATION ${LIBEASYMCP2221_CPP_CMAKE_INSTALL_DIR}
 )
+
+if (LIBEASYMCP2221_CPP_QT_INSTALL_TARGETS)
+    install(EXPORT libeasymcp2221-cpp-qt-targets
+        FILE libeasymcp2221-cppQtTargets.cmake
+        NAMESPACE libeasymcp2221::
+        DESTINATION ${LIBEASYMCP2221_CPP_CMAKE_INSTALL_DIR}
+    )
+endif()
 
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/libeasymcp2221-cppConfig.cmake
