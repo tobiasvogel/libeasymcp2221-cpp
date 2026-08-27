@@ -54,7 +54,7 @@ void command(I2cDevice& display, std::uint8_t value)
 
 void initialize(I2cDevice& display)
 {
-    constexpr std::array<std::uint8_t, 25> commands{
+    constexpr std::array<std::uint8_t, 26> commands{
         0xAE,
         0xD5, 0x80,
         0xA8, static_cast<std::uint8_t>(kHeight - 1),
