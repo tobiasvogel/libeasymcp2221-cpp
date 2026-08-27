@@ -27,6 +27,7 @@ libeasymcp2221++.so.0 libeasymcp2221++0 #MINVER#
  (optional)_ZN14libeasymcp22215ErrorD1Ev@Base 0.1.0
  (optional)_ZN14libeasymcp22215ErrorD2Ev@Base 0.1.0
  _ZN14libeasymcp22216Device10gpioPollerEv@Base 0.1.0
+ _ZN14libeasymcp22216Device10writeFlashENS_12FlashSectionERKSt6vectorIhSaIhEE@Base 0.1.0
  _ZN14libeasymcp22216Device10readAdcRawEv@Base 0.1.0
  _ZN14libeasymcp22216Device10releaseI2cEv@Base 0.1.0
  _ZN14libeasymcp22216Device11setI2cSpeedEj@Base 0.1.0

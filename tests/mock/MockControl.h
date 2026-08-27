@@ -6,6 +6,7 @@
 #ifndef LIBEASYMCP2221_CPP_TEST_MOCK_CONTROL_H
 #define LIBEASYMCP2221_CPP_TEST_MOCK_CONTROL_H
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 
@@ -21,6 +22,7 @@ void failNext(mcp2221_error_code_t error);
 int openCount();
 int closeCount();
 int usbCurrentSetCount();
+std::size_t lastFlashWriteSize();
 
 int lastClockDuty();
 std::string lastClockFrequency();

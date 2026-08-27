@@ -6,6 +6,7 @@
 #include "MockControl.h"
 
 #include <array>
+#include <cstddef>
 #include <cstring>
 #include <string>
 
@@ -42,6 +43,7 @@ struct MockState {
     std::string clockFrequency;
     std::array<int, 4> gpioWrite{{-1, -1, -1, -1}};
     std::uint16_t gpioFilterMask = 0;
+    std::size_t flashWriteSize = 0;
 };
 
 MockState state;
@@ -62,6 +64,7 @@ void failNext(mcp2221_error_code_t error) { state.nextError = error; }
 int openCount() { return state.opens; }
 int closeCount() { return state.closes; }
 int usbCurrentSetCount() { return state.usbCurrentSetCalls; }
+std::size_t lastFlashWriteSize() { return state.flashWriteSize; }
 int lastClockDuty() { return state.clockDuty; }
 std::string lastClockFrequency() { return state.clockFrequency; }
 int lastGpio0() { return state.gpioWrite[0]; }
@@ -522,6 +525,14 @@ mcp2221_error_code_t mcp2221_flash_write(
     mcp2221_t*, uint8_t, const uint8_t[60])
 {
     return consumeError();
+}
+
+mcp2221_error_code_t mcp2221_flash_write_ex(
+    mcp2221_t*, uint8_t, const uint8_t*, size_t data_len)
+{
+    const auto error = consumeError();
+    if (error == MCP2221_ERR_OK) state.flashWriteSize = data_len;
+    return error;
 }
 
 mcp2221_error_code_t mcp2221_flash_send_password(

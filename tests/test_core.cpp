@@ -232,6 +232,17 @@ void testAnalogClockAndUsb()
     EXPECT_EQ(device.usbRequestedCurrent(), 100u);
 }
 
+void testExtendedFlashWrite()
+{
+    resetMock();
+
+    Device device;
+    const std::vector<std::uint8_t> data(62);
+    device.writeFlash(FlashSection::UsbProduct, data);
+
+    EXPECT_EQ(lastFlashWriteSize(), data.size());
+}
+
 void testInvalidI2cAddress()
 {
     resetMock();
@@ -294,6 +305,11 @@ int main()
     test_harness::run(
         "Analog, clock, and USB value translation",
         testAnalogClockAndUsb,
+        failures);
+
+    test_harness::run(
+        "Extended flash writes preserve the complete payload",
+        testExtendedFlashWrite,
         failures);
 
     test_harness::run(

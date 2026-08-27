@@ -333,6 +333,19 @@ class Device {
 	void writeFlash(FlashSection section, const FlashData& data);
 
 	/**
+	 * @brief Write a length-delimited raw persistent flash payload.
+	 *
+	 * This overload exposes the complete Write Flash Data payload supported by
+	 * the underlying C API, including 61- and 62-byte USB string descriptors.
+	 *
+	 * @param section Section to write.
+	 * @param data Raw payload containing from 1 through 62 bytes.
+	 * @throws Error if the payload length is invalid or on flash-write,
+	 *         protocol, or transport failure.
+	 */
+	void writeFlash(FlashSection section, const std::vector<std::uint8_t>& data);
+
+	/**
 	 * @brief Send the eight-byte flash access password.
 	 * @param password Password bytes.
 	 * @throws Error if the device rejects the password or transport fails.

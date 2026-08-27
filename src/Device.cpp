@@ -792,6 +792,19 @@ void Device::writeFlash(FlashSection section, const FlashData& data) {
 					   "Writing flash section");
 }
 
+void Device::writeFlash(FlashSection section, const std::vector<std::uint8_t>& data) {
+	requireOpen(state_);
+
+	if (data.empty() || data.size() > 62) {
+		detail::throwInvalid("Flash write payload size must be from 1 through 62 bytes");
+	}
+
+	std::lock_guard<std::mutex> lock(state_->mutex());
+	detail::checkError(
+		mcp2221_flash_write_ex(state_->handle(), toNativeFlashSection(section), data.data(), data.size()),
+		"Writing flash section");
+}
+
 void Device::sendFlashPassword(const FlashPassword& password) {
 	requireOpen(state_);
 
