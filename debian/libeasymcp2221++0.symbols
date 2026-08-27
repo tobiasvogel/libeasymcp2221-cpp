@@ -22,9 +22,9 @@ libeasymcp2221++.so.0 libeasymcp2221++0 #MINVER#
  _ZN14libeasymcp222111SmbusDeviceC2ESt10shared_ptrINS_6detail16SmbusDeviceStateEE@Base 0.1.0
  _ZN14libeasymcp22215ErrorC1ENS_9ErrorCodeEiRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE@Base 0.1.0
  _ZN14libeasymcp22215ErrorC2ENS_9ErrorCodeEiRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE@Base 0.1.0
- _ZN14libeasymcp22215ErrorD0Ev@Base 0.1.0
- _ZN14libeasymcp22215ErrorD1Ev@Base 0.1.0
- _ZN14libeasymcp22215ErrorD2Ev@Base 0.1.0
+ (optional)_ZN14libeasymcp22215ErrorD0Ev@Base 0.1.0
+ (optional)_ZN14libeasymcp22215ErrorD1Ev@Base 0.1.0
+ (optional)_ZN14libeasymcp22215ErrorD2Ev@Base 0.1.0
  _ZN14libeasymcp22216Device10gpioPollerEv@Base 0.1.0
  _ZN14libeasymcp22216Device10readAdcRawEv@Base 0.1.0
  _ZN14libeasymcp22216Device10releaseI2cEv@Base 0.1.0
@@ -79,8 +79,8 @@ libeasymcp2221++.so.0 libeasymcp2221++0 #MINVER#
  (optional)_ZN14libeasymcp22216detail12throwInvalidEPKc@Base 0.1.0
  (optional)_ZN14libeasymcp22216detail16SmbusDeviceStateD1Ev@Base 0.1.0
  (optional)_ZN14libeasymcp22216detail16SmbusDeviceStateD2Ev@Base 0.1.0
- _ZN14libeasymcp22219FlashInfoD1Ev@Base 0.1.0
- _ZN14libeasymcp22219FlashInfoD2Ev@Base 0.1.0
+ (optional)_ZN14libeasymcp22219FlashInfoD1Ev@Base 0.1.0
+ (optional)_ZN14libeasymcp22219FlashInfoD2Ev@Base 0.1.0
  _ZN14libeasymcp22219I2cDevice13writeRegisterEjRKSt6vectorIhSaIhEE@Base 0.1.0
  _ZN14libeasymcp22219I2cDevice5writeERKSt6vectorIhSaIhEE@Base 0.1.0
  _ZN14libeasymcp22219I2cDevice9isPresentEv@Base 0.1.0
@@ -109,7 +109,7 @@ libeasymcp2221++.so.0 libeasymcp2221++0 #MINVER#
  (optional)_ZTSSt11_Mutex_baseILN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
  (optional)_ZTSSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
  (optional)_ZTSSt19_Sp_make_shared_tag@Base 0.1.0
- _ZTVN14libeasymcp22215ErrorE@Base 0.1.0
+ (optional)_ZTVN14libeasymcp22215ErrorE@Base 0.1.0
  (optional)_ZZNSt19_Sp_make_shared_tag5_S_tiEvE5__tag@Base 0.1.0
  (arch-bits=64)_ZN14libeasymcp222110GpioPoller10pollEventsEm@Base 0.1.0
  (arch-bits=64)_ZN14libeasymcp222111SmbusDevice16readI2cBlockDataEhm@Base 0.1.0
