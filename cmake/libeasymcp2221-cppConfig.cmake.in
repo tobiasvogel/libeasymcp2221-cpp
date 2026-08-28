@@ -2,13 +2,61 @@
 
 include(CMakeFindDependencyMacro)
 
-find_dependency(PkgConfig)
-pkg_check_modules(
-    LIBEASYMCP2221
-    REQUIRED
-    IMPORTED_TARGET
-    "libeasymcp2221>=2.0.1"
-)
+if (MSVC)
+    find_path(
+        LIBEASYMCP2221_INCLUDE_DIR
+        NAMES libeasymcp2221/mcp2221.h
+    )
+    find_library(
+        LIBEASYMCP2221_SHARED_LIBRARY
+        NAMES libeasymcp2221
+    )
+    find_library(
+        LIBEASYMCP2221_STATIC_LIBRARY
+        NAMES libeasymcp2221_static
+    )
+
+    if (NOT LIBEASYMCP2221_INCLUDE_DIR OR
+        NOT LIBEASYMCP2221_SHARED_LIBRARY OR
+        NOT LIBEASYMCP2221_STATIC_LIBRARY)
+        set(libeasymcp2221-cpp_FOUND FALSE)
+        set(
+            libeasymcp2221-cpp_NOT_FOUND_MESSAGE
+            "libeasymcp2221 MSVC libraries were not found. Add the "
+            "libeasymcp2221 install prefix to CMAKE_PREFIX_PATH."
+        )
+        return()
+    endif()
+
+    if (NOT TARGET libeasymcp2221_cpp_c_shared)
+        add_library(libeasymcp2221_cpp_c_shared UNKNOWN IMPORTED)
+        set_target_properties(
+            libeasymcp2221_cpp_c_shared
+            PROPERTIES
+                IMPORTED_LOCATION "${LIBEASYMCP2221_SHARED_LIBRARY}"
+                INTERFACE_INCLUDE_DIRECTORIES "${LIBEASYMCP2221_INCLUDE_DIR}"
+        )
+    endif()
+
+    if (NOT TARGET libeasymcp2221_cpp_c_static)
+        add_library(libeasymcp2221_cpp_c_static UNKNOWN IMPORTED)
+        set_target_properties(
+            libeasymcp2221_cpp_c_static
+            PROPERTIES
+                IMPORTED_LOCATION "${LIBEASYMCP2221_STATIC_LIBRARY}"
+                INTERFACE_INCLUDE_DIRECTORIES "${LIBEASYMCP2221_INCLUDE_DIR}"
+                INTERFACE_COMPILE_DEFINITIONS LIBEASYMCP2221_STATIC
+        )
+    endif()
+else()
+    find_dependency(PkgConfig)
+    pkg_check_modules(
+        LIBEASYMCP2221
+        REQUIRED
+        IMPORTED_TARGET
+        "libeasymcp2221>=2.0.1"
+    )
+endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/libeasymcp2221-cppTargets.cmake")
 

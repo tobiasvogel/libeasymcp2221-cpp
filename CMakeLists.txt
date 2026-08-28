@@ -35,8 +35,61 @@ if (NOT LIBEASYMCP2221_CPP_BUILD_SHARED AND
     )
 endif()
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBEASYMCP2221 REQUIRED IMPORTED_TARGET "libeasymcp2221>=2.0.1")
+if (MSVC)
+    find_path(
+        LIBEASYMCP2221_INCLUDE_DIR
+        NAMES libeasymcp2221/mcp2221.h
+    )
+    find_library(
+        LIBEASYMCP2221_SHARED_LIBRARY
+        NAMES libeasymcp2221
+    )
+    find_library(
+        LIBEASYMCP2221_STATIC_LIBRARY
+        NAMES libeasymcp2221_static
+    )
+
+    if (NOT LIBEASYMCP2221_INCLUDE_DIR OR
+        NOT LIBEASYMCP2221_SHARED_LIBRARY OR
+        NOT LIBEASYMCP2221_STATIC_LIBRARY)
+        message(FATAL_ERROR
+            "libeasymcp2221 was not found for MSVC. Build and install "
+            "libeasymcp2221 with MSVC first and make its install prefix "
+            "available through CMAKE_PREFIX_PATH."
+        )
+    endif()
+
+    add_library(libeasymcp2221_cpp_c_shared UNKNOWN IMPORTED)
+    set_target_properties(
+        libeasymcp2221_cpp_c_shared
+        PROPERTIES
+            IMPORTED_LOCATION "${LIBEASYMCP2221_SHARED_LIBRARY}"
+            INTERFACE_INCLUDE_DIRECTORIES "${LIBEASYMCP2221_INCLUDE_DIR}"
+    )
+
+    add_library(libeasymcp2221_cpp_c_static UNKNOWN IMPORTED)
+    set_target_properties(
+        libeasymcp2221_cpp_c_static
+        PROPERTIES
+            IMPORTED_LOCATION "${LIBEASYMCP2221_STATIC_LIBRARY}"
+            INTERFACE_INCLUDE_DIRECTORIES "${LIBEASYMCP2221_INCLUDE_DIR}"
+            INTERFACE_COMPILE_DEFINITIONS LIBEASYMCP2221_STATIC
+    )
+
+    set(LIBEASYMCP2221_CPP_C_SHARED_TARGET libeasymcp2221_cpp_c_shared)
+    set(LIBEASYMCP2221_CPP_C_STATIC_TARGET libeasymcp2221_cpp_c_static)
+else()
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(
+        LIBEASYMCP2221
+        REQUIRED
+        IMPORTED_TARGET
+        "libeasymcp2221>=2.0.1"
+    )
+
+    set(LIBEASYMCP2221_CPP_C_SHARED_TARGET PkgConfig::LIBEASYMCP2221)
+    set(LIBEASYMCP2221_CPP_C_STATIC_TARGET PkgConfig::LIBEASYMCP2221)
+endif()
 
 if (LIBEASYMCP2221_CPP_BUILD_QT)
     if (CMAKE_VERSION VERSION_LESS 3.16)
@@ -74,7 +127,7 @@ set(
     ${LIBEASYMCP2221_CPP_BUILD_QT}
 )
 
-function(libeasymcp2221_cpp_configure_target target)
+function(libeasymcp2221_cpp_configure_target target c_dependency_target)
     target_compile_features(${target} PUBLIC cxx_std_17)
 
     target_include_directories(${target}
@@ -87,7 +140,7 @@ function(libeasymcp2221_cpp_configure_target target)
 
     target_link_libraries(${target}
         PRIVATE
-            PkgConfig::LIBEASYMCP2221
+            ${c_dependency_target}
     )
 
     set_target_properties(${target} PROPERTIES
@@ -117,7 +170,10 @@ endfunction()
 
 if (LIBEASYMCP2221_CPP_BUILD_SHARED)
     add_library(easymcp2221_cpp SHARED ${LIBEASYMCP2221_CPP_SOURCES})
-    libeasymcp2221_cpp_configure_target(easymcp2221_cpp)
+    libeasymcp2221_cpp_configure_target(
+        easymcp2221_cpp
+        ${LIBEASYMCP2221_CPP_C_SHARED_TARGET}
+    )
 
     target_compile_definitions(
         easymcp2221_cpp
@@ -127,7 +183,7 @@ if (LIBEASYMCP2221_CPP_BUILD_SHARED)
 
     target_link_libraries(easymcp2221_cpp
         INTERFACE
-            "$<LINK_ONLY:PkgConfig::LIBEASYMCP2221>"
+            "$<LINK_ONLY:${LIBEASYMCP2221_CPP_C_SHARED_TARGET}>"
     )
 
     set_target_properties(easymcp2221_cpp PROPERTIES
@@ -151,7 +207,10 @@ if (LIBEASYMCP2221_CPP_BUILD_STATIC)
         STATIC
         ${LIBEASYMCP2221_CPP_SOURCES}
     )
-    libeasymcp2221_cpp_configure_target(easymcp2221_cpp_static)
+    libeasymcp2221_cpp_configure_target(
+        easymcp2221_cpp_static
+        ${LIBEASYMCP2221_CPP_C_STATIC_TARGET}
+    )
 
     target_compile_definitions(
         easymcp2221_cpp_static
@@ -161,7 +220,7 @@ if (LIBEASYMCP2221_CPP_BUILD_STATIC)
 
     target_link_libraries(easymcp2221_cpp_static
         INTERFACE
-            "$<LINK_ONLY:PkgConfig::LIBEASYMCP2221>"
+            "$<LINK_ONLY:${LIBEASYMCP2221_CPP_C_STATIC_TARGET}>"
     )
 
     if (LIBEASYMCP2221_CPP_BUILD_SHARED)
