@@ -14,6 +14,12 @@ target_compile_features(libeasymcp2221_cpp_test_mock
     PUBLIC cxx_std_17
 )
 
+target_compile_definitions(
+    libeasymcp2221_cpp_test_mock
+    PUBLIC
+        LIBEASYMCP2221_STATIC
+)
+
 target_include_directories(libeasymcp2221_cpp_test_mock
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/mock
@@ -32,6 +38,7 @@ target_compile_features(libeasymcp2221_cpp_test_impl
 target_compile_definitions(
     libeasymcp2221_cpp_test_impl
     PUBLIC
+        LIBEASYMCP2221_STATIC
         LIBEASYMCP2221_CPP_STATIC
 )
 
