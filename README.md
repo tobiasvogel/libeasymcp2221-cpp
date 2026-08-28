@@ -35,7 +35,7 @@ preferred or when configuring without network access.
 
 ## Build and install
 
-The C++ adapter requires `libeasymcp2221` 2.0.0 or newer.
+The C++ adapter requires `libeasymcp2221` 2.0.1 or newer.
 
 Both shared and static C++ libraries are built by default. Examples are
 disabled by default and can be enabled with
@@ -71,6 +71,37 @@ target_link_libraries(my_application
 The underlying C library is discovered through its installed `libeasymcp2221`
 pkg-config metadata. A `libeasymcp2221++.pc` file is installed as well for
 non-CMake consumers.
+
+### Optional Qt 6 integration
+
+Enable the optional Qt integration when configuring the project:
+
+```sh
+cmake -S . -B build \
+    -DLIBEASYMCP2221_CPP_BUILD_QT=ON
+```
+
+The Qt integration requires Qt 6 Core and remains separate from the Qt-free
+core library. Installed CMake consumers request it as a package component:
+
+```cmake
+find_package(
+    libeasymcp2221-cpp
+    CONFIG
+    REQUIRED
+    COMPONENTS Qt
+)
+
+target_link_libraries(my_application
+    PRIVATE
+        libeasymcp2221::qt
+)
+```
+
+When shared and static variants are installed together,
+`libeasymcp2221::qt` refers to the shared Qt integration library and
+`libeasymcp2221::qt_static` is also available. In a static-only installation,
+`libeasymcp2221::qt` refers to the static Qt integration library.
 
 ## Tests
 

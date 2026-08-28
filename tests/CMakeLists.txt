@@ -140,3 +140,89 @@ if (LIBEASYMCP2221_CPP_BUILD_QT)
         COMMAND libeasymcp2221_cpp_qt_tests
     )
 endif()
+
+set(
+    LIBEASYMCP2221_CPP_TEST_INSTALL_PREFIX
+    "${PROJECT_BINARY_DIR}/test-install"
+)
+
+add_test(
+    NAME libeasymcp2221_cpp_package_install
+    COMMAND
+        ${CMAKE_COMMAND}
+        --install "${PROJECT_BINARY_DIR}"
+        --prefix "${LIBEASYMCP2221_CPP_TEST_INSTALL_PREFIX}"
+)
+set_tests_properties(
+    libeasymcp2221_cpp_package_install
+    PROPERTIES
+        FIXTURES_SETUP libeasymcp2221_cpp_package
+)
+
+set(
+    LIBEASYMCP2221_CPP_CORE_CONSUMER_BUILD_DIR
+    "${PROJECT_BINARY_DIR}/test-package-consumer-core"
+)
+
+add_test(
+    NAME libeasymcp2221_cpp_package_core_configure
+    COMMAND
+        ${CMAKE_COMMAND}
+        -S "${CMAKE_CURRENT_SOURCE_DIR}/package_consumer"
+        -B "${LIBEASYMCP2221_CPP_CORE_CONSUMER_BUILD_DIR}"
+        "-DCMAKE_PREFIX_PATH=${LIBEASYMCP2221_CPP_TEST_INSTALL_PREFIX}"
+        -DLIBEASYMCP2221_CPP_CONSUMER_QT=OFF
+)
+set_tests_properties(
+    libeasymcp2221_cpp_package_core_configure
+    PROPERTIES
+        FIXTURES_REQUIRED libeasymcp2221_cpp_package
+)
+
+add_test(
+    NAME libeasymcp2221_cpp_package_core_build
+    COMMAND
+        ${CMAKE_COMMAND}
+        --build "${LIBEASYMCP2221_CPP_CORE_CONSUMER_BUILD_DIR}"
+)
+set_tests_properties(
+    libeasymcp2221_cpp_package_core_build
+    PROPERTIES
+        DEPENDS libeasymcp2221_cpp_package_core_configure
+        FIXTURES_REQUIRED libeasymcp2221_cpp_package
+)
+
+if (LIBEASYMCP2221_CPP_BUILD_QT)
+    set(
+        LIBEASYMCP2221_CPP_QT_CONSUMER_BUILD_DIR
+        "${PROJECT_BINARY_DIR}/test-package-consumer-qt"
+    )
+
+    add_test(
+        NAME libeasymcp2221_cpp_package_qt_configure
+        COMMAND
+            ${CMAKE_COMMAND}
+            -S "${CMAKE_CURRENT_SOURCE_DIR}/package_consumer"
+            -B "${LIBEASYMCP2221_CPP_QT_CONSUMER_BUILD_DIR}"
+            "-DCMAKE_PREFIX_PATH=${LIBEASYMCP2221_CPP_TEST_INSTALL_PREFIX}"
+            -DLIBEASYMCP2221_CPP_CONSUMER_QT=ON
+    )
+    set_tests_properties(
+        libeasymcp2221_cpp_package_qt_configure
+        PROPERTIES
+            FIXTURES_REQUIRED libeasymcp2221_cpp_package
+    )
+
+    add_test(
+        NAME libeasymcp2221_cpp_package_qt_build
+        COMMAND
+            ${CMAKE_COMMAND}
+            --build "${LIBEASYMCP2221_CPP_QT_CONSUMER_BUILD_DIR}"
+    )
+    set_tests_properties(
+        libeasymcp2221_cpp_package_qt_build
+        PROPERTIES
+            DEPENDS libeasymcp2221_cpp_package_qt_configure
+            FIXTURES_REQUIRED libeasymcp2221_cpp_package
+    )
+endif()
