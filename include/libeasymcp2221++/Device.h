@@ -6,6 +6,8 @@
 #ifndef LIBEASYMCP2221_CPP_DEVICE_H
 #define LIBEASYMCP2221_CPP_DEVICE_H
 
+#include "Export.h"
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -36,7 +38,7 @@ class DeviceState;
  * Destruction releases host/library resources only. It does not intentionally
  * reset GPIO, DAC, SRAM, flash, or other externally visible hardware state.
  */
-class Device {
+class LIBEASYMCP2221_CPP_API Device {
   public:
 	/**
 	 * @brief Open the first default MCP2221(A) using default options.

@@ -6,6 +6,8 @@
 #ifndef LIBEASYMCP2221_CPP_ERROR_H
 #define LIBEASYMCP2221_CPP_ERROR_H
 
+#include "Export.h"
+
 #include <stdexcept>
 #include <string>
 
@@ -41,7 +43,7 @@ enum class ErrorCode {
 /**
  * @brief Exception thrown when an underlying libeasymcp2221 operation fails.
  */
-class Error : public std::runtime_error {
+class LIBEASYMCP2221_CPP_API Error : public std::runtime_error {
   public:
 	/**
 	 * @brief Construct an error.

@@ -119,6 +119,12 @@ if (LIBEASYMCP2221_CPP_BUILD_SHARED)
     add_library(easymcp2221_cpp SHARED ${LIBEASYMCP2221_CPP_SOURCES})
     libeasymcp2221_cpp_configure_target(easymcp2221_cpp)
 
+    target_compile_definitions(
+        easymcp2221_cpp
+        PRIVATE
+            LIBEASYMCP2221_CPP_BUILDING
+    )
+
     target_link_libraries(easymcp2221_cpp
         INTERFACE
             "$<LINK_ONLY:PkgConfig::LIBEASYMCP2221>"
@@ -146,6 +152,12 @@ if (LIBEASYMCP2221_CPP_BUILD_STATIC)
         ${LIBEASYMCP2221_CPP_SOURCES}
     )
     libeasymcp2221_cpp_configure_target(easymcp2221_cpp_static)
+
+    target_compile_definitions(
+        easymcp2221_cpp_static
+        PUBLIC
+            LIBEASYMCP2221_CPP_STATIC
+    )
 
     target_link_libraries(easymcp2221_cpp_static
         INTERFACE
@@ -193,6 +205,12 @@ if (LIBEASYMCP2221_CPP_BUILD_QT)
             easymcp2221_cpp_qt
         )
 
+        target_compile_definitions(
+            easymcp2221_cpp_qt
+            PRIVATE
+                LIBEASYMCP2221_CPP_QT_BUILDING
+        )
+
         target_link_libraries(
             easymcp2221_cpp_qt
             PUBLIC
@@ -228,6 +246,12 @@ if (LIBEASYMCP2221_CPP_BUILD_QT)
 
         libeasymcp2221_cpp_configure_qt_target(
             easymcp2221_cpp_qt_static
+        )
+
+        target_compile_definitions(
+            easymcp2221_cpp_qt_static
+            PUBLIC
+                LIBEASYMCP2221_CPP_QT_STATIC
         )
 
         target_link_libraries(

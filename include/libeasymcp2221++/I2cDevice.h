@@ -6,6 +6,8 @@
 #ifndef LIBEASYMCP2221_CPP_I2C_DEVICE_H
 #define LIBEASYMCP2221_CPP_I2C_DEVICE_H
 
+#include "Export.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -33,7 +35,7 @@ struct I2cDeviceOptions {
  * Instances are copyable. Copies refer to the same underlying MCP2221 device
  * and share its lifetime and synchronization state.
  */
-class I2cDevice {
+class LIBEASYMCP2221_CPP_API I2cDevice {
   public:
 	I2cDevice(const I2cDevice&) = default;
 	I2cDevice& operator=(const I2cDevice&) = default;

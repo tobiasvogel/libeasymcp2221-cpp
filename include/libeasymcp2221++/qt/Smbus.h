@@ -6,6 +6,8 @@
 #ifndef LIBEASYMCP2221_CPP_QT_SMBUS_H
 #define LIBEASYMCP2221_CPP_QT_SMBUS_H
 
+#include <libeasymcp2221++/Export.h>
+
 #include <cstdint>
 
 #include <QByteArray>
@@ -27,7 +29,7 @@ namespace libeasymcp2221::qt {
  * @return Payload bytes without the SMBus length prefix.
  */
 [[nodiscard]]
-QByteArray readBlockData(
+LIBEASYMCP2221_CPP_QT_API QByteArray readBlockData(
     SmbusDevice& device,
     std::uint8_t command);
 
@@ -38,7 +40,7 @@ QByteArray readBlockData(
  * @param command SMBus command byte.
  * @param data Payload bytes.
  */
-void writeBlockData(
+LIBEASYMCP2221_CPP_QT_API void writeBlockData(
     SmbusDevice& device,
     std::uint8_t command,
     const QByteArray& data);
@@ -52,7 +54,7 @@ void writeBlockData(
  * @return Response payload bytes.
  */
 [[nodiscard]]
-QByteArray blockProcessCall(
+LIBEASYMCP2221_CPP_QT_API QByteArray blockProcessCall(
     SmbusDevice& device,
     std::uint8_t command,
     const QByteArray& data);
@@ -66,7 +68,7 @@ QByteArray blockProcessCall(
  * @return Requested payload bytes.
  */
 [[nodiscard]]
-QByteArray readI2cBlockData(
+LIBEASYMCP2221_CPP_QT_API QByteArray readI2cBlockData(
     SmbusDevice& device,
     std::uint8_t command,
     qsizetype size);
@@ -78,7 +80,7 @@ QByteArray readI2cBlockData(
  * @param command SMBus command byte.
  * @param data Payload bytes.
  */
-void writeI2cBlockData(
+LIBEASYMCP2221_CPP_QT_API void writeI2cBlockData(
     SmbusDevice& device,
     std::uint8_t command,
     const QByteArray& data);

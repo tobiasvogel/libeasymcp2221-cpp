@@ -6,6 +6,8 @@
 #ifndef LIBEASYMCP2221_CPP_QT_ERROR_INFO_H
 #define LIBEASYMCP2221_CPP_QT_ERROR_INFO_H
 
+#include <libeasymcp2221++/Export.h>
+
 #include <QString>
 #include <QMetaType>
 
@@ -40,7 +42,7 @@ struct ErrorInfo {
  * @param error Core libeasymcp2221++ exception to convert.
  * @return Qt-friendly error information carrying code, native code, and message.
  */
-[[nodiscard]] ErrorInfo toErrorInfo(
+[[nodiscard]] LIBEASYMCP2221_CPP_QT_API ErrorInfo toErrorInfo(
     const libeasymcp2221::Error& error);
 
 }  // namespace libeasymcp2221::qt

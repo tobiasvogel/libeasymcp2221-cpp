@@ -6,6 +6,8 @@
 #ifndef LIBEASYMCP2221_CPP_SMBUS_DEVICE_H
 #define LIBEASYMCP2221_CPP_SMBUS_DEVICE_H
 
+#include "Export.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -23,7 +25,7 @@ class SmbusDeviceState;
  * Instances are copyable. Copies share the underlying MCP2221 device and
  * adapter state.
  */
-class SmbusDevice {
+class LIBEASYMCP2221_CPP_API SmbusDevice {
   public:
 	SmbusDevice(const SmbusDevice&) = default;
 	SmbusDevice& operator=(const SmbusDevice&) = default;

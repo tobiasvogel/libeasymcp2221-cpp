@@ -6,6 +6,8 @@
 #ifndef LIBEASYMCP2221_CPP_GPIO_POLLER_H
 #define LIBEASYMCP2221_CPP_GPIO_POLLER_H
 
+#include "Export.h"
+
 #include <array>
 #include <cstddef>
 #include <memory>
@@ -25,7 +27,7 @@ class GpioPollerState;
  * GpioPoller is move-only because copying a polling history would create two
  * independent timelines with initially identical previous-state snapshots.
  */
-class GpioPoller {
+class LIBEASYMCP2221_CPP_API GpioPoller {
   public:
 	GpioPoller(const GpioPoller&) = delete;
 	GpioPoller& operator=(const GpioPoller&) = delete;

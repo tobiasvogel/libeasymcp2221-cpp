@@ -6,6 +6,8 @@
 #ifndef LIBEASYMCP2221_CPP_QT_GPIO_MONITOR_H
 #define LIBEASYMCP2221_CPP_QT_GPIO_MONITOR_H
 
+#include <libeasymcp2221++/Export.h>
+
 #include <libeasymcp2221++/GpioPoller.h>
 #include <libeasymcp2221++/Types.h>
 
@@ -30,7 +32,7 @@ namespace libeasymcp2221::qt {
  * The object follows normal QObject thread-affinity rules. The timer and all
  * polling operations execute in the thread owning this object.
  */
-class GpioMonitor : public QObject {
+class LIBEASYMCP2221_CPP_QT_API GpioMonitor : public QObject {
 	Q_OBJECT
 
   public:

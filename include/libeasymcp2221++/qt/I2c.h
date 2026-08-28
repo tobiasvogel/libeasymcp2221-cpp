@@ -6,6 +6,8 @@
 #ifndef LIBEASYMCP2221_CPP_QT_I2C_H
 #define LIBEASYMCP2221_CPP_QT_I2C_H
 
+#include <libeasymcp2221++/Export.h>
+
 #include <cstdint>
 
 #include <QByteArray>
@@ -29,7 +31,7 @@ namespace libeasymcp2221::qt {
  * @throws std::invalid_argument if @p size is negative.
  */
 [[nodiscard]]
-QByteArray read(I2cDevice& device, qsizetype size);
+LIBEASYMCP2221_CPP_QT_API QByteArray read(I2cDevice& device, qsizetype size);
 
 /**
  * @brief Write a QByteArray directly to an I2C target.
@@ -38,7 +40,7 @@ QByteArray read(I2cDevice& device, qsizetype size);
  * @param data Payload bytes.
  * @throws libeasymcp2221::Error on transfer failure.
  */
-void write(I2cDevice& device, const QByteArray& data);
+LIBEASYMCP2221_CPP_QT_API void write(I2cDevice& device, const QByteArray& data);
 
 /**
  * @brief Read bytes from an I2C register as a QByteArray.
@@ -51,7 +53,7 @@ void write(I2cDevice& device, const QByteArray& data);
  * @return Received register payload bytes.
  */
 [[nodiscard]]
-QByteArray readRegister(
+LIBEASYMCP2221_CPP_QT_API QByteArray readRegister(
     I2cDevice& device,
     std::uint32_t reg,
     qsizetype size);
@@ -67,7 +69,7 @@ QByteArray readRegister(
  * @return Received register payload bytes.
  */
 [[nodiscard]]
-QByteArray readRegister(
+LIBEASYMCP2221_CPP_QT_API QByteArray readRegister(
     I2cDevice& device,
     std::uint32_t reg,
     qsizetype size,
@@ -83,7 +85,7 @@ QByteArray readRegister(
  * @param reg Register address.
  * @param data Payload bytes.
  */
-void writeRegister(
+LIBEASYMCP2221_CPP_QT_API void writeRegister(
     I2cDevice& device,
     std::uint32_t reg,
     const QByteArray& data);
@@ -97,7 +99,7 @@ void writeRegister(
  * @param registerWidth Register-address width.
  * @param byteOrder Register-address byte order.
  */
-void writeRegister(
+LIBEASYMCP2221_CPP_QT_API void writeRegister(
     I2cDevice& device,
     std::uint32_t reg,
     const QByteArray& data,
