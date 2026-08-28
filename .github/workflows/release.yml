@@ -6,44 +6,96 @@ on:
       - "v*.*.*"
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   C_LIBRARY_REPOSITORY: tobiasvogel/libeasymcp2221
   C_LIBRARY_REF: v2.0.2
 
 jobs:
-  release:
-    name: Verify and publish source release
+  validate:
+    name: Validate release metadata
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      debian_version: ${{ steps.meta.outputs.debian_version }}
 
     steps:
-      - name: Check out C++ repository
-        uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v5
         with:
-          path: cpp
           fetch-depth: 0
 
-      - name: Check out pinned C dependency
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.C_LIBRARY_REPOSITORY }}
-          ref: ${{ env.C_LIBRARY_REF }}
-          path: c
-
-      - name: Verify release metadata
-        working-directory: cpp
+      - name: Validate tag, CMake version, Debian version, and changelog
+        id: meta
+        shell: bash
         run: |
-          tag_version="${GITHUB_REF_NAME#v}"
+          set -euxo pipefail
+
+          version="${GITHUB_REF_NAME#v}"
           cmake_version="$(
             sed -nE \
               's/^project\(libeasymcp2221_cpp VERSION ([0-9]+\.[0-9]+\.[0-9]+) LANGUAGES CXX\)$/\1/p' \
               CMakeLists.txt
           )"
+          debian_version="$(
+            dpkg-parsechangelog -S Version
+          )"
 
           test -n "${cmake_version}"
-          test "${tag_version}" = "${cmake_version}"
-          grep -Fq "## [${tag_version}]" CHANGELOG.md
+          test "${version}" = "${cmake_version}"
+          test "${debian_version}" = "${version}-1"
+          grep -Fq "## [${version}]" CHANGELOG.md
+
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "debian_version=${debian_version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Extract release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+
+          awk -v version="${version}" '
+            $0 ~ "^## \\[" version "\\]( |$)" {
+              capture = 1
+              next
+            }
+            capture && /^## \[/ {
+              exit
+            }
+            capture {
+              print
+            }
+          ' CHANGELOG.md > release-notes.md
+
+          test -s release-notes.md
+
+      - name: Upload release notes
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-notes-${{ steps.meta.outputs.version }}
+          path: release-notes.md
+          if-no-files-found: error
+          retention-days: 30
+
+  verify:
+    name: Release verification / Linux
+    needs: validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v5
+        with:
+          path: cpp
+
+      - name: Check out pinned C dependency
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          ref: ${{ env.C_LIBRARY_REF }}
+          path: c
 
       - name: Install build dependencies
         run: |
@@ -53,12 +105,12 @@ jobs:
             cmake \
             doxygen \
             graphviz \
-            libudev-dev \
             libusb-1.0-0-dev \
             ninja-build \
-            pkg-config
+            pkg-config \
+            qt6-base-dev
 
-      - name: Build and install pinned C dependency
+      - name: Build and install C dependency
         run: |
           cmake -S c -B build-c -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -71,7 +123,7 @@ jobs:
           cmake --build build-c --parallel
           cmake --install build-c
 
-      - name: Configure C++ release verification
+      - name: Build, test, install, and verify docs
         env:
           PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
         run: |
@@ -80,44 +132,559 @@ jobs:
             -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
             -DLIBEASYMCP2221_CPP_BUILD_SHARED=ON \
             -DLIBEASYMCP2221_CPP_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_QT=ON \
             -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=ON \
             -DLIBEASYMCP2221_CPP_BUILD_TESTS=ON \
             -DLIBEASYMCP2221_CPP_BUILD_DOCS=ON \
             -DLIBEASYMCP2221_CPP_DOXYGEN_AWESOME=OFF
 
-      - name: Build, test, and verify documentation
-        run: |
           cmake --build build-cpp --parallel
           ctest --test-dir build-cpp --output-on-failure
           cmake --build build-cpp --target docs
           test -f build-cpp/docs/html/index.html
           cmake --install build-cpp
 
-      - name: Extract release notes
-        working-directory: cpp
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          awk -v version="${version}" '
-            $0 ~ "^## \\[" version "\\]( |$)" {
-              capture = 1
-              next
-            }
-            capture && /^## \[/ {
-              exit
-            }
-            capture {
-              print
-            }
-          ' CHANGELOG.md > "${RUNNER_TEMP}/release-notes.md"
+  debian:
+    name: Debian Bookworm / ${{ matrix.name }}
+    needs: [validate, verify]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: amd64
+            image: debian:bookworm
+            platform: linux/amd64
+            expected_arch: amd64
+          - name: arm64
+            image: debian:bookworm
+            platform: linux/arm64
+            expected_arch: arm64
+          - name: armhf
+            image: debian:bookworm
+            platform: linux/arm/v7
+            expected_arch: armhf
+          - name: rpios-armv6
+            image: balenalib/rpi-raspbian:bookworm
+            platform: linux/arm/v6
+            expected_arch: armhf
 
-          test -s "${RUNNER_TEMP}/release-notes.md"
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v5
+        with:
+          path: cpp
+
+      - name: Check out pinned C dependency
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          ref: ${{ env.C_LIBRARY_REF }}
+          path: c
+
+      - name: Enable QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: all
+
+      - name: Build Debian packages
+        env:
+          IMAGE: ${{ matrix.image }}
+          PLATFORM: ${{ matrix.platform }}
+          EXPECTED_ARCH: ${{ matrix.expected_arch }}
+          DEBIAN_VERSION: ${{ needs.validate.outputs.debian_version }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf cpp/out
+          mkdir -p cpp/out
+
+          docker run --rm -t \
+            --platform "${PLATFORM}" \
+            -e EXPECTED_ARCH="${EXPECTED_ARCH}" \
+            -e DEBIAN_VERSION="${DEBIAN_VERSION}" \
+            -v "${PWD}/cpp:/src" \
+            -v "${PWD}/c:/cdep:ro" \
+            -w /src \
+            "${IMAGE}" bash -lc '
+              set -euxo pipefail
+              export DEBIAN_FRONTEND=noninteractive
+              export DEBFULLNAME="GitHub Actions"
+              export DEBEMAIL="github-actions@users.noreply.github.com"
+              export DEB_BUILD_PROFILES=nodoc
+              export DEB_BUILD_OPTIONS=nodoc
+
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                ca-certificates \
+                build-essential \
+                debhelper \
+                devscripts \
+                dpkg-dev \
+                equivs \
+                fakeroot \
+                ninja-build
+
+              cp -a /cdep /tmp/cdep
+              cd /tmp/cdep
+              mk-build-deps -i -t "apt-get -y --no-install-recommends" -r debian/control
+              rm -f ./*build-deps*.deb || true
+              dpkg-buildpackage -us -uc -B
+
+              c_runtime="$(find .. -maxdepth 1 -type f -name "libeasymcp2221-2_*.deb" -print -quit)"
+              c_dev="$(find .. -maxdepth 1 -type f -name "libeasymcp2221-dev_*.deb" -print -quit)"
+              test -n "${c_runtime}"
+              test -n "${c_dev}"
+              apt-get install -y "${c_runtime}" "${c_dev}"
+
+              cd /src
+              test "$(dpkg-parsechangelog -S Version)" = "${DEBIAN_VERSION}"
+              mk-build-deps -i -t "apt-get -y --no-install-recommends" -r debian/control
+              rm -f ./*build-deps*.deb || true
+              dpkg-buildpackage -us -uc -B
+
+              for package in \
+                "libeasymcp2221++0" \
+                "libeasymcp2221++-dev" \
+                "libeasymcp2221++-qt0" \
+                "libeasymcp2221++-qt-dev"
+              do
+                deb="$(
+                  find .. -maxdepth 1 -type f -name "*.deb" -print \
+                    | while IFS= read -r candidate; do
+                        if [ "$(dpkg-deb -f "${candidate}" Package)" = "${package}" ]; then
+                          printf "%s\n" "${candidate}"
+                          break
+                        fi
+                      done
+                )"
+                test -n "${deb}"
+                test "$(dpkg-deb -f "${deb}" Architecture)" = "${EXPECTED_ARCH}"
+                cp -v "${deb}" /src/out/
+              done
+
+              chown -R --reference=/src /src/out
+            '
+
+      - name: Normalize release asset names
+        working-directory: cpp
+        env:
+          TARGET: ${{ matrix.name }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+          for deb in out/*.deb; do
+            package="$(dpkg-deb -f "${deb}" Package)"
+            version="$(dpkg-deb -f "${deb}" Version)"
+            arch="$(dpkg-deb -f "${deb}" Architecture)"
+            mv -v "${deb}" "out/${package}_${version}_debian-bookworm-${TARGET}-${arch}.deb"
+          done
+
+      - name: Upload Debian artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-${{ needs.validate.outputs.version }}-debian-${{ matrix.name }}
+          path: cpp/out/*.deb
+          if-no-files-found: error
+          retention-days: 30
+
+  debian-doc:
+    name: Debian Bookworm / documentation
+    needs: [validate, verify]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v5
+        with:
+          path: cpp
+
+      - name: Check out pinned C dependency
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          ref: ${{ env.C_LIBRARY_REF }}
+          path: c
+
+      - name: Build architecture-independent documentation package
+        env:
+          DEBIAN_VERSION: ${{ needs.validate.outputs.debian_version }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf cpp/out
+          mkdir -p cpp/out
+
+          docker run --rm -t \
+            -e DEBIAN_VERSION="${DEBIAN_VERSION}" \
+            -v "${PWD}/cpp:/src" \
+            -v "${PWD}/c:/cdep:ro" \
+            -w /src \
+            debian:bookworm bash -lc '
+              set -euxo pipefail
+              export DEBIAN_FRONTEND=noninteractive
+              export DEBFULLNAME="GitHub Actions"
+              export DEBEMAIL="github-actions@users.noreply.github.com"
+
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                ca-certificates \
+                build-essential \
+                debhelper \
+                devscripts \
+                dpkg-dev \
+                equivs \
+                fakeroot \
+                ninja-build
+
+              cp -a /cdep /tmp/cdep
+              cd /tmp/cdep
+              mk-build-deps -i -t "apt-get -y --no-install-recommends" -r debian/control
+              rm -f ./*build-deps*.deb || true
+              dpkg-buildpackage -us -uc -B
+              apt-get install -y \
+                "$(find .. -maxdepth 1 -type f -name "libeasymcp2221-2_*.deb" -print -quit)" \
+                "$(find .. -maxdepth 1 -type f -name "libeasymcp2221-dev_*.deb" -print -quit)"
+
+              cd /src
+              test "$(dpkg-parsechangelog -S Version)" = "${DEBIAN_VERSION}"
+              mk-build-deps -i -t "apt-get -y --no-install-recommends" -r debian/control
+              rm -f ./*build-deps*.deb || true
+              dpkg-buildpackage -us -uc -A
+
+              doc="$(
+                find .. -maxdepth 1 -type f -name "*.deb" -print \
+                  | while IFS= read -r candidate; do
+                      case "$(dpkg-deb -f "${candidate}" Package)" in
+                        *doc*)
+                          printf "%s\n" "${candidate}"
+                          break
+                          ;;
+                      esac
+                    done
+              )"
+              test -n "${doc}"
+              cp -v "${doc}" /src/out/
+              chown -R --reference=/src /src/out
+            '
+
+      - name: Upload documentation artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-${{ needs.validate.outputs.version }}-debian-doc
+          path: cpp/out/*.deb
+          if-no-files-found: error
+          retention-days: 30
+
+  windows-mingw:
+    name: Windows x86_64 / MinGW-w64
+    needs: [validate, verify]
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v5
+        with:
+          path: cpp
+
+      - name: Check out pinned C dependency
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          ref: ${{ env.C_LIBRARY_REF }}
+          path: c
+
+      - name: Set up MinGW environment
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-pkgconf
+            mingw-w64-x86_64-libusb
+            mingw-w64-x86_64-qt6-base
+            zip
+
+      - name: Build, test, and install SDK
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
+        shell: msys2 {0}
+        run: |
+          set -euxo pipefail
+
+          workspace="$(cygpath -u "${GITHUB_WORKSPACE}")"
+          package_name="libeasymcp2221++-${VERSION}-windows-x86_64-mingw"
+          prefix="${workspace}/${package_name}"
+
+          cmake -S c -B build-c -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${prefix}" \
+            -DLIBEASYMCP2221_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_BUILD_TESTS=OFF
+          cmake --build build-c --parallel
+          cmake --install build-c
+
+          export PKG_CONFIG_PATH="${prefix}/lib/pkgconfig:/mingw64/lib/pkgconfig"
+
+          cmake -S cpp -B build-cpp -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${prefix}" \
+            -DLIBEASYMCP2221_CPP_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_QT=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_CPP_BUILD_TESTS=ON
+          cmake --build build-cpp --parallel
+          ctest --test-dir build-cpp --output-on-failure
+          cmake --install build-cpp
+
+          # Make pkg-config metadata relocatable inside the ZIP.
+          for pc in "${prefix}/lib/pkgconfig/"*.pc; do
+            sed -i \
+              -e 's|^prefix=.*$|prefix=${pcfiledir}/../..|' \
+              -e 's|^libdir=.*$|libdir=${prefix}/lib|' \
+              -e 's|^includedir=.*$|includedir=${prefix}/include|' \
+              "${pc}"
+          done
+
+          qt_dll="${prefix}/bin/libeasymcp2221++-qt.dll"
+          test -f "${qt_dll}"
+          windeployqt --release --no-translations "${qt_dll}"
+
+          cp -v /mingw64/bin/libusb-1.0.dll "${prefix}/bin/"
+          cp -v /mingw64/bin/libwinpthread-1.dll "${prefix}/bin/"
+          cp -v /mingw64/bin/libgcc_s_seh-1.dll "${prefix}/bin/"
+          cp -v /mingw64/bin/libstdc++-6.dll "${prefix}/bin/"
+
+          mkdir -p "${prefix}/THIRD_PARTY_LICENSES"
+          cp -v /mingw64/share/licenses/libusb/COPYING \
+            "${prefix}/THIRD_PARTY_LICENSES/libusb-COPYING.txt"
+          cp -v /mingw64/share/licenses/libwinpthread/COPYING \
+            "${prefix}/THIRD_PARTY_LICENSES/libwinpthread-COPYING.txt"
+          cp -v cpp/LICENSE cpp/README.md "${prefix}/"
+
+          cat > "${prefix}/WINDOWS.txt" <<'EOF'
+          This archive is a relocatable MinGW-w64 SDK for Windows x86_64.
+          It contains libeasymcp2221, libeasymcp2221++, the Qt component,
+          CMake package metadata, pkg-config metadata, and required runtime DLLs.
+
+          For CMake consumers, add this extracted directory to CMAKE_PREFIX_PATH.
+          For pkg-config consumers, add <sdk>/lib/pkgconfig to PKG_CONFIG_PATH.
+          EOF
+
+          # Smoke-test the packaged SDK from its final location.
+          mkdir -p package-consumer
+          cat > package-consumer/CMakeLists.txt <<'EOF'
+          cmake_minimum_required(VERSION 3.16)
+          project(release_sdk_consumer LANGUAGES CXX)
+          find_package(libeasymcp2221-cpp CONFIG REQUIRED COMPONENTS Qt)
+          add_executable(consumer main.cpp)
+          target_link_libraries(consumer PRIVATE libeasymcp2221::qt)
+          EOF
+          cat > package-consumer/main.cpp <<'EOF'
+          #include <libeasymcp2221++/qt/ErrorInfo.h>
+          int main() {
+              auto fn = &libeasymcp2221::qt::toErrorInfo;
+              return fn != nullptr ? 0 : 1;
+          }
+          EOF
+
+          PKG_CONFIG_PATH="${prefix}/lib/pkgconfig" \
+            cmake -S package-consumer -B build-package-consumer -G Ninja \
+              -DCMAKE_PREFIX_PATH="${prefix}"
+          cmake --build build-package-consumer --parallel
+
+          cd "${workspace}"
+          zip -r "${package_name}.zip" "${package_name}"
+
+      - name: Upload MinGW SDK
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-${{ needs.validate.outputs.version }}-windows-mingw
+          path: libeasymcp2221++-${{ needs.validate.outputs.version }}-windows-x86_64-mingw.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  windows-msvc:
+    name: Windows x86_64 / MSVC
+    needs: [validate, verify]
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v5
+        with:
+          path: cpp
+
+      - name: Check out pinned C dependency
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          ref: ${{ env.C_LIBRARY_REF }}
+          path: c
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.*'
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+          cache: true
+
+      - name: Install libusb with vcpkg
+        shell: pwsh
+        run: |
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install libusb:x64-windows
+
+      - name: Build, test, and install SDK
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $packageName = "libeasymcp2221++-$env:VERSION-windows-x86_64-msvc"
+          $prefix = Join-Path $env:GITHUB_WORKSPACE $packageName
+          $toolchain = "$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake"
+
+          cmake -S c -B build-c -A x64 `
+            "-DCMAKE_TOOLCHAIN_FILE=$toolchain" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DLIBEASYMCP2221_BUILD_SHARED=ON `
+            -DLIBEASYMCP2221_BUILD_STATIC=ON `
+            -DLIBEASYMCP2221_BUILD_EXAMPLES=OFF `
+            -DLIBEASYMCP2221_BUILD_TESTS=OFF
+          cmake --build build-c --config Release --parallel
+          cmake --install build-c --config Release --prefix $prefix
+
+          cmake -S cpp -B build-cpp -A x64 `
+            "-DCMAKE_TOOLCHAIN_FILE=$toolchain" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            "-DCMAKE_PREFIX_PATH=$prefix;$env:QT_ROOT_DIR" `
+            -DLIBEASYMCP2221_CPP_BUILD_SHARED=ON `
+            -DLIBEASYMCP2221_CPP_BUILD_STATIC=ON `
+            -DLIBEASYMCP2221_CPP_BUILD_QT=ON `
+            -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=OFF `
+            -DLIBEASYMCP2221_CPP_BUILD_TESTS=ON
+          cmake --build build-cpp --config Release --parallel
+          ctest --test-dir build-cpp -C Release --output-on-failure
+          cmake --install build-cpp --config Release --prefix $prefix
+
+          $qtDll = Join-Path $prefix "bin\easymcp2221++-qt.dll"
+          if (-not (Test-Path $qtDll)) {
+            throw "Missing Qt DLL: $qtDll"
+          }
+
+          & "$env:QT_ROOT_DIR\bin\windeployqt.exe" `
+            --release `
+            --no-translations `
+            --compiler-runtime `
+            $qtDll
+
+          $vcpkgRoot = Join-Path $env:VCPKG_INSTALLATION_ROOT "installed\x64-windows"
+          Copy-Item "$vcpkgRoot\bin\libusb-1.0.dll" "$prefix\bin\"
+
+          New-Item -ItemType Directory -Force "$prefix\THIRD_PARTY_LICENSES" | Out-Null
+          Copy-Item "$vcpkgRoot\share\libusb\copyright" `
+            "$prefix\THIRD_PARTY_LICENSES\libusb-COPYING.txt"
+          Copy-Item "cpp\LICENSE", "cpp\README.md" $prefix
+
+          @(
+            "This archive is a native MSVC SDK for Windows x86_64.",
+            "It contains libeasymcp2221, libeasymcp2221++, the Qt component,",
+            "CMake package metadata, and required runtime DLLs.",
+            "",
+            "Add this extracted directory to CMAKE_PREFIX_PATH."
+          ) | Set-Content -Encoding ascii "$prefix\WINDOWS.txt"
+
+          New-Item -ItemType Directory -Force package-consumer | Out-Null
+          @'
+          cmake_minimum_required(VERSION 3.16)
+          project(release_sdk_consumer LANGUAGES CXX)
+          find_package(libeasymcp2221-cpp CONFIG REQUIRED COMPONENTS Qt)
+          add_executable(consumer main.cpp)
+          target_link_libraries(consumer PRIVATE libeasymcp2221::qt)
+          '@ | Set-Content -Encoding utf8 package-consumer/CMakeLists.txt
+          @'
+          #include <libeasymcp2221++/qt/ErrorInfo.h>
+          int main() {
+              auto fn = &libeasymcp2221::qt::toErrorInfo;
+              return fn != nullptr ? 0 : 1;
+          }
+          '@ | Set-Content -Encoding utf8 package-consumer/main.cpp
+
+          cmake -S package-consumer -B build-package-consumer -A x64 `
+            "-DCMAKE_TOOLCHAIN_FILE=$toolchain" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            "-DCMAKE_PREFIX_PATH=$prefix;$env:QT_ROOT_DIR"
+          cmake --build build-package-consumer --config Release --parallel
+
+          Compress-Archive -Path $prefix -DestinationPath "$prefix.zip"
+
+      - name: Upload MSVC SDK
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-${{ needs.validate.outputs.version }}-windows-msvc
+          path: libeasymcp2221++-${{ needs.validate.outputs.version }}-windows-x86_64-msvc.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: Publish GitHub release
+    needs:
+      - validate
+      - debian
+      - debian-doc
+      - windows-mingw
+      - windows-msvc
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Download release assets
+        uses: actions/download-artifact@v5
+        with:
+          pattern: release-${{ needs.validate.outputs.version }}-*
+          path: artifacts
+
+      - name: Collect assets
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p release-assets
+
+          find artifacts -type f \( -name '*.deb' -o -name '*.zip' \) \
+            -exec cp -v '{}' release-assets/ ';'
+
+          test -n "$(find release-assets -type f -name '*.deb' -print -quit)"
+          test -n "$(find release-assets -type f -name '*mingw.zip' -print -quit)"
+          test -n "$(find release-assets -type f -name '*msvc.zip' -print -quit)"
+
+      - name: Download release notes
+        uses: actions/download-artifact@v5
+        with:
+          name: release-notes-${{ needs.validate.outputs.version }}
+          path: notes
 
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        working-directory: cpp
+        shell: bash
         run: |
           gh release create "${GITHUB_REF_NAME}" \
+            release-assets/* \
             --title "libeasymcp2221++ ${GITHUB_REF_NAME#v}" \
-            --notes-file "${RUNNER_TEMP}/release-notes.md" \
+            --notes-file notes/release-notes.md \
             --verify-tag
