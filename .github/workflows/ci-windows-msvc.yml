@@ -1,0 +1,173 @@
+name: Windows MSVC CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  C_LIBRARY_REPOSITORY: tobiasvogel/libeasymcp2221
+
+jobs:
+  msvc:
+    name: MSVC / Core + Qt / installed consumers
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v5
+        with:
+          path: cpp
+
+      - name: Check out C dependency
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          path: c
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.*'
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+          cache: true
+
+      - name: Install libusb with vcpkg
+        shell: pwsh
+        run: |
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install libusb:x64-windows
+
+      - name: Build and install C dependency
+        shell: pwsh
+        run: |
+          cmake -S c -B build-c -A x64 `
+            "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DLIBEASYMCP2221_BUILD_SHARED=ON `
+            -DLIBEASYMCP2221_BUILD_STATIC=ON `
+            -DLIBEASYMCP2221_BUILD_EXAMPLES=OFF `
+            -DLIBEASYMCP2221_BUILD_TESTS=OFF
+
+          cmake --build build-c --config Release --parallel
+          cmake --install build-c --config Release `
+            --prefix "$env:GITHUB_WORKSPACE\prefix"
+
+      - name: Configure C++ Core and Qt
+        shell: pwsh
+        run: |
+          cmake -S cpp -B build-cpp -A x64 `
+            "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            "-DCMAKE_PREFIX_PATH=$env:GITHUB_WORKSPACE\prefix;$env:QT_ROOT_DIR" `
+            -DLIBEASYMCP2221_CPP_BUILD_SHARED=ON `
+            -DLIBEASYMCP2221_CPP_BUILD_STATIC=ON `
+            -DLIBEASYMCP2221_CPP_BUILD_QT=ON `
+            -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=OFF `
+            -DLIBEASYMCP2221_CPP_BUILD_TESTS=ON
+
+      - name: Build and test C++ Core and Qt
+        shell: pwsh
+        run: |
+          cmake --build build-cpp --config Release --parallel
+          ctest --test-dir build-cpp -C Release --output-on-failure
+
+      - name: Install C++ Core and Qt
+        shell: pwsh
+        run: |
+          cmake --install build-cpp --config Release `
+            --prefix "$env:GITHUB_WORKSPACE\prefix"
+
+      - name: Verify installed Windows library layout
+        shell: pwsh
+        run: |
+          $prefix = Join-Path $env:GITHUB_WORKSPACE "prefix"
+
+          $required = @(
+            "$prefix\bin\easymcp2221++.dll",
+            "$prefix\bin\easymcp2221++-qt.dll",
+            "$prefix\lib\easymcp2221++.lib",
+            "$prefix\lib\easymcp2221++_static.lib",
+            "$prefix\lib\easymcp2221++-qt.lib",
+            "$prefix\lib\easymcp2221++-qt_static.lib",
+            "$prefix\include\libeasymcp2221++\Export.h",
+            "$prefix\include\libeasymcp2221++\qt\GpioMonitor.h"
+          )
+
+          foreach ($path in $required) {
+            if (-not (Test-Path $path)) {
+              throw "Missing expected installed file: $path"
+            }
+          }
+
+      - name: Create installed-package consumers
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force consumer | Out-Null
+
+          @'
+          cmake_minimum_required(VERSION 3.16)
+          project(libeasymcp2221_cpp_windows_consumer LANGUAGES CXX)
+
+          find_package(
+              libeasymcp2221-cpp
+              CONFIG
+              REQUIRED
+              COMPONENTS Qt
+          )
+
+          if (NOT DEFINED CONSUMER_TARGET)
+              message(FATAL_ERROR "CONSUMER_TARGET was not provided")
+          endif()
+
+          add_executable(consumer main.cpp)
+          target_compile_features(consumer PRIVATE cxx_std_17)
+          target_link_libraries(consumer PRIVATE ${CONSUMER_TARGET})
+          '@ | Set-Content -Encoding utf8 consumer/CMakeLists.txt
+
+          @'
+          #include <libeasymcp2221++/Device.h>
+          #include <libeasymcp2221++/qt/ErrorInfo.h>
+
+          int main()
+          {
+              auto core = &libeasymcp2221::Device::isOpen;
+              auto qt = &libeasymcp2221::qt::toErrorInfo;
+              return (core != nullptr && qt != nullptr) ? 0 : 1;
+          }
+          '@ | Set-Content -Encoding utf8 consumer/main.cpp
+
+      - name: Build installed consumers
+        shell: pwsh
+        run: |
+          $prefix = "$env:GITHUB_WORKSPACE\prefix"
+          $common = @(
+            "-A", "x64",
+            "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake",
+            "-DVCPKG_TARGET_TRIPLET=x64-windows",
+            "-DCMAKE_PREFIX_PATH=$prefix;$env:QT_ROOT_DIR"
+          )
+
+          $targets = @{
+            "core-shared" = "libeasymcp2221::cpp"
+            "core-static" = "libeasymcp2221::cpp_static"
+            "qt-shared" = "libeasymcp2221::qt"
+            "qt-static" = "libeasymcp2221::qt_static"
+          }
+
+          foreach ($entry in $targets.GetEnumerator()) {
+            $buildDir = "build-consumer-$($entry.Key)"
+            cmake -S consumer -B $buildDir @common `
+              "-DCONSUMER_TARGET=$($entry.Value)"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+            cmake --build $buildDir --config Release --parallel
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }

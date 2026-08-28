@@ -223,6 +223,14 @@ if (LIBEASYMCP2221_CPP_BUILD_STATIC)
             "$<LINK_ONLY:${LIBEASYMCP2221_CPP_C_STATIC_TARGET}>"
     )
 
+    if (MSVC)
+        set_target_properties(
+            easymcp2221_cpp_static
+            PROPERTIES
+                OUTPUT_NAME "easymcp2221++_static"
+        )
+    endif()
+
     if (LIBEASYMCP2221_CPP_BUILD_SHARED)
         set_target_properties(easymcp2221_cpp_static PROPERTIES
             EXPORT_NAME cpp_static
@@ -318,6 +326,14 @@ if (LIBEASYMCP2221_CPP_BUILD_QT)
             PUBLIC
                 easymcp2221_cpp_static
         )
+
+        if (MSVC)
+            set_target_properties(
+                easymcp2221_cpp_qt_static
+                PROPERTIES
+                    OUTPUT_NAME "easymcp2221++-qt_static"
+            )
+        endif()
 
         if (LIBEASYMCP2221_CPP_BUILD_SHARED)
             set_target_properties(
