@@ -247,6 +247,134 @@ class QtIntegrationTest : public QObject {
             QByteArray::fromHex("deadbeef"));
     }
 
+    void i2cRegisterReadForwardsExplicitLayout()
+    {
+        Device device;
+        auto target = device.i2cDevice(0x48);
+
+        QCOMPARE(
+            libeasymcp2221::qt::readRegister(
+                target,
+                0x1234,
+                2,
+                libeasymcp2221::RegisterWidth::Bits16,
+                libeasymcp2221::ByteOrder::LittleEndian),
+            QByteArray(2, static_cast<char>(0x3C)));
+
+        QCOMPARE(
+            libeasymcp2221_test::lastI2cRegister(),
+            static_cast<std::uint32_t>(0x1234));
+        QCOMPARE(
+            libeasymcp2221_test::lastI2cRegisterWidth(),
+            2);
+        QCOMPARE(
+            libeasymcp2221_test::lastI2cByteOrder(),
+            MCP2221_I2C_BYTE_ORDER_LITTLE);
+    }
+
+    void smbusRejectsNegativeSize()
+    {
+        Device device;
+        auto target = device.smbusDevice(0x5A);
+
+        QVERIFY_EXCEPTION_THROWN(
+            libeasymcp2221::qt::readI2cBlockData(
+                target,
+                0x03,
+                -1),
+            std::invalid_argument);
+    }
+
+    void emptyWritesAreAccepted()
+    {
+        Device device;
+
+        auto i2c = device.i2cDevice(0x48);
+        libeasymcp2221::qt::write(i2c, {});
+        QVERIFY(
+            libeasymcp2221_test::lastI2cWriteData().empty());
+
+        libeasymcp2221::qt::writeRegister(i2c, 0x11, {});
+        QVERIFY(
+            libeasymcp2221_test::lastI2cWriteData().empty());
+
+        auto smbus = device.smbusDevice(0x5A);
+        libeasymcp2221::qt::writeBlockData(
+            smbus,
+            0x20,
+            {});
+        QVERIFY(
+            libeasymcp2221_test::lastSmbusWriteData().empty());
+
+        libeasymcp2221::qt::writeI2cBlockData(
+            smbus,
+            0x21,
+            {});
+        QVERIFY(
+            libeasymcp2221_test::lastSmbusWriteData().empty());
+    }
+
+    void qtFunctionsPropagateCoreErrors()
+    {
+        Device device;
+
+        auto i2c = device.i2cDevice(0x48);
+        libeasymcp2221_test::failNext(MCP2221_ERR_TIMEOUT);
+        QVERIFY_EXCEPTION_THROWN(
+            libeasymcp2221::qt::read(i2c, 1),
+            libeasymcp2221::Error);
+
+        auto smbus = device.smbusDevice(0x5A);
+        libeasymcp2221_test::failNext(MCP2221_ERR_TIMEOUT);
+        QVERIFY_EXCEPTION_THROWN(
+            libeasymcp2221::qt::writeBlockData(
+                smbus,
+                0x20,
+                QByteArray::fromHex("01")),
+            libeasymcp2221::Error);
+    }
+
+    void qtMetaTypesAreDeclared()
+    {
+        QVERIFY(QMetaType::fromType<Pin>().isValid());
+        QVERIFY(
+            QMetaType::fromType<
+                libeasymcp2221::GpioEdge>().isValid());
+        QVERIFY(QMetaType::fromType<GpioEvent>().isValid());
+        QVERIFY(
+            QMetaType::fromType<
+                libeasymcp2221::ErrorCode>().isValid());
+        QVERIFY(QMetaType::fromType<ErrorInfo>().isValid());
+    }
+
+    void gpioMonitorTimerPollsAutomatically()
+    {
+        qRegisterMetaType<GpioEvent>();
+
+        Device device;
+        GpioMonitor monitor(device.gpioPoller());
+        monitor.setInterval(std::chrono::milliseconds{1});
+
+        QSignalSpy eventSpy(
+            &monitor,
+            &GpioMonitor::gpioEvent);
+
+        libeasymcp2221_test::queueGpioEvent(
+            0,
+            MCP2221_GPIO_EVENT_RISE);
+
+        monitor.start();
+        QTRY_COMPARE(eventSpy.count(), 1);
+        monitor.stop();
+
+        const auto event =
+            qvariant_cast<GpioEvent>(eventSpy.at(0).at(0));
+        QCOMPARE(event.pin, Pin::GP0);
+        QCOMPARE(
+            event.edge,
+            libeasymcp2221::GpioEdge::Rising);
+    }
+
     void gpioMonitorDefaults()
     {
         Device device;

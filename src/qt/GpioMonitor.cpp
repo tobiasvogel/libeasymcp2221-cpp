@@ -7,21 +7,20 @@
 namespace libeasymcp2221::qt {
 
 GpioMonitor::GpioMonitor(GpioPoller poller, QObject* parent) : QObject(parent),
-poller_(std::move(poller)) {
-	timer_.setParent(this);
-	timer_.setInterval(static_cast<int>(DefaultInterval.count()));
+timer_(new QTimer(this)), poller_(std::move(poller)) {
+	timer_->setInterval(static_cast<int>(DefaultInterval.count()));
 
-	connect(&timer_, &QTimer::timeout, this, &GpioMonitor::pollOnce);
+	connect(timer_, &QTimer::timeout, this, &GpioMonitor::pollOnce);
 }
 
 GpioMonitor::~GpioMonitor() = default;
 
 bool GpioMonitor::isActive() const noexcept {
-	return timer_.isActive();
+	return timer_->isActive();
 }
 
 std::chrono::milliseconds GpioMonitor::interval() const noexcept {
-	return std::chrono::milliseconds{timer_.interval()};
+	return std::chrono::milliseconds{timer_->interval()};
 }
 
 void GpioMonitor::setInterval(std::chrono::milliseconds interval) {
@@ -33,7 +32,7 @@ void GpioMonitor::setInterval(std::chrono::milliseconds interval) {
 		throw std::invalid_argument("GPIO polling interval is too large");
 	}
 
-	timer_.setInterval(static_cast<int>(interval.count()));
+	timer_->setInterval(static_cast<int>(interval.count()));
 }
 
 std::size_t GpioMonitor::maxEventsPerPoll() const noexcept {
@@ -53,20 +52,20 @@ void GpioMonitor::clearFilter() {
 }
 
 void GpioMonitor::start() {
-	if (timer_.isActive()) {
+	if (timer_->isActive()) {
 		return;
 	}
 
-	timer_.start();
+	timer_->start();
 	emit started();
 }
 
 void GpioMonitor::stop() {
-	if (!timer_.isActive()) {
+	if (!timer_->isActive()) {
 		return;
 	}
 
-	timer_.stop();
+	timer_->stop();
 	emit stopped();
 }
 

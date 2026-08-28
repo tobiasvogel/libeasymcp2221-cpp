@@ -244,12 +244,17 @@ mcp2221_error_code_t mcp2221_i2c_slave_write(
 }
 
 mcp2221_error_code_t mcp2221_i2c_slave_read_register(
-    mcp2221_i2c_slave_t*, uint32_t, uint8_t* buffer, size_t length,
-    int, mcp2221_i2c_byte_order_t)
+    mcp2221_i2c_slave_t*, uint32_t reg, uint8_t* buffer, size_t length,
+    int regBytes, mcp2221_i2c_byte_order_t byteOrder)
 {
     const auto error = consumeError();
-    if (error == MCP2221_ERR_OK && buffer != nullptr) {
-        std::memset(buffer, 0x3C, length);
+    if (error == MCP2221_ERR_OK) {
+        state.i2cRegister = reg;
+        state.i2cRegisterWidth = regBytes;
+        state.i2cByteOrder = byteOrder;
+        if (buffer != nullptr) {
+            std::memset(buffer, 0x3C, length);
+        }
     }
     return error;
 }

@@ -176,7 +176,7 @@ class GpioMonitor : public QObject {
 	void errorOccurred(const libeasymcp2221::qt::ErrorInfo& error);
 
   private:
-	QTimer timer_;
+	QTimer* timer_;
 	GpioPoller poller_;
 
 	std::size_t maxEventsPerPoll_ = DefaultMaxEventsPerPoll;
