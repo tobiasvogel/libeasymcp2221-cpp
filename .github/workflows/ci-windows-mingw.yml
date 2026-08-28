@@ -49,9 +49,12 @@ jobs:
         run: |
           set -euxo pipefail
 
+          workspace="$(cygpath -u "${GITHUB_WORKSPACE}")"
+          prefix="${workspace}/prefix"
+
           cmake -S c -B build-c -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DCMAKE_INSTALL_PREFIX="${prefix}" \
             -DLIBEASYMCP2221_BUILD_SHARED=ON \
             -DLIBEASYMCP2221_BUILD_STATIC=ON \
             -DLIBEASYMCP2221_BUILD_EXAMPLES=OFF \
@@ -65,11 +68,13 @@ jobs:
         run: |
           set -euxo pipefail
 
-          export PKG_CONFIG_PATH="${GITHUB_WORKSPACE}/prefix/lib/pkgconfig:/mingw64/lib/pkgconfig"
+          workspace="$(cygpath -u "${GITHUB_WORKSPACE}")"
+          prefix="${workspace}/prefix"
+          export PKG_CONFIG_PATH="${prefix}/lib/pkgconfig:/mingw64/lib/pkgconfig"
 
           cmake -S cpp -B build-cpp -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DCMAKE_INSTALL_PREFIX="${prefix}" \
             -DLIBEASYMCP2221_CPP_BUILD_SHARED=ON \
             -DLIBEASYMCP2221_CPP_BUILD_STATIC=ON \
             -DLIBEASYMCP2221_CPP_BUILD_QT=ON \
@@ -81,7 +86,9 @@ jobs:
         run: |
           set -euxo pipefail
 
-          export PKG_CONFIG_PATH="${GITHUB_WORKSPACE}/prefix/lib/pkgconfig:/mingw64/lib/pkgconfig"
+          workspace="$(cygpath -u "${GITHUB_WORKSPACE}")"
+          prefix="${workspace}/prefix"
+          export PKG_CONFIG_PATH="${prefix}/lib/pkgconfig:/mingw64/lib/pkgconfig"
 
           cmake --build build-cpp --parallel
           ctest --test-dir build-cpp --output-on-failure
@@ -97,7 +104,8 @@ jobs:
         run: |
           set -euxo pipefail
 
-          prefix="${GITHUB_WORKSPACE}/prefix"
+          workspace="$(cygpath -u "${GITHUB_WORKSPACE}")"
+          prefix="${workspace}/prefix"
 
           test -f "${prefix}/bin/libeasymcp2221++.dll"
           test -f "${prefix}/bin/libeasymcp2221++-qt.dll"
@@ -171,7 +179,9 @@ jobs:
         run: |
           set -euxo pipefail
 
-          export PKG_CONFIG_PATH="${GITHUB_WORKSPACE}/prefix/lib/pkgconfig:/mingw64/lib/pkgconfig"
+          workspace="$(cygpath -u "${GITHUB_WORKSPACE}")"
+          prefix="${workspace}/prefix"
+          export PKG_CONFIG_PATH="${prefix}/lib/pkgconfig:/mingw64/lib/pkgconfig"
 
           build_consumer()
           {
@@ -181,7 +191,7 @@ jobs:
 
               cmake -S consumer -B "build-consumer-${name}" -G Ninja \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_PREFIX_PATH="${GITHUB_WORKSPACE}/prefix" \
+                -DCMAKE_PREFIX_PATH="${prefix}" \
                 -DCONSUMER_TARGET="${target}" \
                 -DCONSUMER_QT="${qt}"
 
