@@ -116,33 +116,51 @@ jobs:
           cmake_minimum_required(VERSION 3.16)
           project(libeasymcp2221_cpp_windows_consumer LANGUAGES CXX)
 
-          find_package(
-              libeasymcp2221-cpp
-              CONFIG
-              REQUIRED
-              COMPONENTS Qt
-          )
+          if (CONSUMER_QT)
+              find_package(
+                  libeasymcp2221-cpp
+                  CONFIG
+                  REQUIRED
+                  COMPONENTS Qt
+              )
+              set(CONSUMER_SOURCE main_qt.cpp)
+          else()
+              find_package(
+                  libeasymcp2221-cpp
+                  CONFIG
+                  REQUIRED
+              )
+              set(CONSUMER_SOURCE main_core.cpp)
+          endif()
 
           if (NOT DEFINED CONSUMER_TARGET)
               message(FATAL_ERROR "CONSUMER_TARGET was not provided")
           endif()
 
-          add_executable(consumer main.cpp)
+          add_executable(consumer ${CONSUMER_SOURCE})
           target_compile_features(consumer PRIVATE cxx_std_17)
           target_link_libraries(consumer PRIVATE ${CONSUMER_TARGET})
           '@ | Set-Content -Encoding utf8 consumer/CMakeLists.txt
 
           @'
           #include <libeasymcp2221++/Device.h>
-          #include <libeasymcp2221++/qt/ErrorInfo.h>
 
           int main()
           {
               auto core = &libeasymcp2221::Device::isOpen;
-              auto qt = &libeasymcp2221::qt::toErrorInfo;
-              return (core != nullptr && qt != nullptr) ? 0 : 1;
+              return core != nullptr ? 0 : 1;
           }
-          '@ | Set-Content -Encoding utf8 consumer/main.cpp
+          '@ | Set-Content -Encoding utf8 consumer/main_core.cpp
+
+          @'
+          #include <libeasymcp2221++/qt/ErrorInfo.h>
+
+          int main()
+          {
+              auto qt = &libeasymcp2221::qt::toErrorInfo;
+              return qt != nullptr ? 0 : 1;
+          }
+          '@ | Set-Content -Encoding utf8 consumer/main_qt.cpp
 
       - name: Build installed consumers
         shell: pwsh
@@ -155,17 +173,18 @@ jobs:
             "-DCMAKE_PREFIX_PATH=$prefix;$env:QT_ROOT_DIR"
           )
 
-          $targets = @{
-            "core-shared" = "libeasymcp2221::cpp"
-            "core-static" = "libeasymcp2221::cpp_static"
-            "qt-shared" = "libeasymcp2221::qt"
-            "qt-static" = "libeasymcp2221::qt_static"
-          }
+          $targets = @(
+            @{ Name = "core-shared"; Target = "libeasymcp2221::cpp"; Qt = "OFF" },
+            @{ Name = "core-static"; Target = "libeasymcp2221::cpp_static"; Qt = "OFF" },
+            @{ Name = "qt-shared"; Target = "libeasymcp2221::qt"; Qt = "ON" },
+            @{ Name = "qt-static"; Target = "libeasymcp2221::qt_static"; Qt = "ON" }
+          )
 
-          foreach ($entry in $targets.GetEnumerator()) {
-            $buildDir = "build-consumer-$($entry.Key)"
+          foreach ($entry in $targets) {
+            $buildDir = "build-consumer-$($entry.Name)"
             cmake -S consumer -B $buildDir @common `
-              "-DCONSUMER_TARGET=$($entry.Value)"
+              "-DCONSUMER_TARGET=$($entry.Target)" `
+              "-DCONSUMER_QT=$($entry.Qt)"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
             cmake --build $buildDir --config Release --parallel
