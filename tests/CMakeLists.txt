@@ -177,6 +177,7 @@ set_tests_properties(
     libeasymcp2221_cpp_package_core_configure
     PROPERTIES
         FIXTURES_REQUIRED libeasymcp2221_cpp_package
+        ENVIRONMENT "PKG_CONFIG_PATH=$ENV{PKG_CONFIG_PATH}"
 )
 
 add_test(
@@ -211,6 +212,7 @@ if (LIBEASYMCP2221_CPP_BUILD_QT)
         libeasymcp2221_cpp_package_qt_configure
         PROPERTIES
             FIXTURES_REQUIRED libeasymcp2221_cpp_package
+            ENVIRONMENT "PKG_CONFIG_PATH=$ENV{PKG_CONFIG_PATH}"
     )
 
     add_test(
