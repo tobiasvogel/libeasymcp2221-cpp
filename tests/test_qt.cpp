@@ -285,14 +285,14 @@ class QtIntegrationTest : public QObject {
             std::invalid_argument);
     }
 
-    void emptyWritesAreAccepted()
+    void emptyWriteSemanticsMatchCore()
     {
         Device device;
 
         auto i2c = device.i2cDevice(0x48);
-        libeasymcp2221::qt::write(i2c, {});
-        QVERIFY(
-            libeasymcp2221_test::lastI2cWriteData().empty());
+        QVERIFY_EXCEPTION_THROWN(
+            libeasymcp2221::qt::write(i2c, {}),
+            libeasymcp2221::Error);
 
         libeasymcp2221::qt::writeRegister(i2c, 0x11, {});
         QVERIFY(
