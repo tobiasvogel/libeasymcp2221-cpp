@@ -31,7 +31,7 @@ target_compile_features(libeasymcp2221_cpp_test_impl
 
 target_compile_definitions(
     libeasymcp2221_cpp_test_impl
-    PRIVATE
+    PUBLIC
         LIBEASYMCP2221_CPP_STATIC
 )
 
@@ -95,7 +95,7 @@ if (LIBEASYMCP2221_CPP_BUILD_QT)
 
     target_compile_definitions(
         libeasymcp2221_cpp_qt_test_impl
-        PRIVATE
+        PUBLIC
             LIBEASYMCP2221_CPP_STATIC
             LIBEASYMCP2221_CPP_QT_STATIC
     )
