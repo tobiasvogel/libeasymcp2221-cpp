@@ -1,5 +1,6 @@
 /**
  * @file QtTypes.h
+ * @ingroup qt
  * @brief Qt meta-type declarations for libeasymcp2221++ value types.
  */
 
