@@ -10,6 +10,7 @@
 #include <cstring>
 #include <deque>
 #include <string>
+#include <vector>
 
 extern "C" {
 #include <libeasymcp2221/mcp2221.h>
@@ -45,6 +46,13 @@ struct MockState {
     std::array<int, 4> gpioWrite{{-1, -1, -1, -1}};
     std::uint16_t gpioFilterMask = 0;
     std::deque<mcp2221_gpio_event_t> gpioEvents;
+    std::vector<std::uint8_t> i2cWriteData;
+    std::uint32_t i2cRegister = 0;
+    int i2cRegisterWidth = 0;
+    mcp2221_i2c_byte_order_t i2cByteOrder =
+        MCP2221_I2C_BYTE_ORDER_DEFAULT;
+    std::uint8_t smbusCommand = 0;
+    std::vector<std::uint8_t> smbusWriteData;
     std::size_t flashWriteSize = 0;
 };
 
@@ -74,6 +82,12 @@ int lastGpio1() { return state.gpioWrite[1]; }
 int lastGpio2() { return state.gpioWrite[2]; }
 int lastGpio3() { return state.gpioWrite[3]; }
 std::uint16_t lastGpioFilterMask() { return state.gpioFilterMask; }
+const std::vector<std::uint8_t>& lastI2cWriteData() { return state.i2cWriteData; }
+std::uint32_t lastI2cRegister() { return state.i2cRegister; }
+int lastI2cRegisterWidth() { return state.i2cRegisterWidth; }
+mcp2221_i2c_byte_order_t lastI2cByteOrder() { return state.i2cByteOrder; }
+std::uint8_t lastSmbusCommand() { return state.smbusCommand; }
+const std::vector<std::uint8_t>& lastSmbusWriteData() { return state.smbusWriteData; }
 
 void queueGpioEvent(
     std::uint8_t gpio,
@@ -217,9 +231,16 @@ mcp2221_error_code_t mcp2221_i2c_slave_read(
 }
 
 mcp2221_error_code_t mcp2221_i2c_slave_write(
-    mcp2221_i2c_slave_t*, const uint8_t*, size_t)
+    mcp2221_i2c_slave_t*, const uint8_t* data, size_t length)
 {
-    return consumeError();
+    const auto error = consumeError();
+    if (error == MCP2221_ERR_OK) {
+        state.i2cWriteData.clear();
+        if (data != nullptr && length != 0) {
+            state.i2cWriteData.assign(data, data + length);
+        }
+    }
+    return error;
 }
 
 mcp2221_error_code_t mcp2221_i2c_slave_read_register(
@@ -234,10 +255,20 @@ mcp2221_error_code_t mcp2221_i2c_slave_read_register(
 }
 
 mcp2221_error_code_t mcp2221_i2c_slave_write_register(
-    mcp2221_i2c_slave_t*, uint32_t, const uint8_t*, size_t,
-    int, mcp2221_i2c_byte_order_t)
+    mcp2221_i2c_slave_t*, uint32_t reg, const uint8_t* data, size_t length,
+    int regBytes, mcp2221_i2c_byte_order_t byteOrder)
 {
-    return consumeError();
+    const auto error = consumeError();
+    if (error == MCP2221_ERR_OK) {
+        state.i2cRegister = reg;
+        state.i2cRegisterWidth = regBytes;
+        state.i2cByteOrder = byteOrder;
+        state.i2cWriteData.clear();
+        if (data != nullptr && length != 0) {
+            state.i2cWriteData.assign(data, data + length);
+        }
+    }
+    return error;
 }
 
 mcp2221_error_code_t mcp2221_smbus_init(
@@ -323,20 +354,36 @@ mcp2221_error_code_t mcp2221_smbus_read_block_data(
 }
 
 mcp2221_error_code_t mcp2221_smbus_write_block_data(
-    mcp2221_smbus_t*, uint8_t, uint8_t, const uint8_t*, size_t)
+    mcp2221_smbus_t*, uint8_t, uint8_t command,
+    const uint8_t* data, size_t length)
 {
-    return consumeError();
+    const auto error = consumeError();
+    if (error == MCP2221_ERR_OK) {
+        state.smbusCommand = command;
+        state.smbusWriteData.clear();
+        if (data != nullptr && length != 0) {
+            state.smbusWriteData.assign(data, data + length);
+        }
+    }
+    return error;
 }
 
 mcp2221_error_code_t mcp2221_smbus_block_process_call(
-    mcp2221_smbus_t*, uint8_t, uint8_t, const uint8_t*, size_t,
+    mcp2221_smbus_t*, uint8_t, uint8_t command,
+    const uint8_t* data, size_t length,
     uint8_t* response, size_t* response_length)
 {
     const auto error = consumeError();
-    if (error == MCP2221_ERR_OK && response != nullptr &&
-        response_length != nullptr) {
-        response[0] = 0x55;
-        *response_length = 1;
+    if (error == MCP2221_ERR_OK) {
+        state.smbusCommand = command;
+        state.smbusWriteData.clear();
+        if (data != nullptr && length != 0) {
+            state.smbusWriteData.assign(data, data + length);
+        }
+        if (response != nullptr && response_length != nullptr) {
+            response[0] = 0x55;
+            *response_length = 1;
+        }
     }
     return error;
 }
@@ -352,9 +399,18 @@ mcp2221_error_code_t mcp2221_smbus_read_i2c_block_data(
 }
 
 mcp2221_error_code_t mcp2221_smbus_write_i2c_block_data(
-    mcp2221_smbus_t*, uint8_t, uint8_t, const uint8_t*, size_t)
+    mcp2221_smbus_t*, uint8_t, uint8_t command,
+    const uint8_t* data, size_t length)
 {
-    return consumeError();
+    const auto error = consumeError();
+    if (error == MCP2221_ERR_OK) {
+        state.smbusCommand = command;
+        state.smbusWriteData.clear();
+        if (data != nullptr && length != 0) {
+            state.smbusWriteData.assign(data, data + length);
+        }
+    }
+    return error;
 }
 
 mcp2221_error_code_t mcp2221_gpio_read_mask(

@@ -9,10 +9,12 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 extern "C" {
 #include <libeasymcp2221/mcp2221_error_codes.h>
 #include <libeasymcp2221/mcp2221_gpio_poll.h>
+#include <libeasymcp2221/mcp2221_i2c_slave.h>
 }
 
 namespace libeasymcp2221_test {
@@ -33,6 +35,14 @@ int lastGpio1();
 int lastGpio2();
 int lastGpio3();
 std::uint16_t lastGpioFilterMask();
+
+const std::vector<std::uint8_t>& lastI2cWriteData();
+std::uint32_t lastI2cRegister();
+int lastI2cRegisterWidth();
+mcp2221_i2c_byte_order_t lastI2cByteOrder();
+
+std::uint8_t lastSmbusCommand();
+const std::vector<std::uint8_t>& lastSmbusWriteData();
 
 void queueGpioEvent(
     std::uint8_t gpio,

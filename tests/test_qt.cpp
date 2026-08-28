@@ -97,6 +97,156 @@ class QtIntegrationTest : public QObject {
             QByteArray(3, static_cast<char>(0x66)));
     }
 
+
+    void i2cWriteForwardsPayload()
+    {
+        Device device;
+        auto target = device.i2cDevice(0x48);
+
+        libeasymcp2221::qt::write(
+            target,
+            QByteArray::fromHex("001122ff"));
+
+        const auto& data =
+            libeasymcp2221_test::lastI2cWriteData();
+        QCOMPARE(
+            QByteArray(
+                reinterpret_cast<const char*>(data.data()),
+                static_cast<qsizetype>(data.size())),
+            QByteArray::fromHex("001122ff"));
+    }
+
+    void i2cRegisterWriteForwardsDefaultLayout()
+    {
+        Device device;
+        auto target = device.i2cDevice(0x48);
+
+        libeasymcp2221::qt::writeRegister(
+            target,
+            0x23,
+            QByteArray::fromHex("a1b2"));
+
+        QCOMPARE(
+            libeasymcp2221_test::lastI2cRegister(),
+            static_cast<std::uint32_t>(0x23));
+        QCOMPARE(
+            libeasymcp2221_test::lastI2cRegisterWidth(),
+            0);
+        QCOMPARE(
+            libeasymcp2221_test::lastI2cByteOrder(),
+            MCP2221_I2C_BYTE_ORDER_DEFAULT);
+
+        const auto& data =
+            libeasymcp2221_test::lastI2cWriteData();
+        QCOMPARE(
+            QByteArray(
+                reinterpret_cast<const char*>(data.data()),
+                static_cast<qsizetype>(data.size())),
+            QByteArray::fromHex("a1b2"));
+    }
+
+    void i2cRegisterWriteForwardsExplicitLayout()
+    {
+        Device device;
+        auto target = device.i2cDevice(0x48);
+
+        libeasymcp2221::qt::writeRegister(
+            target,
+            0x1234,
+            QByteArray::fromHex("c0ffee"),
+            libeasymcp2221::RegisterWidth::Bits16,
+            libeasymcp2221::ByteOrder::LittleEndian);
+
+        QCOMPARE(
+            libeasymcp2221_test::lastI2cRegister(),
+            static_cast<std::uint32_t>(0x1234));
+        QCOMPARE(
+            libeasymcp2221_test::lastI2cRegisterWidth(),
+            2);
+        QCOMPARE(
+            libeasymcp2221_test::lastI2cByteOrder(),
+            MCP2221_I2C_BYTE_ORDER_LITTLE);
+
+        const auto& data =
+            libeasymcp2221_test::lastI2cWriteData();
+        QCOMPARE(
+            QByteArray(
+                reinterpret_cast<const char*>(data.data()),
+                static_cast<qsizetype>(data.size())),
+            QByteArray::fromHex("c0ffee"));
+    }
+
+    void smbusBlockWriteForwardsPayload()
+    {
+        Device device;
+        auto target = device.smbusDevice(0x5A);
+
+        libeasymcp2221::qt::writeBlockData(
+            target,
+            0x21,
+            QByteArray::fromHex("102030"));
+
+        QCOMPARE(
+            libeasymcp2221_test::lastSmbusCommand(),
+            static_cast<std::uint8_t>(0x21));
+
+        const auto& data =
+            libeasymcp2221_test::lastSmbusWriteData();
+        QCOMPARE(
+            QByteArray(
+                reinterpret_cast<const char*>(data.data()),
+                static_cast<qsizetype>(data.size())),
+            QByteArray::fromHex("102030"));
+    }
+
+    void smbusBlockProcessCallForwardsPayload()
+    {
+        Device device;
+        auto target = device.smbusDevice(0x5A);
+
+        QCOMPARE(
+            libeasymcp2221::qt::blockProcessCall(
+                target,
+                0x22,
+                QByteArray::fromHex("4455")),
+            QByteArray::fromHex("55"));
+
+        QCOMPARE(
+            libeasymcp2221_test::lastSmbusCommand(),
+            static_cast<std::uint8_t>(0x22));
+
+        const auto& data =
+            libeasymcp2221_test::lastSmbusWriteData();
+        QCOMPARE(
+            QByteArray(
+                reinterpret_cast<const char*>(data.data()),
+                static_cast<qsizetype>(data.size())),
+            QByteArray::fromHex("4455"));
+    }
+
+    void smbusI2cBlockWriteForwardsPayload()
+    {
+        Device device;
+        auto target = device.smbusDevice(0x5A);
+
+        libeasymcp2221::qt::writeI2cBlockData(
+            target,
+            0x23,
+            QByteArray::fromHex("deadbeef"));
+
+        QCOMPARE(
+            libeasymcp2221_test::lastSmbusCommand(),
+            static_cast<std::uint8_t>(0x23));
+
+        const auto& data =
+            libeasymcp2221_test::lastSmbusWriteData();
+        QCOMPARE(
+            QByteArray(
+                reinterpret_cast<const char*>(data.data()),
+                static_cast<qsizetype>(data.size())),
+            QByteArray::fromHex("deadbeef"));
+    }
+
     void gpioMonitorDefaults()
     {
         Device device;
