@@ -12,6 +12,7 @@
 
 extern "C" {
 #include <libeasymcp2221/mcp2221_error_codes.h>
+#include <libeasymcp2221/mcp2221_gpio_poll.h>
 }
 
 namespace libeasymcp2221_test {
@@ -32,6 +33,12 @@ int lastGpio1();
 int lastGpio2();
 int lastGpio3();
 std::uint16_t lastGpioFilterMask();
+
+void queueGpioEvent(
+    std::uint8_t gpio,
+    mcp2221_gpio_event_type_t type,
+    double time = 2.0,
+    double lastTime = 1.0);
 
 } // namespace libeasymcp2221_test
 

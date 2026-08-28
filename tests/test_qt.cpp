@@ -192,6 +192,137 @@ class QtIntegrationTest : public QObject {
         monitor.stop();
     }
 
+
+    void gpioMonitorEmitsEdgeSignals()
+    {
+        qRegisterMetaType<GpioEvent>();
+        qRegisterMetaType<Pin>();
+
+        Device device;
+        GpioMonitor monitor(device.gpioPoller());
+
+        QSignalSpy eventSpy(&monitor, &GpioMonitor::gpioEvent);
+        QSignalSpy risingSpy(&monitor, &GpioMonitor::risingEdge);
+        QSignalSpy fallingSpy(&monitor, &GpioMonitor::fallingEdge);
+
+        libeasymcp2221_test::queueGpioEvent(
+            1,
+            MCP2221_GPIO_EVENT_RISE,
+            12.5,
+            12.0);
+        libeasymcp2221_test::queueGpioEvent(
+            2,
+            MCP2221_GPIO_EVENT_FALL,
+            13.0,
+            12.5);
+
+        monitor.pollOnce();
+
+        QCOMPARE(eventSpy.count(), 2);
+        QCOMPARE(risingSpy.count(), 1);
+        QCOMPARE(fallingSpy.count(), 1);
+
+        const auto risingEvent =
+            qvariant_cast<GpioEvent>(eventSpy.at(0).at(0));
+        QCOMPARE(risingEvent.pin, Pin::GP1);
+        QCOMPARE(risingEvent.edge, libeasymcp2221::GpioEdge::Rising);
+        QCOMPARE(risingEvent.time, 12.5);
+        QCOMPARE(risingEvent.previousTime, 12.0);
+
+        QCOMPARE(
+            qvariant_cast<Pin>(risingSpy.at(0).at(0)),
+            Pin::GP1);
+        QCOMPARE(
+            qvariant_cast<Pin>(fallingSpy.at(0).at(0)),
+            Pin::GP2);
+    }
+
+    void gpioMonitorFilterSuppressesUnselectedEdges()
+    {
+        qRegisterMetaType<GpioEvent>();
+
+        Device device;
+        GpioMonitor monitor(device.gpioPoller());
+
+        GpioEventFilter filter;
+        filter.rising[1] = true;
+        monitor.setFilter(filter);
+
+        QSignalSpy eventSpy(&monitor, &GpioMonitor::gpioEvent);
+
+        libeasymcp2221_test::queueGpioEvent(
+            1,
+            MCP2221_GPIO_EVENT_FALL);
+        libeasymcp2221_test::queueGpioEvent(
+            2,
+            MCP2221_GPIO_EVENT_RISE);
+        libeasymcp2221_test::queueGpioEvent(
+            1,
+            MCP2221_GPIO_EVENT_RISE);
+
+        monitor.pollOnce();
+
+        QCOMPARE(eventSpy.count(), 1);
+        const auto event =
+            qvariant_cast<GpioEvent>(eventSpy.at(0).at(0));
+        QCOMPARE(event.pin, Pin::GP1);
+        QCOMPARE(event.edge, libeasymcp2221::GpioEdge::Rising);
+    }
+
+    void gpioMonitorDiscardsEventsBeyondMaximum()
+    {
+        qRegisterMetaType<GpioEvent>();
+
+        Device device;
+        GpioMonitor monitor(device.gpioPoller());
+        monitor.setMaxEventsPerPoll(1);
+
+        QSignalSpy eventSpy(&monitor, &GpioMonitor::gpioEvent);
+
+        libeasymcp2221_test::queueGpioEvent(
+            0,
+            MCP2221_GPIO_EVENT_RISE);
+        libeasymcp2221_test::queueGpioEvent(
+            1,
+            MCP2221_GPIO_EVENT_RISE);
+
+        monitor.pollOnce();
+        QCOMPARE(eventSpy.count(), 1);
+
+        monitor.pollOnce();
+        QCOMPARE(eventSpy.count(), 1);
+    }
+
+    void gpioMonitorRecoversAfterPollingError()
+    {
+        qRegisterMetaType<GpioEvent>();
+
+        Device device;
+        GpioMonitor monitor(device.gpioPoller());
+
+        QSignalSpy eventSpy(&monitor, &GpioMonitor::gpioEvent);
+        QSignalSpy errorSpy(&monitor, &GpioMonitor::errorOccurred);
+
+        libeasymcp2221_test::failNext(MCP2221_ERR_TIMEOUT);
+        monitor.pollOnce();
+
+        QCOMPARE(errorSpy.count(), 1);
+        QCOMPARE(eventSpy.count(), 0);
+
+        libeasymcp2221_test::queueGpioEvent(
+            3,
+            MCP2221_GPIO_EVENT_RISE);
+        monitor.pollOnce();
+
+        QCOMPARE(errorSpy.count(), 1);
+        QCOMPARE(eventSpy.count(), 1);
+
+        const auto event =
+            qvariant_cast<GpioEvent>(eventSpy.at(0).at(0));
+        QCOMPARE(event.pin, Pin::GP3);
+        QCOMPARE(event.edge, libeasymcp2221::GpioEdge::Rising);
+    }
+
     void gpioMonitorForwardsFilter()
     {
         Device device;

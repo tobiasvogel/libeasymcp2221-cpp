@@ -8,6 +8,7 @@
 #include <array>
 #include <cstddef>
 #include <cstring>
+#include <deque>
 #include <string>
 
 extern "C" {
@@ -43,6 +44,7 @@ struct MockState {
     std::string clockFrequency;
     std::array<int, 4> gpioWrite{{-1, -1, -1, -1}};
     std::uint16_t gpioFilterMask = 0;
+    std::deque<mcp2221_gpio_event_t> gpioEvents;
     std::size_t flashWriteSize = 0;
 };
 
@@ -72,6 +74,20 @@ int lastGpio1() { return state.gpioWrite[1]; }
 int lastGpio2() { return state.gpioWrite[2]; }
 int lastGpio3() { return state.gpioWrite[3]; }
 std::uint16_t lastGpioFilterMask() { return state.gpioFilterMask; }
+
+void queueGpioEvent(
+    std::uint8_t gpio,
+    mcp2221_gpio_event_type_t type,
+    double time,
+    double lastTime)
+{
+    mcp2221_gpio_event_t event{};
+    event.gpio = gpio;
+    event.type = type;
+    event.time = time;
+    event.last_time = lastTime;
+    state.gpioEvents.push_back(event);
+}
 
 } // namespace libeasymcp2221_test
 
@@ -400,11 +416,42 @@ mcp2221_error_code_t mcp2221_gpio_poll(
 }
 
 int mcp2221_gpio_poll_events(
-    mcp2221_t*, mcp2221_gpio_poll_state_t*, const uint16_t*,
-    mcp2221_gpio_event_t*, size_t)
+    mcp2221_t*, mcp2221_gpio_poll_state_t* poll, const uint16_t*,
+    mcp2221_gpio_event_t* outEvents, size_t maxEvents)
 {
     const auto error = consumeError();
-    return error == MCP2221_ERR_OK ? 0 : static_cast<int>(error);
+    if (error != MCP2221_ERR_OK) {
+        return static_cast<int>(error);
+    }
+
+    std::size_t count = 0;
+    while (!state.gpioEvents.empty()) {
+        const auto event = state.gpioEvents.front();
+        state.gpioEvents.pop_front();
+
+        const std::uint16_t bit =
+            event.type == MCP2221_GPIO_EVENT_RISE
+                ? static_cast<std::uint16_t>(
+                    MCP2221_GPIO_POLL_MASK_RISE(event.gpio))
+                : static_cast<std::uint16_t>(
+                    MCP2221_GPIO_POLL_MASK_FALL(event.gpio));
+
+        const bool accepted =
+            poll == nullptr ||
+            poll->filter_mask == 0 ||
+            (poll->filter_mask & bit) != 0;
+
+        if (!accepted || count >= maxEvents) {
+            continue;
+        }
+
+        if (outEvents != nullptr) {
+            outEvents[count] = event;
+        }
+        ++count;
+    }
+
+    return static_cast<int>(count);
 }
 
 mcp2221_error_code_t mcp2221_sram_config(
