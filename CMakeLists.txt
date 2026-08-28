@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(libeasymcp2221_cpp VERSION 0.1.0 LANGUAGES CXX)
+project(libeasymcp2221_cpp VERSION 0.2.0 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
