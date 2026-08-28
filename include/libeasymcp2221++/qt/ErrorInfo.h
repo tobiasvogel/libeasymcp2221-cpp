@@ -15,6 +15,7 @@ namespace libeasymcp2221::qt {
 
 /**
  * @brief Value representation of an error crossing a Qt signal boundary.
+ * @ingroup qt
  *
  * Core synchronous operations continue to throw libeasymcp2221::Error.
  * ErrorInfo is intended for asynchronous/event-driven Qt APIs where an
@@ -34,6 +35,8 @@ struct ErrorInfo {
 
 /**
  * @brief Convert a core library exception to its Qt value representation.
+ * @ingroup qt
+ * 
  * @param error Core libeasymcp2221++ exception to convert.
  * @return Qt-friendly error information carrying code, native code, and message.
  */

@@ -14,6 +14,10 @@
 #include <libeasymcp2221++/SmbusDevice.h>
 
 namespace libeasymcp2221::qt {
+/**
+ * @addtogroup qt
+ * @{
+ */
 
 /**
  * @brief Read a length-prefixed SMBus block as a QByteArray.
@@ -78,6 +82,8 @@ void writeI2cBlockData(
     SmbusDevice& device,
     std::uint8_t command,
     const QByteArray& data);
+
+/** @} */
 
 }  // namespace libeasymcp2221::qt
 

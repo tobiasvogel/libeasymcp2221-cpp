@@ -1,0 +1,57 @@
+/**
+ * @defgroup qt Qt integration
+ * @brief Optional Qt 6 integration for libeasymcp2221++.
+ *
+ * The Qt integration is provided by the separate
+ * `libeasymcp2221++-qt` library and namespace
+ * `libeasymcp2221::qt`.
+ *
+ * It adds Qt-oriented convenience APIs without introducing a Qt
+ * dependency into the core libeasymcp2221++ library.
+ *
+ * The module currently provides:
+ *
+ * - QByteArray convenience functions for I2C transfers.
+ * - QByteArray convenience functions for SMBus block transfers.
+ * - Qt meta-type declarations for selected core value types.
+ * - ErrorInfo for transporting errors across Qt signal boundaries.
+ * - GpioMonitor for event-loop-driven GPIO monitoring using signals.
+ *
+ * @par CMake
+ *
+ * Build libeasymcp2221++ with Qt support enabled:
+ *
+ * @code{.sh}
+ * cmake -S . -B build \
+ *     -DLIBEASYMCP2221_CPP_BUILD_QT=ON
+ * @endcode
+ *
+ * Consumers can request the Qt component using:
+ *
+ * @code{.cmake}
+ * find_package(
+ *     libeasymcp2221-cpp
+ *     REQUIRED
+ *     COMPONENTS Qt
+ * )
+ *
+ * target_link_libraries(my_target
+ *     PRIVATE
+ *         libeasymcp2221::qt
+ * )
+ * @endcode
+ *
+ * @par Dependency
+ *
+ * The Qt integration requires Qt 6 Core. The core
+ * `libeasymcp2221::cpp` target remains independent of Qt.
+ */
+
+/**
+ * @namespace libeasymcp2221::qt
+ * @brief Qt-specific convenience APIs for libeasymcp2221++.
+ * @ingroup qt
+ *
+ * Everything in this namespace belongs to the optional Qt integration
+ * library and is not part of the Qt-free core API.
+ */

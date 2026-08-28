@@ -14,6 +14,10 @@
 #include <libeasymcp2221++/I2cDevice.h>
 
 namespace libeasymcp2221::qt {
+/**
+ * @addtogroup qt
+ * @{
+ */
 
 /**
  * @brief Read bytes from an I2C target as a QByteArray.
@@ -99,6 +103,8 @@ void writeRegister(
     const QByteArray& data,
     RegisterWidth registerWidth,
     ByteOrder byteOrder);
+
+/** @} */
 
 }  // namespace libeasymcp2221::qt
 

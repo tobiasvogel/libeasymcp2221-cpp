@@ -21,6 +21,7 @@ namespace libeasymcp2221::qt {
 
 /**
  * @brief Periodically polls GPIO edges and exposes them as Qt signals.
+ * @ingroup qt
  *
  * GpioMonitor owns a GpioPoller and drives it from a QTimer. GPIO edge
  * detection and polling state remain implemented by the libeasymcp2221++
