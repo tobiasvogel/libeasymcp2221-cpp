@@ -119,6 +119,11 @@ if (LIBEASYMCP2221_CPP_BUILD_SHARED)
     add_library(easymcp2221_cpp SHARED ${LIBEASYMCP2221_CPP_SOURCES})
     libeasymcp2221_cpp_configure_target(easymcp2221_cpp)
 
+    target_link_libraries(easymcp2221_cpp
+        INTERFACE
+            "$<LINK_ONLY:PkgConfig::LIBEASYMCP2221>"
+    )
+
     set_target_properties(easymcp2221_cpp PROPERTIES
         EXPORT_NAME cpp
         VERSION ${PROJECT_VERSION}
