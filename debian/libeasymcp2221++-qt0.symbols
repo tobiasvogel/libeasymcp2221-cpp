@@ -1,0 +1,53 @@
+libeasymcp2221++-qt.so.0 libeasymcp2221++-qt0 #MINVER#
+* Build-Depends-Package: libeasymcp2221++-qt-dev
+
+# Public Qt API. C++ patterns deliberately use demangled names so the
+# symbols remain portable across 32-bit and 64-bit architectures.
+(c++)"libeasymcp2221::qt::GpioMonitor::GpioMonitor(libeasymcp2221::GpioPoller, QObject*)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::~GpioMonitor()@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::isActive() const@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::interval() const@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::setInterval(std::chrono::duration<long, std::ratio<1l, 1000l> >)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::maxEventsPerPoll() const@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::setMaxEventsPerPoll(unsigned long)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::setFilter(libeasymcp2221::GpioEventFilter const&)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::clearFilter()@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::start()@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::stop()@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::pollOnce()@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::started()@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::stopped()@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::gpioEvent(libeasymcp2221::GpioEvent const&)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::risingEdge(libeasymcp2221::Pin)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::fallingEdge(libeasymcp2221::Pin)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::errorOccurred(libeasymcp2221::qt::ErrorInfo const&)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::metaObject() const@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::qt_metacall(QMetaObject::Call, int, void**)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::qt_metacast(char const*)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::GpioMonitor::staticMetaObject@Base" 0.2.0
+(c++)"typeinfo for libeasymcp2221::qt::GpioMonitor@Base" 0.2.0
+(c++)"typeinfo name for libeasymcp2221::qt::GpioMonitor@Base" 0.2.0
+(c++)"vtable for libeasymcp2221::qt::GpioMonitor@Base" 0.2.0
+
+(c++)"libeasymcp2221::qt::toErrorInfo(libeasymcp2221::Error const&)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::read(libeasymcp2221::I2cDevice&, long long)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::write(libeasymcp2221::I2cDevice&, QByteArray const&)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::readRegister(libeasymcp2221::I2cDevice&, unsigned int, long long)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::readRegister(libeasymcp2221::I2cDevice&, unsigned int, long long, libeasymcp2221::RegisterWidth, libeasymcp2221::ByteOrder)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::writeRegister(libeasymcp2221::I2cDevice&, unsigned int, QByteArray const&)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::writeRegister(libeasymcp2221::I2cDevice&, unsigned int, QByteArray const&, libeasymcp2221::RegisterWidth, libeasymcp2221::ByteOrder)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::readBlockData(libeasymcp2221::SmbusDevice&, unsigned char)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::writeBlockData(libeasymcp2221::SmbusDevice&, unsigned char, QByteArray const&)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::blockProcessCall(libeasymcp2221::SmbusDevice&, unsigned char, QByteArray const&)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::readI2cBlockData(libeasymcp2221::SmbusDevice&, unsigned char, long long)@Base" 0.2.0
+(c++)"libeasymcp2221::qt::writeI2cBlockData(libeasymcp2221::SmbusDevice&, unsigned char, QByteArray const&)@Base" 0.2.0
+
+# Implementation-detail exports produced by Qt templates, libstdc++ and
+# metatype machinery. They are intentionally not part of the guaranteed ABI.
+(optional|regex)"^_Z41qRegisterNormalizedMetaTypeImplementation.*@Base$" 0.2.0
+(optional|regex)"^_ZN17QArrayDataPointer.*@Base$" 0.2.0
+(optional|regex)"^_ZN9QtPrivate.*@Base$" 0.2.0
+(optional|regex)"^_ZZN9QtPrivate.*@Base$" 0.2.0
+(optional|regex)"^_ZZN11QMetaTypeId.*@Base$" 0.2.0
+(optional|regex)"^_ZNSt12_Vector_base.*@Base$" 0.2.0
+(optional|regex)"^_ZT[ISVN]14libeasymcp22215ErrorE@Base$" 0.2.0

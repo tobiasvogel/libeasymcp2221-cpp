@@ -63,16 +63,33 @@ include("${CMAKE_CURRENT_LIST_DIR}/libeasymcp2221-cppTargets.cmake")
 set(libeasymcp2221-cpp_Qt_FOUND FALSE)
 
 if ("Qt" IN_LIST libeasymcp2221-cpp_FIND_COMPONENTS)
-    if (@LIBEASYMCP2221_CPP_HAS_QT@)
+    set(
+        _LIBEASYMCP2221_CPP_QT_TARGETS_FILE
+        "${CMAKE_CURRENT_LIST_DIR}/libeasymcp2221-cppQtTargets.cmake"
+    )
+
+    if (@LIBEASYMCP2221_CPP_HAS_QT@ AND
+        EXISTS "${_LIBEASYMCP2221_CPP_QT_TARGETS_FILE}")
         find_dependency(Qt6 COMPONENTS Core)
 
-        include(
-            "${CMAKE_CURRENT_LIST_DIR}/libeasymcp2221-cppQtTargets.cmake"
-        )
-
+        include("${_LIBEASYMCP2221_CPP_QT_TARGETS_FILE}")
         set(libeasymcp2221-cpp_Qt_FOUND TRUE)
+    elseif (@LIBEASYMCP2221_CPP_HAS_QT@)
+        set(
+            libeasymcp2221-cpp_NOT_FOUND_MESSAGE
+            "The Qt component was requested, but its CMake target export "
+            "is not installed. Install the libeasymcp2221++ Qt development "
+            "package (for Debian: libeasymcp2221++-qt-dev)."
+        )
+    else()
+        set(
+            libeasymcp2221-cpp_NOT_FOUND_MESSAGE
+            "The installed libeasymcp2221++ package was built without "
+            "the Qt component."
+        )
     endif()
-endif()
 
+    unset(_LIBEASYMCP2221_CPP_QT_TARGETS_FILE)
+endif()
 
 check_required_components(libeasymcp2221-cpp)
