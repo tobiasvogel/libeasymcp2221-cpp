@@ -29,6 +29,12 @@ target_compile_features(libeasymcp2221_cpp_test_impl
     PUBLIC cxx_std_17
 )
 
+target_compile_definitions(
+    libeasymcp2221_cpp_test_impl
+    PRIVATE
+        LIBEASYMCP2221_CPP_STATIC
+)
+
 target_include_directories(libeasymcp2221_cpp_test_impl
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
@@ -85,6 +91,13 @@ if (LIBEASYMCP2221_CPP_BUILD_QT)
 
     target_compile_features(libeasymcp2221_cpp_qt_test_impl
         PUBLIC cxx_std_17
+    )
+
+    target_compile_definitions(
+        libeasymcp2221_cpp_qt_test_impl
+        PRIVATE
+            LIBEASYMCP2221_CPP_STATIC
+            LIBEASYMCP2221_CPP_QT_STATIC
     )
 
     target_include_directories(libeasymcp2221_cpp_qt_test_impl
@@ -170,7 +183,7 @@ add_test(
         ${CMAKE_COMMAND}
         -S "${CMAKE_CURRENT_SOURCE_DIR}/package_consumer"
         -B "${LIBEASYMCP2221_CPP_CORE_CONSUMER_BUILD_DIR}"
-        "-DCMAKE_PREFIX_PATH=${LIBEASYMCP2221_CPP_TEST_INSTALL_PREFIX}"
+        "-DCMAKE_PREFIX_PATH=${LIBEASYMCP2221_CPP_TEST_INSTALL_PREFIX};${CMAKE_PREFIX_PATH}"
         -DLIBEASYMCP2221_CPP_CONSUMER_QT=OFF
 )
 set_tests_properties(
@@ -205,7 +218,7 @@ if (LIBEASYMCP2221_CPP_BUILD_QT)
             ${CMAKE_COMMAND}
             -S "${CMAKE_CURRENT_SOURCE_DIR}/package_consumer"
             -B "${LIBEASYMCP2221_CPP_QT_CONSUMER_BUILD_DIR}"
-            "-DCMAKE_PREFIX_PATH=${LIBEASYMCP2221_CPP_TEST_INSTALL_PREFIX}"
+            "-DCMAKE_PREFIX_PATH=${LIBEASYMCP2221_CPP_TEST_INSTALL_PREFIX};${CMAKE_PREFIX_PATH}"
             -DLIBEASYMCP2221_CPP_CONSUMER_QT=ON
     )
     set_tests_properties(
