@@ -1,0 +1,194 @@
+name: Windows MinGW CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  C_LIBRARY_REPOSITORY: tobiasvogel/libeasymcp2221
+
+jobs:
+  mingw:
+    name: MinGW-w64 / Core + Qt / installed consumers
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out C++ repository
+        uses: actions/checkout@v5
+        with:
+          path: cpp
+
+      - name: Check out C dependency
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.C_LIBRARY_REPOSITORY }}
+          path: c
+
+      - name: Set up MinGW environment
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-pkgconf
+            mingw-w64-x86_64-libusb
+            mingw-w64-x86_64-qt6-base
+
+      - name: Build and install C dependency
+        shell: msys2 {0}
+        run: |
+          set -euxo pipefail
+
+          cmake -S c -B build-c -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DLIBEASYMCP2221_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_BUILD_TESTS=OFF
+
+          cmake --build build-c --parallel
+          cmake --install build-c
+
+      - name: Configure C++ Core and Qt
+        shell: msys2 {0}
+        run: |
+          set -euxo pipefail
+
+          export PKG_CONFIG_PATH="${GITHUB_WORKSPACE}/prefix/lib/pkgconfig:/mingw64/lib/pkgconfig"
+
+          cmake -S cpp -B build-cpp -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/prefix" \
+            -DLIBEASYMCP2221_CPP_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_STATIC=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_QT=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=OFF \
+            -DLIBEASYMCP2221_CPP_BUILD_TESTS=ON
+
+      - name: Build and test C++ Core and Qt
+        shell: msys2 {0}
+        run: |
+          set -euxo pipefail
+
+          export PKG_CONFIG_PATH="${GITHUB_WORKSPACE}/prefix/lib/pkgconfig:/mingw64/lib/pkgconfig"
+
+          cmake --build build-cpp --parallel
+          ctest --test-dir build-cpp --output-on-failure
+
+      - name: Install C++ Core and Qt
+        shell: msys2 {0}
+        run: |
+          set -euxo pipefail
+          cmake --install build-cpp
+
+      - name: Verify installed Windows library layout
+        shell: msys2 {0}
+        run: |
+          set -euxo pipefail
+
+          prefix="${GITHUB_WORKSPACE}/prefix"
+
+          test -f "${prefix}/bin/libeasymcp2221++.dll"
+          test -f "${prefix}/bin/libeasymcp2221++-qt.dll"
+
+          test -f "${prefix}/lib/libeasymcp2221++.dll.a"
+          test -f "${prefix}/lib/libeasymcp2221++.a"
+          test -f "${prefix}/lib/libeasymcp2221++-qt.dll.a"
+          test -f "${prefix}/lib/libeasymcp2221++-qt.a"
+
+          test -f "${prefix}/include/libeasymcp2221++/Export.h"
+          test -f "${prefix}/include/libeasymcp2221++/qt/GpioMonitor.h"
+
+      - name: Create installed-package consumers
+        shell: msys2 {0}
+        run: |
+          set -euxo pipefail
+          mkdir -p consumer
+
+          cat > consumer/CMakeLists.txt <<'EOF'
+          cmake_minimum_required(VERSION 3.16)
+          project(libeasymcp2221_cpp_mingw_consumer LANGUAGES CXX)
+
+          if (CONSUMER_QT)
+              find_package(
+                  libeasymcp2221-cpp
+                  CONFIG
+                  REQUIRED
+                  COMPONENTS Qt
+              )
+              set(CONSUMER_SOURCE main_qt.cpp)
+          else()
+              find_package(
+                  libeasymcp2221-cpp
+                  CONFIG
+                  REQUIRED
+              )
+              set(CONSUMER_SOURCE main_core.cpp)
+          endif()
+
+          if (NOT DEFINED CONSUMER_TARGET)
+              message(FATAL_ERROR "CONSUMER_TARGET was not provided")
+          endif()
+
+          add_executable(consumer ${CONSUMER_SOURCE})
+          target_compile_features(consumer PRIVATE cxx_std_17)
+          target_link_libraries(consumer PRIVATE ${CONSUMER_TARGET})
+          EOF
+
+          cat > consumer/main_core.cpp <<'EOF'
+          #include <libeasymcp2221++/Device.h>
+
+          int main()
+          {
+              auto core = &libeasymcp2221::Device::isOpen;
+              return core != nullptr ? 0 : 1;
+          }
+          EOF
+
+          cat > consumer/main_qt.cpp <<'EOF'
+          #include <libeasymcp2221++/qt/ErrorInfo.h>
+
+          int main()
+          {
+              auto qt = &libeasymcp2221::qt::toErrorInfo;
+              return qt != nullptr ? 0 : 1;
+          }
+          EOF
+
+      - name: Build installed consumers
+        shell: msys2 {0}
+        run: |
+          set -euxo pipefail
+
+          export PKG_CONFIG_PATH="${GITHUB_WORKSPACE}/prefix/lib/pkgconfig:/mingw64/lib/pkgconfig"
+
+          build_consumer()
+          {
+              name="$1"
+              target="$2"
+              qt="$3"
+
+              cmake -S consumer -B "build-consumer-${name}" -G Ninja \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_PREFIX_PATH="${GITHUB_WORKSPACE}/prefix" \
+                -DCONSUMER_TARGET="${target}" \
+                -DCONSUMER_QT="${qt}"
+
+              cmake --build "build-consumer-${name}" --parallel
+          }
+
+          build_consumer core-shared libeasymcp2221::cpp OFF
+          build_consumer core-static libeasymcp2221::cpp_static OFF
+          build_consumer qt-shared libeasymcp2221::qt ON
+          build_consumer qt-static libeasymcp2221::qt_static ON
