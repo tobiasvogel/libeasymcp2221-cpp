@@ -1,5 +1,7 @@
-usr/include/libeasymcp2221++/*
+usr/include/libeasymcp2221++/*.h
 usr/lib/*/libeasymcp2221++.a
 usr/lib/*/libeasymcp2221++.so
-usr/lib/*/cmake/libeasymcp2221-cpp/*
+usr/lib/*/cmake/libeasymcp2221-cpp/libeasymcp2221-cppConfig.cmake
+usr/lib/*/cmake/libeasymcp2221-cpp/libeasymcp2221-cppConfigVersion.cmake
+usr/lib/*/cmake/libeasymcp2221-cpp/libeasymcp2221-cppTargets*.cmake
 usr/lib/*/pkgconfig/libeasymcp2221++.pc

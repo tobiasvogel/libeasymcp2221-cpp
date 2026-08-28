@@ -1,0 +1,4 @@
+usr/include/libeasymcp2221++/qt/*.h
+usr/lib/*/libeasymcp2221++-qt.a
+usr/lib/*/libeasymcp2221++-qt.so
+usr/lib/*/cmake/libeasymcp2221-cpp/libeasymcp2221-cppQtTargets*.cmake

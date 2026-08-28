@@ -9,6 +9,7 @@ Build-Depends:
  doxygen-awesome-css <!nodoc>,
  graphviz <!nodoc>,
  pkgconf,
+ qt6-base-dev,
  libeasymcp2221-dev (>= 2.0.1)
 Standards-Version: 4.6.2
 Homepage: https://github.com/tobiasvogel/libeasymcp2221-cpp
@@ -33,8 +34,31 @@ Depends:
  libeasymcp2221-dev (>= 2.0.1),
  ${misc:Depends}
 Description: Development files for the EasyMCP2221 C++ adapter
- Includes C++ headers, the static library, CMake package files, pkg-config
- metadata, and the development linker symlink.
+ Includes the Qt-free C++ headers, static library, CMake package files,
+ pkg-config metadata, and the development linker symlink.
+
+Package: libeasymcp2221++-qt0
+Architecture: any
+Multi-Arch: same
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends}
+Description: Qt integration runtime for the EasyMCP2221 C++ adapter
+ This package provides the shared Qt 6 integration library for
+ libeasymcp2221++.
+
+Package: libeasymcp2221++-qt-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends:
+ libeasymcp2221++-qt0 (= ${binary:Version}),
+ libeasymcp2221++-dev (= ${binary:Version}),
+ qt6-base-dev,
+ ${misc:Depends}
+Description: Qt integration development files for EasyMCP2221 C++
+ Includes the Qt integration headers, static library, CMake target export,
+ and development linker symlink for libeasymcp2221++.
 
 Package: libeasymcp2221++-doc
 Architecture: all
