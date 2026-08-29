@@ -269,6 +269,14 @@ if (LIBEASYMCP2221_CPP_BUILD_STATIC)
         easymcp2221_cpp_static
     )
 
+    if (NOT LIBEASYMCP2221_CPP_BUILD_SHARED)
+        add_library(
+            libeasymcp2221::cpp
+            ALIAS
+            easymcp2221_cpp_static
+        )
+    endif()
+
     list(APPEND
         LIBEASYMCP2221_CPP_INSTALL_TARGETS
         easymcp2221_cpp_static
@@ -376,6 +384,14 @@ if (LIBEASYMCP2221_CPP_BUILD_QT)
             ALIAS
             easymcp2221_cpp_qt_static
         )
+
+        if (NOT LIBEASYMCP2221_CPP_BUILD_SHARED)
+            add_library(
+                libeasymcp2221::qt
+                ALIAS
+                easymcp2221_cpp_qt_static
+            )
+        endif()
 
         list(APPEND
             LIBEASYMCP2221_CPP_QT_INSTALL_TARGETS
