@@ -213,6 +213,29 @@ void testGpioEventId()
     event.pin = Pin::GP3;
     event.edge = GpioEdge::Falling;
     EXPECT_EQ(event.id(), std::string("GPIO3_FALL"));
+
+    bool invalidPinCaught = false;
+    event.pin = static_cast<Pin>(0x7F);
+    try {
+        static_cast<void>(event.id());
+    }
+    catch (const Error& error) {
+        invalidPinCaught = true;
+        EXPECT_EQ(error.code(), ErrorCode::Invalid);
+    }
+    EXPECT_TRUE(invalidPinCaught);
+
+    bool invalidEdgeCaught = false;
+    event.pin = Pin::GP0;
+    event.edge = static_cast<GpioEdge>(0x7F);
+    try {
+        static_cast<void>(event.id());
+    }
+    catch (const Error& error) {
+        invalidEdgeCaught = true;
+        EXPECT_EQ(error.code(), ErrorCode::Invalid);
+    }
+    EXPECT_TRUE(invalidEdgeCaught);
 }
 
 void testAnalogClockAndUsb()

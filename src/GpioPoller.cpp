@@ -88,7 +88,22 @@ std::string GpioEvent::id() const
 			break;
 	}
 
-	const char* edgeName = edge == GpioEdge::Rising ? "RISE" : "FALL";
+	if (pinName == nullptr) {
+		detail::throwInvalid("Unknown GPIO event pin");
+	}
+
+	const char* edgeName = nullptr;
+	switch (edge) {
+		case GpioEdge::Rising:
+			edgeName = "RISE";
+			break;
+		case GpioEdge::Falling:
+			edgeName = "FALL";
+			break;
+		default:
+			detail::throwInvalid("Unknown GPIO event edge");
+	}
+
 	return std::string(pinName) + "_" + edgeName;
 }
 
