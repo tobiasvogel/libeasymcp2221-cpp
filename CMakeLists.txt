@@ -40,46 +40,66 @@ if (MSVC)
         LIBEASYMCP2221_INCLUDE_DIR
         NAMES libeasymcp2221/mcp2221.h
     )
-    find_library(
-        LIBEASYMCP2221_SHARED_LIBRARY
-        NAMES libeasymcp2221
-    )
-    find_library(
-        LIBEASYMCP2221_STATIC_LIBRARY
-        NAMES libeasymcp2221_static
-    )
-
-    if (NOT LIBEASYMCP2221_INCLUDE_DIR OR
-        NOT LIBEASYMCP2221_SHARED_LIBRARY OR
-        NOT LIBEASYMCP2221_STATIC_LIBRARY)
+    if (NOT LIBEASYMCP2221_INCLUDE_DIR)
         message(FATAL_ERROR
-            "libeasymcp2221 was not found for MSVC. Build and install "
-            "libeasymcp2221 with MSVC first and make its install prefix "
-            "available through CMAKE_PREFIX_PATH."
+            "libeasymcp2221 headers were not found for MSVC. Build and "
+            "install libeasymcp2221 with MSVC first and make its install "
+            "prefix available through CMAKE_PREFIX_PATH."
         )
     endif()
 
-    add_library(libeasymcp2221_cpp_c_shared UNKNOWN IMPORTED)
-    set_target_properties(
-        libeasymcp2221_cpp_c_shared
-        PROPERTIES
-            IMPORTED_LOCATION "${LIBEASYMCP2221_SHARED_LIBRARY}"
-            INTERFACE_INCLUDE_DIRECTORIES "${LIBEASYMCP2221_INCLUDE_DIR}"
-    )
+    if (LIBEASYMCP2221_CPP_BUILD_SHARED)
+        find_library(
+            LIBEASYMCP2221_SHARED_LIBRARY
+            NAMES libeasymcp2221
+        )
+        if (NOT LIBEASYMCP2221_SHARED_LIBRARY)
+            message(FATAL_ERROR
+                "The libeasymcp2221 MSVC shared import library was not "
+                "found. Build and install the shared C library first."
+            )
+        endif()
 
-    add_library(libeasymcp2221_cpp_c_static UNKNOWN IMPORTED)
-    set_target_properties(
-        libeasymcp2221_cpp_c_static
-        PROPERTIES
-            IMPORTED_LOCATION "${LIBEASYMCP2221_STATIC_LIBRARY}"
-            INTERFACE_INCLUDE_DIRECTORIES "${LIBEASYMCP2221_INCLUDE_DIR}"
-            INTERFACE_COMPILE_DEFINITIONS LIBEASYMCP2221_STATIC
-    )
+        add_library(libeasymcp2221_cpp_c_shared UNKNOWN IMPORTED)
+        set_target_properties(
+            libeasymcp2221_cpp_c_shared
+            PROPERTIES
+                IMPORTED_LOCATION "${LIBEASYMCP2221_SHARED_LIBRARY}"
+                INTERFACE_INCLUDE_DIRECTORIES "${LIBEASYMCP2221_INCLUDE_DIR}"
+        )
+        set(
+            LIBEASYMCP2221_CPP_C_SHARED_TARGET
+            libeasymcp2221_cpp_c_shared
+        )
+    endif()
+
+    if (LIBEASYMCP2221_CPP_BUILD_STATIC)
+        find_library(
+            LIBEASYMCP2221_STATIC_LIBRARY
+            NAMES libeasymcp2221_static
+        )
+        if (NOT LIBEASYMCP2221_STATIC_LIBRARY)
+            message(FATAL_ERROR
+                "The libeasymcp2221 MSVC static library was not found. "
+                "Build and install the static C library first."
+            )
+        endif()
+
+        add_library(libeasymcp2221_cpp_c_static UNKNOWN IMPORTED)
+        set_target_properties(
+            libeasymcp2221_cpp_c_static
+            PROPERTIES
+                IMPORTED_LOCATION "${LIBEASYMCP2221_STATIC_LIBRARY}"
+                INTERFACE_INCLUDE_DIRECTORIES "${LIBEASYMCP2221_INCLUDE_DIR}"
+                INTERFACE_COMPILE_DEFINITIONS LIBEASYMCP2221_STATIC
+        )
+        set(
+            LIBEASYMCP2221_CPP_C_STATIC_TARGET
+            libeasymcp2221_cpp_c_static
+        )
+    endif()
 
     set(LIBEASYMCP2221_INCLUDE_DIRS "${LIBEASYMCP2221_INCLUDE_DIR}")
-
-    set(LIBEASYMCP2221_CPP_C_SHARED_TARGET libeasymcp2221_cpp_c_shared)
-    set(LIBEASYMCP2221_CPP_C_STATIC_TARGET libeasymcp2221_cpp_c_static)
 else()
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(
