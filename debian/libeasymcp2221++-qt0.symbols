@@ -50,4 +50,5 @@ libeasymcp2221++-qt.so.0 libeasymcp2221++-qt0 #MINVER#
  (regex|optional)"^_ZZN9QtPrivate.*@Base$" 0.2.0
  (regex|optional)"^_ZZN11QMetaTypeId.*@Base$" 0.2.0
  (regex|optional)"^_ZNSt12_Vector_base.*@Base$" 0.2.0
- (regex|optional)"^_ZT[ISVN]14libeasymcp22215ErrorE@Base$" 0.2.0
+ (optional)_ZTIN14libeasymcp22215ErrorE@Base 0.2.0
+ (optional)_ZTSN14libeasymcp22215ErrorE@Base 0.2.0
