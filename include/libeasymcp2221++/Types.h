@@ -6,6 +6,8 @@
 #ifndef LIBEASYMCP2221_CPP_TYPES_H
 #define LIBEASYMCP2221_CPP_TYPES_H
 
+#include "Export.h"
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -130,7 +132,7 @@ struct GpioEvent {
 	 * @brief Return a compatibility identifier such as "GPIO0_RISE".
 	 * @return Event identifier derived from @c pin and @c edge.
 	 */
-	std::string id() const;
+	LIBEASYMCP2221_CPP_API std::string id() const;
 };
 
 /**

@@ -144,11 +144,13 @@ jobs:
 
           @'
           #include <libeasymcp2221++/Device.h>
+          #include <libeasymcp2221++/Types.h>
 
           int main()
           {
               auto core = &libeasymcp2221::Device::isOpen;
-              return core != nullptr ? 0 : 1;
+              libeasymcp2221::GpioEvent event;
+              return core != nullptr && event.id() == "GPIO0_RISE" ? 0 : 1;
           }
           '@ | Set-Content -Encoding utf8 consumer/main_core.cpp
 
