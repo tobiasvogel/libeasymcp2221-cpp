@@ -1,11 +1,11 @@
-libeasymcp2221++ (0.2.0-1) UNRELEASED; urgency=medium
+libeasymcp2221++ (0.2.0-1) unstable; urgency=medium
 
   * Prepare the 0.2.0 release.
   * Add optional Qt 6 integration and Qt Debian packages.
   * Add Windows MSVC and MinGW-w64 support.
   * Add binary release packaging and installed-package consumer tests.
 
- -- Tobias X. Vogel <tobias.vogel@linux.com>  Fri, 28 Aug 2026 21:35:00 +0200
+ -- Tobias X. Vogel <tobias.vogel@linux.com>  Sat, 29 Aug 2026 02:48:00 +0200
 
 libeasymcp2221++ (0.1.0-1) unstable; urgency=medium
 
