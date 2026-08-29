@@ -60,7 +60,7 @@ class QtIntegrationTest : public QObject {
         auto target = device.i2cDevice(0x48);
 
         QVERIFY_EXCEPTION_THROWN(
-            libeasymcp2221::qt::read(target, -1),
+            (void)libeasymcp2221::qt::read(target, -1),
             std::invalid_argument);
     }
 
@@ -278,7 +278,7 @@ class QtIntegrationTest : public QObject {
         auto target = device.smbusDevice(0x5A);
 
         QVERIFY_EXCEPTION_THROWN(
-            libeasymcp2221::qt::readI2cBlockData(
+            (void)libeasymcp2221::qt::readI2cBlockData(
                 target,
                 0x03,
                 -1),
@@ -321,7 +321,7 @@ class QtIntegrationTest : public QObject {
         auto i2c = device.i2cDevice(0x48);
         libeasymcp2221_test::failNext(MCP2221_ERR_TIMEOUT);
         QVERIFY_EXCEPTION_THROWN(
-            libeasymcp2221::qt::read(i2c, 1),
+            (void)libeasymcp2221::qt::read(i2c, 1),
             libeasymcp2221::Error);
 
         auto smbus = device.smbusDevice(0x5A);
