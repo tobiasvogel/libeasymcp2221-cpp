@@ -7,9 +7,11 @@ libeasymcp2221++-qt.so.0 libeasymcp2221++-qt0 #MINVER#
  (c++)"libeasymcp2221::qt::GpioMonitor::~GpioMonitor()@Base" 0.2.0
  (c++)"libeasymcp2221::qt::GpioMonitor::isActive() const@Base" 0.2.0
  (c++)"libeasymcp2221::qt::GpioMonitor::interval() const@Base" 0.2.0
- (c++)"libeasymcp2221::qt::GpioMonitor::setInterval(std::chrono::duration<long, std::ratio<1l, 1000l> >)@Base" 0.2.0
+ (arch-bits=64|c++)"libeasymcp2221::qt::GpioMonitor::setInterval(std::chrono::duration<long, std::ratio<1l, 1000l> >)@Base" 0.2.0
+ (arch-bits=32|c++)"libeasymcp2221::qt::GpioMonitor::setInterval(std::chrono::duration<long long, std::ratio<1ll, 1000ll> >)@Base" 0.2.0
  (c++)"libeasymcp2221::qt::GpioMonitor::maxEventsPerPoll() const@Base" 0.2.0
- (c++)"libeasymcp2221::qt::GpioMonitor::setMaxEventsPerPoll(unsigned long)@Base" 0.2.0
+ (arch-bits=64|c++)"libeasymcp2221::qt::GpioMonitor::setMaxEventsPerPoll(unsigned long)@Base" 0.2.0
+ (arch-bits=32|c++)"libeasymcp2221::qt::GpioMonitor::setMaxEventsPerPoll(unsigned int)@Base" 0.2.0
  (c++)"libeasymcp2221::qt::GpioMonitor::setFilter(libeasymcp2221::GpioEventFilter const&)@Base" 0.2.0
  (c++)"libeasymcp2221::qt::GpioMonitor::clearFilter()@Base" 0.2.0
  (c++)"libeasymcp2221::qt::GpioMonitor::start()@Base" 0.2.0
@@ -30,16 +32,20 @@ libeasymcp2221++-qt.so.0 libeasymcp2221++-qt0 #MINVER#
  (c++)"vtable for libeasymcp2221::qt::GpioMonitor@Base" 0.2.0
 
  (c++)"libeasymcp2221::qt::toErrorInfo(libeasymcp2221::Error const&)@Base" 0.2.0
- (c++)"libeasymcp2221::qt::read(libeasymcp2221::I2cDevice&, long long)@Base" 0.2.0
+ (arch-bits=64|c++)"libeasymcp2221::qt::read(libeasymcp2221::I2cDevice&, long long)@Base" 0.2.0
+ (arch-bits=32|c++)"libeasymcp2221::qt::read(libeasymcp2221::I2cDevice&, int)@Base" 0.2.0
  (c++)"libeasymcp2221::qt::write(libeasymcp2221::I2cDevice&, QByteArray const&)@Base" 0.2.0
- (c++)"libeasymcp2221::qt::readRegister(libeasymcp2221::I2cDevice&, unsigned int, long long)@Base" 0.2.0
- (c++)"libeasymcp2221::qt::readRegister(libeasymcp2221::I2cDevice&, unsigned int, long long, libeasymcp2221::RegisterWidth, libeasymcp2221::ByteOrder)@Base" 0.2.0
+ (arch-bits=64|c++)"libeasymcp2221::qt::readRegister(libeasymcp2221::I2cDevice&, unsigned int, long long)@Base" 0.2.0
+ (arch-bits=32|c++)"libeasymcp2221::qt::readRegister(libeasymcp2221::I2cDevice&, unsigned int, int)@Base" 0.2.0
+ (arch-bits=64|c++)"libeasymcp2221::qt::readRegister(libeasymcp2221::I2cDevice&, unsigned int, long long, libeasymcp2221::RegisterWidth, libeasymcp2221::ByteOrder)@Base" 0.2.0
+ (arch-bits=32|c++)"libeasymcp2221::qt::readRegister(libeasymcp2221::I2cDevice&, unsigned int, int, libeasymcp2221::RegisterWidth, libeasymcp2221::ByteOrder)@Base" 0.2.0
  (c++)"libeasymcp2221::qt::writeRegister(libeasymcp2221::I2cDevice&, unsigned int, QByteArray const&)@Base" 0.2.0
  (c++)"libeasymcp2221::qt::writeRegister(libeasymcp2221::I2cDevice&, unsigned int, QByteArray const&, libeasymcp2221::RegisterWidth, libeasymcp2221::ByteOrder)@Base" 0.2.0
  (c++)"libeasymcp2221::qt::readBlockData(libeasymcp2221::SmbusDevice&, unsigned char)@Base" 0.2.0
  (c++)"libeasymcp2221::qt::writeBlockData(libeasymcp2221::SmbusDevice&, unsigned char, QByteArray const&)@Base" 0.2.0
  (c++)"libeasymcp2221::qt::blockProcessCall(libeasymcp2221::SmbusDevice&, unsigned char, QByteArray const&)@Base" 0.2.0
- (c++)"libeasymcp2221::qt::readI2cBlockData(libeasymcp2221::SmbusDevice&, unsigned char, long long)@Base" 0.2.0
+ (arch-bits=64|c++)"libeasymcp2221::qt::readI2cBlockData(libeasymcp2221::SmbusDevice&, unsigned char, long long)@Base" 0.2.0
+ (arch-bits=32|c++)"libeasymcp2221::qt::readI2cBlockData(libeasymcp2221::SmbusDevice&, unsigned char, int)@Base" 0.2.0
  (c++)"libeasymcp2221::qt::writeI2cBlockData(libeasymcp2221::SmbusDevice&, unsigned char, QByteArray const&)@Base" 0.2.0
 
 # Implementation-detail exports produced by Qt templates, libstdc++ and
@@ -50,5 +56,7 @@ libeasymcp2221++-qt.so.0 libeasymcp2221++-qt0 #MINVER#
  (regex|optional)"^_ZZN9QtPrivate.*@Base$" 0.2.0
  (regex|optional)"^_ZZN11QMetaTypeId.*@Base$" 0.2.0
  (regex|optional)"^_ZNSt12_Vector_base.*@Base$" 0.2.0
+ (optional)_ZNSt6vectorIhSaIhEED1Ev@Base 0.2.0
+ (optional)_ZNSt6vectorIhSaIhEED2Ev@Base 0.2.0
  (optional)_ZTIN14libeasymcp22215ErrorE@Base 0.2.0
  (optional)_ZTSN14libeasymcp22215ErrorE@Base 0.2.0
