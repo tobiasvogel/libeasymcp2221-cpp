@@ -85,6 +85,17 @@ if (MSVC)
             )
         endif()
 
+        find_library(
+            LIBEASYMCP2221_LIBUSB_LIBRARY
+            NAMES libusb-1.0
+        )
+        if (NOT LIBEASYMCP2221_LIBUSB_LIBRARY)
+            message(FATAL_ERROR
+                "libusb-1.0 was not found for the static libeasymcp2221 "
+                "dependency."
+            )
+        endif()
+
         add_library(libeasymcp2221_cpp_c_static UNKNOWN IMPORTED)
         set_target_properties(
             libeasymcp2221_cpp_c_static
@@ -92,6 +103,7 @@ if (MSVC)
                 IMPORTED_LOCATION "${LIBEASYMCP2221_STATIC_LIBRARY}"
                 INTERFACE_INCLUDE_DIRECTORIES "${LIBEASYMCP2221_INCLUDE_DIR}"
                 INTERFACE_COMPILE_DEFINITIONS LIBEASYMCP2221_STATIC
+                INTERFACE_LINK_LIBRARIES "${LIBEASYMCP2221_LIBUSB_LIBRARY}"
         )
         set(
             LIBEASYMCP2221_CPP_C_STATIC_TARGET
