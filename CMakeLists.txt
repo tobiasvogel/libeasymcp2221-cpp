@@ -124,16 +124,59 @@ else()
     set(LIBEASYMCP2221_CPP_C_SHARED_TARGET PkgConfig::LIBEASYMCP2221)
 
     if (LIBEASYMCP2221_CPP_BUILD_STATIC)
-        add_library(libeasymcp2221_cpp_c_static INTERFACE IMPORTED)
+        find_file(
+            LIBEASYMCP2221_STATIC_LIBRARY
+            NAMES
+                "${CMAKE_STATIC_LIBRARY_PREFIX}easymcp2221${CMAKE_STATIC_LIBRARY_SUFFIX}"
+            HINTS ${LIBEASYMCP2221_LIBRARY_DIRS}
+            NO_DEFAULT_PATH
+        )
+        if (NOT LIBEASYMCP2221_STATIC_LIBRARY)
+            message(FATAL_ERROR
+                "The static libeasymcp2221 library was not found in the "
+                "pkg-config library directories."
+            )
+        endif()
+
+        pkg_check_modules(
+            LIBEASYMCP2221_LIBUSB
+            REQUIRED
+            IMPORTED_TARGET
+            "libusb-1.0"
+        )
+        find_package(Threads REQUIRED)
+
+        set(
+            LIBEASYMCP2221_CPP_STATIC_C_DEPENDENCIES
+            PkgConfig::LIBEASYMCP2221_LIBUSB
+            Threads::Threads
+        )
+
+        list(FIND LIBEASYMCP2221_STATIC_LIBRARIES "m"
+            LIBEASYMCP2221_CPP_STATIC_MATH_INDEX)
+        if (NOT LIBEASYMCP2221_CPP_STATIC_MATH_INDEX EQUAL -1)
+            find_library(LIBEASYMCP2221_MATH_LIBRARY m)
+            if (NOT LIBEASYMCP2221_MATH_LIBRARY)
+                message(FATAL_ERROR
+                    "libeasymcp2221 requires libm for static linking, but "
+                    "libm was not found."
+                )
+            endif()
+            list(APPEND
+                LIBEASYMCP2221_CPP_STATIC_C_DEPENDENCIES
+                "${LIBEASYMCP2221_MATH_LIBRARY}"
+            )
+        endif()
+
+        add_library(libeasymcp2221_cpp_c_static STATIC IMPORTED)
         set_target_properties(
             libeasymcp2221_cpp_c_static
             PROPERTIES
-                INTERFACE_INCLUDE_DIRECTORIES
-                    "${LIBEASYMCP2221_STATIC_INCLUDE_DIRS}"
-                INTERFACE_COMPILE_OPTIONS
-                    "${LIBEASYMCP2221_STATIC_CFLAGS_OTHER}"
+                IMPORTED_LOCATION "${LIBEASYMCP2221_STATIC_LIBRARY}"
+                INTERFACE_INCLUDE_DIRECTORIES "${LIBEASYMCP2221_INCLUDE_DIRS}"
+                INTERFACE_COMPILE_DEFINITIONS LIBEASYMCP2221_STATIC
                 INTERFACE_LINK_LIBRARIES
-                    "PkgConfig::LIBEASYMCP2221;${LIBEASYMCP2221_STATIC_LIBRARIES};${LIBEASYMCP2221_STATIC_LDFLAGS_OTHER}"
+                    "${LIBEASYMCP2221_CPP_STATIC_C_DEPENDENCIES}"
         )
         set(
             LIBEASYMCP2221_CPP_C_STATIC_TARGET
