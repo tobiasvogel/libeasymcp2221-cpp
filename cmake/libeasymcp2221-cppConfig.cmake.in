@@ -92,6 +92,11 @@ else()
         IMPORTED_TARGET
         "libeasymcp2221>=2.0.1"
     )
+    pkg_get_variable(
+        LIBEASYMCP2221_PKGCONFIG_LIBDIR
+        libeasymcp2221
+        libdir
+    )
 
     if (@LIBEASYMCP2221_CPP_BUILD_STATIC@ AND
         NOT TARGET libeasymcp2221_cpp_c_static)
@@ -99,7 +104,7 @@ else()
             LIBEASYMCP2221_STATIC_LIBRARY
             NAMES
                 "${CMAKE_STATIC_LIBRARY_PREFIX}easymcp2221${CMAKE_STATIC_LIBRARY_SUFFIX}"
-            HINTS ${LIBEASYMCP2221_LIBRARY_DIRS}
+            HINTS "${LIBEASYMCP2221_PKGCONFIG_LIBDIR}"
             NO_DEFAULT_PATH
         )
         if (NOT LIBEASYMCP2221_STATIC_LIBRARY)
