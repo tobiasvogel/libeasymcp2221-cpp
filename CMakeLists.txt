@@ -122,7 +122,24 @@ else()
     )
 
     set(LIBEASYMCP2221_CPP_C_SHARED_TARGET PkgConfig::LIBEASYMCP2221)
-    set(LIBEASYMCP2221_CPP_C_STATIC_TARGET PkgConfig::LIBEASYMCP2221)
+
+    if (LIBEASYMCP2221_CPP_BUILD_STATIC)
+        add_library(libeasymcp2221_cpp_c_static INTERFACE IMPORTED)
+        set_target_properties(
+            libeasymcp2221_cpp_c_static
+            PROPERTIES
+                INTERFACE_INCLUDE_DIRECTORIES
+                    "${LIBEASYMCP2221_STATIC_INCLUDE_DIRS}"
+                INTERFACE_COMPILE_OPTIONS
+                    "${LIBEASYMCP2221_STATIC_CFLAGS_OTHER}"
+                INTERFACE_LINK_LIBRARIES
+                    "${LIBEASYMCP2221_STATIC_LINK_LIBRARIES};${LIBEASYMCP2221_STATIC_LDFLAGS_OTHER}"
+        )
+        set(
+            LIBEASYMCP2221_CPP_C_STATIC_TARGET
+            libeasymcp2221_cpp_c_static
+        )
+    endif()
 endif()
 
 if (LIBEASYMCP2221_CPP_BUILD_QT)
