@@ -120,22 +120,25 @@ else()
         IMPORTED_TARGET
         "libeasymcp2221>=2.0.1"
     )
-    pkg_get_variable(
-        LIBEASYMCP2221_PKGCONFIG_LIBDIR
-        libeasymcp2221
-        libdir
-    )
-
     set(LIBEASYMCP2221_CPP_C_SHARED_TARGET PkgConfig::LIBEASYMCP2221)
 
     if (LIBEASYMCP2221_CPP_BUILD_STATIC)
-        find_file(
+        set(
+            _LIBEASYMCP2221_CPP_SAVED_LIBRARY_SUFFIXES
+            "${CMAKE_FIND_LIBRARY_SUFFIXES}"
+        )
+        set(CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_STATIC_LIBRARY_SUFFIX}")
+        find_library(
             LIBEASYMCP2221_STATIC_LIBRARY
-            NAMES
-                "${CMAKE_STATIC_LIBRARY_PREFIX}easymcp2221${CMAKE_STATIC_LIBRARY_SUFFIX}"
-            HINTS "${LIBEASYMCP2221_PKGCONFIG_LIBDIR}"
+            NAMES easymcp2221
+            HINTS ${LIBEASYMCP2221_STATIC_LIBRARY_DIRS}
             NO_DEFAULT_PATH
         )
+        set(
+            CMAKE_FIND_LIBRARY_SUFFIXES
+            "${_LIBEASYMCP2221_CPP_SAVED_LIBRARY_SUFFIXES}"
+        )
+        unset(_LIBEASYMCP2221_CPP_SAVED_LIBRARY_SUFFIXES)
         if (NOT LIBEASYMCP2221_STATIC_LIBRARY)
             message(FATAL_ERROR
                 "The static libeasymcp2221 library was not found in the "
