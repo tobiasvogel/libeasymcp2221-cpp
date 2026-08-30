@@ -102,7 +102,9 @@ else()
         find_library(
             LIBEASYMCP2221_STATIC_LIBRARY
             NAMES easymcp2221
-            HINTS ${LIBEASYMCP2221_STATIC_LIBRARY_DIRS}
+            HINTS
+                ${LIBEASYMCP2221_STATIC_LIBRARY_DIRS}
+                ${LIBEASYMCP2221_LIBDIR}
             NO_DEFAULT_PATH
         )
         set(
