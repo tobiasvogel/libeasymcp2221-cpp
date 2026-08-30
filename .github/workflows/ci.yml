@@ -506,6 +506,8 @@ jobs:
           PKG_CONFIG_PATH: ${{ github.workspace }}/prefix/lib/pkgconfig
         run: |
           cmake -S cpp -B build-docs -G Ninja \
+            -DLIBEASYMCP2221_CPP_BUILD_SHARED=ON \
+            -DLIBEASYMCP2221_CPP_BUILD_STATIC=OFF \
             -DLIBEASYMCP2221_CPP_BUILD_EXAMPLES=OFF \
             -DLIBEASYMCP2221_CPP_BUILD_TESTS=OFF \
             -DLIBEASYMCP2221_CPP_BUILD_DOCS=ON \
