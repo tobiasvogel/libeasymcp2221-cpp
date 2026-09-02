@@ -10,6 +10,7 @@
 #include <QtTest/QTest>
 
 #include <chrono>
+#include <limits>
 #include <stdexcept>
 
 extern "C" {
@@ -387,6 +388,23 @@ class QtIntegrationTest : public QObject {
             monitor.maxEventsPerPoll(),
             GpioMonitor::DefaultMaxEventsPerPoll);
         QVERIFY(!monitor.isActive());
+    }
+
+    void gpioMonitorRejectsOversizedMaxEventsPerPoll()
+    {
+        Device device;
+        GpioMonitor monitor(device.gpioPoller());
+
+        const auto oversized =
+            static_cast<std::size_t>(
+                std::numeric_limits<int>::max()) + 1u;
+
+        QVERIFY_EXCEPTION_THROWN(
+            monitor.setMaxEventsPerPoll(oversized),
+            std::invalid_argument);
+        QCOMPARE(
+            monitor.maxEventsPerPoll(),
+            GpioMonitor::DefaultMaxEventsPerPoll);
     }
 
     void gpioMonitorStartStopSignals()
