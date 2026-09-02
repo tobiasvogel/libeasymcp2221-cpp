@@ -40,10 +40,6 @@ std::size_t GpioMonitor::maxEventsPerPoll() const noexcept {
 }
 
 void GpioMonitor::setMaxEventsPerPoll(std::size_t maxEvents) {
-	if (maxEvents > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
-		throw std::invalid_argument("GPIO event capacity is too large");
-	}
-
 	maxEventsPerPoll_ = maxEvents;
 }
 

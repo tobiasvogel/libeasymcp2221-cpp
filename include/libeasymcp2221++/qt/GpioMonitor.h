@@ -98,8 +98,6 @@ class LIBEASYMCP2221_CPP_QT_API GpioMonitor : public QObject {
 	 * The underlying GpioPoller discards matching events beyond this limit.
 	 *
 	 * @param maxEvents Maximum number of events requested per poll.
-	 * @throws std::invalid_argument if @p maxEvents exceeds the capacity
-	 *         supported by GpioPoller.
 	 */
 	void setMaxEventsPerPoll(std::size_t maxEvents);
 

@@ -390,21 +390,18 @@ class QtIntegrationTest : public QObject {
         QVERIFY(!monitor.isActive());
     }
 
-    void gpioMonitorRejectsOversizedMaxEventsPerPoll()
+    void gpioMonitorAcceptsLargeMaxEventsPerPoll()
     {
         Device device;
         GpioMonitor monitor(device.gpioPoller());
 
-        const auto oversized =
-            static_cast<std::size_t>(
-                std::numeric_limits<int>::max()) + 1u;
+        const auto large =
+            std::numeric_limits<std::size_t>::max();
 
-        QVERIFY_EXCEPTION_THROWN(
-            monitor.setMaxEventsPerPoll(oversized),
-            std::invalid_argument);
+        monitor.setMaxEventsPerPoll(large);
         QCOMPARE(
             monitor.maxEventsPerPoll(),
-            GpioMonitor::DefaultMaxEventsPerPoll);
+            large);
     }
 
     void gpioMonitorStartStopSignals()
