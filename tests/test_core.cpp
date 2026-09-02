@@ -4,6 +4,7 @@
  */
 
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -203,6 +204,21 @@ void testTypedGpioEventFilter()
     EXPECT_EQ(lastGpioFilterMask(), static_cast<std::uint16_t>(0));
 }
 
+void testGpioEventCapacityIsBounded()
+{
+    resetMock();
+
+    Device device;
+    auto poller = device.gpioPoller();
+    queueGpioEvent(0, MCP2221_GPIO_EVENT_RISE);
+
+    const auto events = poller.pollEvents(
+        std::numeric_limits<std::size_t>::max());
+
+    EXPECT_EQ(events.size(), static_cast<std::size_t>(1));
+    EXPECT_EQ(events[0].id(), std::string("GPIO0_RISE"));
+}
+
 void testGpioEventId()
 {
     GpioEvent event;
@@ -344,6 +360,11 @@ int main()
     test_harness::run(
         "Typed GPIO event filter maps to native mask",
         testTypedGpioEventFilter,
+        failures);
+
+    test_harness::run(
+        "GPIO event capacity is bounded by the four hardware pins",
+        testGpioEventCapacityIsBounded,
         failures);
 
     test_harness::run(

@@ -6,7 +6,6 @@
 #include "libeasymcp2221++/GpioPoller.h"
 
 #include <array>
-#include <limits>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -159,17 +158,17 @@ std::array<GpioChange, 4> GpioPoller::poll() {
 std::vector<GpioEvent> GpioPoller::pollEvents(std::size_t maxEvents) {
 	requireState(state_);
 
-	if (maxEvents > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
-		detail::throwInvalid("GPIO event capacity is too large");
-	}
+	constexpr std::size_t MaxEventsPerPoll = 4;
+	const auto capacity = maxEvents < MaxEventsPerPoll ? maxEvents : MaxEventsPerPoll;
 
-	std::vector<mcp2221_gpio_event_t> native(maxEvents);
-	mcp2221_gpio_event_t* buffer = native.empty() ? nullptr : native.data();
+	std::array<mcp2221_gpio_event_t, MaxEventsPerPoll> native{};
+	auto* buffer = capacity == 0 ? nullptr : native.data();
+	std::vector<GpioEvent> result(capacity);
 
 	int count = 0;
 	{
 		std::lock_guard<std::mutex> lock(state_->device->mutex());
-		count = mcp2221_gpio_poll_events(state_->device->handle(), &state_->poll, nullptr, buffer, maxEvents);
+		count = mcp2221_gpio_poll_events(state_->device->handle(), &state_->poll, nullptr, buffer, capacity);
 	}
 
 	if (count < 0) {
@@ -177,23 +176,19 @@ std::vector<GpioEvent> GpioPoller::pollEvents(std::size_t maxEvents) {
 	}
 
 	const auto eventCount = static_cast<std::size_t>(count);
-	if (eventCount > maxEvents) {
+	if (eventCount > capacity) {
 		throw Error(ErrorCode::Protocol, static_cast<int>(MCP2221_ERR_PROTOCOL),
 					"Polling GPIO events: C library returned too many events");
 	}
 
-	std::vector<GpioEvent> result;
-	result.reserve(eventCount);
-
 	for (std::size_t i = 0; i < eventCount; ++i) {
-		GpioEvent event;
-		event.pin = toPin(native[i].gpio);
-		event.edge = toEdge(native[i].type);
-		event.time = native[i].time;
-		event.previousTime = native[i].last_time;
-		result.push_back(event);
+		result[i].pin = toPin(native[i].gpio);
+		result[i].edge = toEdge(native[i].type);
+		result[i].time = native[i].time;
+		result[i].previousTime = native[i].last_time;
 	}
 
+	result.resize(eventCount);
 	return result;
 }
 
