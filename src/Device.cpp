@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -345,10 +346,12 @@ Device::Device(const DeviceOptions& options) {
 		"Opening MCP2221");
 
 	/*
-	 * Own the acquired C reference immediately so every later initialization
-	 * failure releases it automatically.
+	 * Guard the acquired C reference until DeviceState has successfully taken
+	 * ownership. This also closes the handle if make_shared() throws.
 	 */
-	auto state = std::make_shared<detail::DeviceState>(handle);
+	std::unique_ptr<mcp2221_t, decltype(&mcp2221_close)> handleGuard(handle, &mcp2221_close);
+	auto state = std::make_shared<detail::DeviceState>(handleGuard.get());
+	handleGuard.release();
 
 	{
 		std::lock_guard<std::mutex> lock(state->mutex());
