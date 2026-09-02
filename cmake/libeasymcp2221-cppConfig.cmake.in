@@ -179,10 +179,16 @@ if ("Qt" IN_LIST libeasymcp2221-cpp_FIND_COMPONENTS)
 
     if (@LIBEASYMCP2221_CPP_HAS_QT@ AND
         EXISTS "${_LIBEASYMCP2221_CPP_QT_TARGETS_FILE}")
-        find_dependency(Qt6 COMPONENTS Core)
+        if (libeasymcp2221-cpp_FIND_REQUIRED_Qt)
+            find_dependency(Qt6 COMPONENTS Core)
+        else()
+            find_package(Qt6 QUIET COMPONENTS Core)
+        endif()
 
-        include("${_LIBEASYMCP2221_CPP_QT_TARGETS_FILE}")
-        set(libeasymcp2221-cpp_Qt_FOUND TRUE)
+        if (TARGET Qt6::Core)
+            include("${_LIBEASYMCP2221_CPP_QT_TARGETS_FILE}")
+            set(libeasymcp2221-cpp_Qt_FOUND TRUE)
+        endif()
     elseif (@LIBEASYMCP2221_CPP_HAS_QT@)
         set(
             libeasymcp2221-cpp_NOT_FOUND_MESSAGE

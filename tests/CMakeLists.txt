@@ -247,4 +247,38 @@ if (LIBEASYMCP2221_CPP_BUILD_QT)
             DEPENDS libeasymcp2221_cpp_package_qt_configure
             FIXTURES_REQUIRED libeasymcp2221_cpp_package
     )
+
+    set(
+        LIBEASYMCP2221_CPP_OPTIONAL_QT_CONSUMER_BUILD_DIR
+        "${PROJECT_BINARY_DIR}/test-package-consumer-optional-qt"
+    )
+
+    add_test(
+        NAME libeasymcp2221_cpp_package_optional_qt_configure
+        COMMAND
+            ${CMAKE_COMMAND}
+            -S "${CMAKE_CURRENT_SOURCE_DIR}/package_consumer_optional_qt"
+            -B "${LIBEASYMCP2221_CPP_OPTIONAL_QT_CONSUMER_BUILD_DIR}"
+            "-DCMAKE_PREFIX_PATH=${LIBEASYMCP2221_CPP_TEST_INSTALL_PREFIX};${CMAKE_PREFIX_PATH}"
+            -DCMAKE_DISABLE_FIND_PACKAGE_Qt6=TRUE
+    )
+    set_tests_properties(
+        libeasymcp2221_cpp_package_optional_qt_configure
+        PROPERTIES
+            FIXTURES_REQUIRED libeasymcp2221_cpp_package
+            ENVIRONMENT "PKG_CONFIG_PATH=$ENV{PKG_CONFIG_PATH}"
+    )
+
+    add_test(
+        NAME libeasymcp2221_cpp_package_optional_qt_build
+        COMMAND
+            ${CMAKE_COMMAND}
+            --build "${LIBEASYMCP2221_CPP_OPTIONAL_QT_CONSUMER_BUILD_DIR}"
+    )
+    set_tests_properties(
+        libeasymcp2221_cpp_package_optional_qt_build
+        PROPERTIES
+            DEPENDS libeasymcp2221_cpp_package_optional_qt_configure
+            FIXTURES_REQUIRED libeasymcp2221_cpp_package
+    )
 endif()
