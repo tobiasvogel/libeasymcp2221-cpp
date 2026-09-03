@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.11)
 project(libeasymcp2221_cpp VERSION 0.2.0 LANGUAGES CXX)
 
 include(GNUInstallDirs)
