@@ -443,6 +443,16 @@ jobs:
           ctest --test-dir build-cpp --output-on-failure
           cmake --install build-cpp
 
+          # Bundle the libusb development files required by the installed
+          # static targets so the SDK does not depend on MSYS2's libusb package.
+          mkdir -p "${prefix}/include/libusb-1.0" "${prefix}/lib/pkgconfig"
+          cp -v /mingw64/include/libusb-1.0/libusb.h \
+            "${prefix}/include/libusb-1.0/"
+          cp -v /mingw64/lib/libusb-1.0.a "${prefix}/lib/"
+          cp -v /mingw64/lib/libusb-1.0.dll.a "${prefix}/lib/"
+          cp -v /mingw64/lib/pkgconfig/libusb-1.0.pc \
+            "${prefix}/lib/pkgconfig/"
+
           # Make pkg-config metadata relocatable inside the ZIP.
           for pc in "${prefix}/lib/pkgconfig/"*.pc; do
             sed -i \
@@ -495,6 +505,7 @@ jobs:
           EOF
 
           PKG_CONFIG_PATH="${prefix}/lib/pkgconfig" \
+          PKG_CONFIG_LIBDIR="${prefix}/lib/pkgconfig" \
             cmake -S package-consumer -B build-package-consumer -G Ninja \
               -DCMAKE_PREFIX_PATH="${prefix}"
           cmake --build build-package-consumer --parallel
