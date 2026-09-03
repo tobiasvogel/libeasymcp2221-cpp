@@ -600,6 +600,7 @@ jobs:
 
           $vcpkgRoot = Join-Path $env:VCPKG_INSTALLATION_ROOT "installed\x64-windows"
           Copy-Item "$vcpkgRoot\bin\libusb-1.0.dll" "$prefix\bin\"
+          Copy-Item "$vcpkgRoot\lib\libusb-1.0.lib" "$prefix\lib\"
 
           New-Item -ItemType Directory -Force "$prefix\THIRD_PARTY_LICENSES" | Out-Null
           Copy-Item "$vcpkgRoot\share\libusb\copyright" `
@@ -631,8 +632,6 @@ jobs:
           '@ | Set-Content -Encoding utf8 package-consumer/main.cpp
 
           cmake -S package-consumer -B build-package-consumer -A x64 `
-            "-DCMAKE_TOOLCHAIN_FILE=$toolchain" `
-            -DVCPKG_TARGET_TRIPLET=x64-windows `
             "-DCMAKE_PREFIX_PATH=$prefix;$env:QT_ROOT_DIR"
           cmake --build build-package-consumer --config Release --parallel
 
