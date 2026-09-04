@@ -36,3 +36,25 @@ libeasymcp2221_cpp_add_example(gpio_poll_events)
 libeasymcp2221_cpp_add_example(test_i2c)
 libeasymcp2221_cpp_add_example(flash_info_save)
 libeasymcp2221_cpp_add_example(ssd1306_i2c)
+
+if (LIBEASYMCP2221_CPP_BUILD_QT)
+    find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
+    add_executable(
+        libeasymcp2221_cpp_qt_gpio_monitor
+        qt_gpio_monitor.cpp
+    )
+
+    target_compile_features(
+        libeasymcp2221_cpp_qt_gpio_monitor
+        PRIVATE
+            cxx_std_17
+    )
+
+    target_link_libraries(
+        libeasymcp2221_cpp_qt_gpio_monitor
+        PRIVATE
+            libeasymcp2221::qt
+            Qt6::Widgets
+    )
+endif()
