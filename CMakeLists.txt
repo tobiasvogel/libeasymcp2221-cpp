@@ -292,6 +292,8 @@ if (LIBEASYMCP2221_CPP_BUILD_SHARED)
         EXPORT_NAME cpp
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
+        CXX_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN YES
     )
 
     add_library(libeasymcp2221::cpp ALIAS easymcp2221_cpp)
@@ -400,6 +402,8 @@ if (LIBEASYMCP2221_CPP_BUILD_QT)
                 EXPORT_NAME qt
                 VERSION ${PROJECT_VERSION}
                 SOVERSION ${PROJECT_VERSION_MAJOR}
+                CXX_VISIBILITY_PRESET hidden
+                VISIBILITY_INLINES_HIDDEN YES
         )
 
         add_library(

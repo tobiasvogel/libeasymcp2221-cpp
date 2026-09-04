@@ -24,6 +24,20 @@
 #    define LIBEASYMCP2221_CPP_QT_API __declspec(dllimport)
 #  endif
 
+#elif defined(__GNUC__) || defined(__clang__)
+
+#  if defined(LIBEASYMCP2221_CPP_STATIC)
+#    define LIBEASYMCP2221_CPP_API
+#  else
+#    define LIBEASYMCP2221_CPP_API __attribute__((visibility("default")))
+#  endif
+
+#  if defined(LIBEASYMCP2221_CPP_QT_STATIC)
+#    define LIBEASYMCP2221_CPP_QT_API
+#  else
+#    define LIBEASYMCP2221_CPP_QT_API __attribute__((visibility("default")))
+#  endif
+
 #else
 
 #  define LIBEASYMCP2221_CPP_API
