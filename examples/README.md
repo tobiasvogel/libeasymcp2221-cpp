@@ -30,6 +30,7 @@ hardware connected to it.
 | `test_i2c.cpp` | C++ counterpart of C `test_i2c.c` | Reads 16 bytes from a 16-bit-addressed EEPROM at `0x50` |
 | `flash_info_save.cpp` | C++ counterpart of C `flash_info_save.c` | **Reads flash info and persists current configuration** |
 | `ssd1306_i2c.cpp` | C++ counterpart of C `ssd1306_i2c.c` | Initializes and writes to an SSD1306 OLED at `0x3C` |
+| `qt_gpio_monitor.cpp` | Qt GPIO edge monitor using `GpioMonitor` signals | Configures GP0-GP3 as GPIO inputs at runtime |
 
 ## Parallel C/C++ examples
 
@@ -50,6 +51,18 @@ write fails.
 `flash_info_save.cpp` likewise persists the current configuration because
 the corresponding C example does so. Running either example therefore
 performs persistent flash writes.
+
+## Qt GPIO monitor
+
+`qt_gpio_monitor.cpp` demonstrates the Qt event-loop integration provided by
+`libeasymcp2221::qt::GpioMonitor`. It counts rising and falling GPIO edges and
+updates the UI directly from Qt signals without an application-managed polling
+loop.
+
+The example configures GP0 through GP3 as GPIO inputs when it starts. This
+changes runtime configuration only; it does not write the configuration to
+flash. The previous runtime pin configuration is not restored automatically
+when the example exits.
 
 USB enumeration changes become visible to the host only after the device is
 re-enumerated.
