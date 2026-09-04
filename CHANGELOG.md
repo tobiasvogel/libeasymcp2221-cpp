@@ -7,7 +7,7 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [0.2.0] - 2026-08-29
+## [0.2.0] - 2026-09-04
 
 ### Added
 
@@ -34,6 +34,13 @@ and this project follows [Semantic Versioning](https://semver.org/).
 - Installed-package consumer tests now cover core and Qt package exports.
 - Static/shared Windows library naming avoids import-library collisions on MSVC.
 - Qt exception tests explicitly consume intentional `[[nodiscard]]` results.
+- Flash writes expose the extended C API payload capacity.
+- The minimum supported `libeasymcp2221` version is 2.0.2 across CMake,
+  pkg-config, and Debian development dependencies.
+- GPIO event polling bounds native buffering to the MCP2221 hardware limit
+  while preserving the public event-limit semantics.
+- The declared CMake minimum version is 3.11, matching the package-version
+  helper features used by the project.
 
 ### Fixed
 
@@ -44,6 +51,18 @@ and this project follows [Semantic Versioning](https://semver.org/).
   DLL imports.
 - Corrected MinGW/MSYS2 path handling for `PKG_CONFIG_PATH` and install prefixes.
 - Corrected Debian Qt symbols template formatting and RTTI handling.
+- Rejected invalid I2C byte-order and GPIO event-ID enum values instead of
+  silently mapping them to valid operations.
+- Closed an allocation-failure handle leak in `Device` construction.
+- Corrected static consumer linkage and installed-package dependency discovery
+  across POSIX, MinGW-w64, and MSVC builds.
+- Made the MinGW-w64 and MSVC release SDKs self-contained for static consumers
+  by bundling the required libusb development files.
+- Corrected optional Qt component discovery in installed CMake packages.
+- Hid private/internal implementation symbols from the public shared-library
+  ABI on ELF, macOS, and Windows where applicable.
+- Corrected Debian ABI symbol metadata for the 0.2.0 API and cross-architecture
+  libstdc++ code-generation differences.
 
 ## [0.1.0] - 2026-08-27
 

@@ -4,8 +4,12 @@ libeasymcp2221++ (0.2.0-1) unstable; urgency=medium
   * Add optional Qt 6 integration and Qt Debian packages.
   * Add Windows MSVC and MinGW-w64 support.
   * Add binary release packaging and installed-package consumer tests.
+  * Harden shared-library visibility and Debian ABI symbol tracking.
+  * Fix static installed-package linkage and make Windows SDKs self-contained.
+  * Align flash, GPIO, validation, and ownership behavior with the C library.
+  * Require libeasymcp2221 2.0.2 for the final 0.2.0 release.
 
- -- Tobias X. Vogel <tobias.vogel@linux.com>  Sat, 29 Aug 2026 02:48:00 +0200
+ -- Tobias X. Vogel <tobias.vogel@linux.com>  Fri, 04 Sep 2026 20:30:00 +0200
 
 libeasymcp2221++ (0.1.0-1) unstable; urgency=medium
 
