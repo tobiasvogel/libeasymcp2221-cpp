@@ -1,0 +1,10 @@
+Document: libeasymcp2221-cpp
+Title: libeasymcp2221++ API documentation
+Author: Tobias X. Vogel
+Abstract: API documentation for the C++17 adapter to libeasymcp2221,
+ including the optional Qt integration.
+Section: Programming/C++
+
+Format: HTML
+Index: /usr/share/doc/libeasymcp2221++-doc/html/index.html
+Files: /usr/share/doc/libeasymcp2221++-doc/html/*.html
