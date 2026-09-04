@@ -31,6 +31,8 @@ hardware connected to it.
 | `flash_info_save.cpp` | C++ counterpart of C `flash_info_save.c` | **Reads flash info and persists current configuration** |
 | `ssd1306_i2c.cpp` | C++ counterpart of C `ssd1306_i2c.c` | Initializes and writes to an SSD1306 OLED at `0x3C` |
 | `qt_gpio_monitor.cpp` | Qt GPIO edge monitor using `GpioMonitor` signals | Configures GP0-GP3 as GPIO inputs at runtime |
+| `qt_pin_configurator.cpp` | Interactive Qt runtime pin configuration | Changes GP0-GP3 runtime functions and GPIO output states |
+| `qt_analog_lab.cpp` | Live Qt ADC display and DAC control | Configures GP1/GP2 as ADC inputs and GP3 as DAC output |
 
 ## Parallel C/C++ examples
 
@@ -50,7 +52,7 @@ write fails.
 `saveConfigurationToFlash()` because it mirrors the C `usb_power.c` example.
 `flash_info_save.cpp` likewise persists the current configuration because
 the corresponding C example does so. Running either example therefore
-performs persistent flash writes.
+performs persistent flash writes[^1].
 
 ## Qt GPIO monitor
 
@@ -62,9 +64,34 @@ loop.
 The example configures GP0 through GP3 as GPIO inputs when it starts. This
 changes runtime configuration only; it does not write the configuration to
 flash. The previous runtime pin configuration is not restored automatically
-when the example exits.
+when the example exits[^1].
 
-USB enumeration changes become visible to the host only after the device is
+## Qt pin configurator
+
+`qt_pin_configurator.cpp` demonstrates how the strongly typed C++ pin
+configuration API can be driven from a small Qt user interface. Each GP pin
+can be assigned a function and GPIO outputs can be initialized high or low.
+
+Applying a configuration changes the current runtime pin state immediately.
+The example does not write configuration to flash and does not restore the
+previous runtime configuration when it exits. Selecting GPIO output may
+therefore immediately change the electrical level of the corresponding pin[^1].
+
+## Qt analog lab
+
+`qt_analog_lab.cpp` demonstrates periodic ADC acquisition and interactive DAC
+control in a small Qt application. GP1 and GP2 are configured as ADC1 and ADC2,
+while GP3 is configured as the DAC2 output. GP0 is left unchanged.
+
+The ADC values are displayed as raw 10-bit readings and the DAC slider controls
+the raw 5-bit output value. Using raw values keeps the example independent of
+the actual MCP2221 supply voltage.
+
+The example changes runtime pin, ADC, DAC, and physical DAC output state. It
+does not write configuration to flash and does not restore the previous runtime
+configuration when it exits[^1].
+
+[^1]: USB enumeration changes become visible to the host only after the device is
 re-enumerated.
 
 ## Addresses and registers

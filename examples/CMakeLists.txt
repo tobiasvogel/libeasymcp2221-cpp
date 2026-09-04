@@ -57,4 +57,40 @@ if (LIBEASYMCP2221_CPP_BUILD_QT)
             libeasymcp2221::qt
             Qt6::Widgets
     )
+
+    add_executable(
+        libeasymcp2221_cpp_qt_pin_configurator
+        qt_pin_configurator.cpp
+    )
+
+    target_compile_features(
+        libeasymcp2221_cpp_qt_pin_configurator
+        PRIVATE
+            cxx_std_17
+    )
+
+    target_link_libraries(
+        libeasymcp2221_cpp_qt_pin_configurator
+        PRIVATE
+            libeasymcp2221::qt
+            Qt6::Widgets
+    )
+
+    add_executable(
+        libeasymcp2221_cpp_qt_analog_lab
+        qt_analog_lab.cpp
+    )
+
+    target_compile_features(
+        libeasymcp2221_cpp_qt_analog_lab
+        PRIVATE
+            cxx_std_17
+    )
+
+    target_link_libraries(
+        libeasymcp2221_cpp_qt_analog_lab
+        PRIVATE
+            libeasymcp2221::qt
+            Qt6::Widgets
+    )
 endif()
