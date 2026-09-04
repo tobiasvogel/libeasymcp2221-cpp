@@ -6,6 +6,6 @@ includedir=@LIBEASYMCP2221_CPP_PKGCONFIG_INCLUDEDIR@
 Name: libeasymcp2221++
 Version: @PROJECT_VERSION@
 Description: Object-oriented C++17 adapter for libeasymcp2221
-Requires.private: libeasymcp2221 >= 2.0.1
+Requires.private: libeasymcp2221 >= 2.0.2
 Libs: -L${libdir} -leasymcp2221++
 Cflags: -I${includedir}

@@ -118,7 +118,7 @@ else()
         LIBEASYMCP2221
         REQUIRED
         IMPORTED_TARGET
-        "libeasymcp2221>=2.0.1"
+        "libeasymcp2221>=2.0.2"
     )
     set(LIBEASYMCP2221_CPP_C_SHARED_TARGET PkgConfig::LIBEASYMCP2221)
 
