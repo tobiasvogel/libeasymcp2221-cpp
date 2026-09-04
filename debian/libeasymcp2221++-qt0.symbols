@@ -50,11 +50,5 @@ libeasymcp2221++-qt.so.0 libeasymcp2221++-qt0 #MINVER#
 
 # Implementation-detail exports produced by Qt templates, libstdc++ and
 # metatype machinery. They are intentionally not part of the guaranteed ABI.
- (regex|optional)"^_Z41qRegisterNormalizedMetaTypeImplementation.*@Base$" 0.2.0
- (regex|optional)"^_ZN17QArrayDataPointer.*@Base$" 0.2.0
- (regex|optional)"^_ZN9QtPrivate.*@Base$" 0.2.0
- (regex|optional)"^_ZZN9QtPrivate.*@Base$" 0.2.0
- (regex|optional)"^_ZZN11QMetaTypeId.*@Base$" 0.2.0
- (regex|optional)"^_ZNSt12_Vector_base.*@Base$" 0.2.0
  (optional)_ZTIN14libeasymcp22215ErrorE@Base 0.2.0
  (optional)_ZTSN14libeasymcp22215ErrorE@Base 0.2.0

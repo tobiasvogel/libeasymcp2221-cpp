@@ -26,9 +26,6 @@ libeasymcp2221++.so.0 libeasymcp2221++0 #MINVER#
  _ZN14libeasymcp222111SmbusDeviceC2ESt10shared_ptrINS_6detail16SmbusDeviceStateEE@Base 0.1.0
  _ZN14libeasymcp22215ErrorC1ENS_9ErrorCodeEiRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE@Base 0.1.0
  _ZN14libeasymcp22215ErrorC2ENS_9ErrorCodeEiRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE@Base 0.1.0
- (optional)_ZN14libeasymcp22215ErrorD0Ev@Base 0.1.0
- (optional)_ZN14libeasymcp22215ErrorD1Ev@Base 0.1.0
- (optional)_ZN14libeasymcp22215ErrorD2Ev@Base 0.1.0
  _ZN14libeasymcp22216Device10gpioPollerEv@Base 0.1.0
  _ZN14libeasymcp22216Device10writeFlashENS_12FlashSectionERKSt6vectorIhSaIhEE@Base 0.2.0
  _ZN14libeasymcp22216Device10readAdcRawEv@Base 0.1.0
@@ -73,19 +70,6 @@ libeasymcp2221++.so.0 libeasymcp2221++0 #MINVER#
  _ZN14libeasymcp22216DeviceC2Ev@Base 0.1.0
  _ZN14libeasymcp22216DeviceD1Ev@Base 0.1.0
  _ZN14libeasymcp22216DeviceD2Ev@Base 0.1.0
- (optional)_ZN14libeasymcp22216detail10checkErrorE20mcp2221_error_code_tPKc@Base 0.1.0
- (optional)_ZN14libeasymcp22216detail11DeviceState5mutexEv@Base 0.1.0
- (optional)_ZN14libeasymcp22216detail11DeviceState6handleEv@Base 0.1.0
- (optional)_ZN14libeasymcp22216detail11DeviceStateC1EP14mcp2221_device@Base 0.1.0
- (optional)_ZN14libeasymcp22216detail11DeviceStateC2EP14mcp2221_device@Base 0.1.0
- (optional)_ZN14libeasymcp22216detail11DeviceStateD1Ev@Base 0.1.0
- (optional)_ZN14libeasymcp22216detail11DeviceStateD2Ev@Base 0.1.0
- (optional)_ZN14libeasymcp22216detail11toErrorCodeE20mcp2221_error_code_t@Base 0.1.0
- (optional)_ZN14libeasymcp22216detail12throwInvalidEPKc@Base 0.1.0
- (optional)_ZN14libeasymcp22216detail16SmbusDeviceStateD1Ev@Base 0.1.0
- (optional)_ZN14libeasymcp22216detail16SmbusDeviceStateD2Ev@Base 0.1.0
- (optional)_ZN14libeasymcp22219FlashInfoD1Ev@Base 0.1.0
- (optional)_ZN14libeasymcp22219FlashInfoD2Ev@Base 0.1.0
  _ZN14libeasymcp22219I2cDevice13writeRegisterEjRKSt6vectorIhSaIhEE@Base 0.1.0
  _ZN14libeasymcp22219I2cDevice5writeERKSt6vectorIhSaIhEE@Base 0.1.0
  _ZN14libeasymcp22219I2cDevice9isPresentEv@Base 0.1.0
@@ -97,17 +81,6 @@ libeasymcp2221++.so.0 libeasymcp2221++0 #MINVER#
  _ZNK14libeasymcp22216Device3vddEv@Base 0.1.0
  _ZNK14libeasymcp22216Device6isOpenEv@Base 0.1.0
  _ZNK14libeasymcp22219I2cDevice7addressEv@Base 0.1.0
- (optional)_ZNSt10unique_ptrIN14libeasymcp22216detail15GpioPollerStateESt14default_deleteIS2_EED1Ev@Base 0.1.0
- (optional)_ZNSt10unique_ptrIN14libeasymcp22216detail15GpioPollerStateESt14default_deleteIS2_EED2Ev@Base 0.1.0
- (optional)_ZNSt12_Vector_baseIhSaIhEED1Ev@Base 0.1.0
- (optional)_ZNSt12_Vector_baseIhSaIhEED2Ev@Base 0.1.0
- (optional)_ZNSt15_Sp_counted_ptrIDnLN9__gnu_cxx12_Lock_policyE2EE10_M_disposeEv@Base 0.1.0
- (optional)_ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv@Base 0.1.0
- (optional)_ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_releaseEv@Base 0.1.0
- (arch-bits=64|optional)_ZNSt6vectorIN14libeasymcp22219GpioEventESaIS1_EE17_M_default_appendEm@Base 0.2.0
- (arch-bits=32|optional)_ZNSt6vectorIN14libeasymcp22219GpioEventESaIS1_EE17_M_default_appendEj@Base 0.2.0
- (optional)_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC1IS3_EEPKcRKS3_@Base 0.1.0
- (optional)_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC2IS3_EEPKcRKS3_@Base 0.1.0
  _ZTIN14libeasymcp22215ErrorE@Base 0.1.0
  (optional)_ZTISt11_Mutex_baseILN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
  (optional)_ZTISt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
@@ -131,34 +104,6 @@ libeasymcp2221++.so.0 libeasymcp2221++0 #MINVER#
  (arch-bits=64)_ZN14libeasymcp22219I2cDevice13writeRegisterEjPKhmNS_13RegisterWidthENS_9ByteOrderE@Base 0.1.0
  (arch-bits=64)_ZN14libeasymcp22219I2cDevice4readEm@Base 0.1.0
  (arch-bits=64)_ZN14libeasymcp22219I2cDevice5writeEPKhm@Base 0.1.0
- (arch-bits=64|optional)_ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE24_M_release_last_use_coldEv@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail11DeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail11DeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_disposeEv@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail11DeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE14_M_get_deleterERKSt9type_info@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail11DeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EED0Ev@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail11DeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EED1Ev@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail11DeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EED2Ev@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail14I2cDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail14I2cDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_disposeEv@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail14I2cDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE14_M_get_deleterERKSt9type_info@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail14I2cDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EED0Ev@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail14I2cDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EED1Ev@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail14I2cDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EED2Ev@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail16SmbusDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail16SmbusDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_disposeEv@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail16SmbusDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE14_M_get_deleterERKSt9type_info@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail16SmbusDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EED0Ev@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail16SmbusDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EED1Ev@Base 0.1.0
- (optional)_ZNSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail16SmbusDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EED2Ev@Base 0.1.0
- (optional)_ZTISt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail11DeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
- (optional)_ZTISt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail14I2cDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
- (optional)_ZTISt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail16SmbusDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
- (optional)_ZTSSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail11DeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
- (optional)_ZTSSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail14I2cDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
- (optional)_ZTSSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail16SmbusDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
- (optional)_ZTVSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail11DeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
- (optional)_ZTVSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail14I2cDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
- (optional)_ZTVSt23_Sp_counted_ptr_inplaceIN14libeasymcp22216detail16SmbusDeviceStateESaIvELN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
  (arch-bits=32)_ZN14libeasymcp222110GpioPoller10pollEventsEj@Base 0.1.0
  (arch-bits=32)_ZN14libeasymcp222111SmbusDevice16readI2cBlockDataEhj@Base 0.1.0
  (arch-bits=32)_ZN14libeasymcp22216Device10rawCommandEPKhj@Base 0.1.0
