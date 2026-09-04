@@ -35,7 +35,7 @@ struct I2cDeviceOptions {
  * Instances are copyable. Copies refer to the same underlying MCP2221 device
  * and share its lifetime and synchronization state.
  */
-class LIBEASYMCP2221_CPP_API I2cDevice {
+class LIBEASYMCP2221_CPP_CLASS_API I2cDevice {
   public:
 	I2cDevice(const I2cDevice&) = default;
 	I2cDevice& operator=(const I2cDevice&) = default;
@@ -47,34 +47,34 @@ class LIBEASYMCP2221_CPP_API I2cDevice {
 	 * @brief Return the configured 7-bit I2C address.
 	 * @return Configured 7-bit target address.
 	 */
-	[[nodiscard]] std::uint8_t address() const noexcept;
+	[[nodiscard]] LIBEASYMCP2221_CPP_API std::uint8_t address() const noexcept;
 
 	/**
 	 * @brief Check whether the target acknowledges its address.
 	 * @return true if present, false for an address NACK.
 	 * @throws Error for transport or protocol failures.
 	 */
-	[[nodiscard]] bool isPresent();
+	[[nodiscard]] LIBEASYMCP2221_CPP_API bool isPresent();
 
 	/**
 	 * @brief Read bytes directly from the target.
 	 * @param size Number of bytes to read.
 	 * @return Received payload bytes.
 	 */
-	[[nodiscard]] std::vector<std::uint8_t> read(std::size_t size);
+	[[nodiscard]] LIBEASYMCP2221_CPP_API std::vector<std::uint8_t> read(std::size_t size);
 
 	/**
 	 * @brief Write bytes directly to the target.
 	 * @param data Payload pointer.
 	 * @param size Number of payload bytes.
 	 */
-	void write(const std::uint8_t* data, std::size_t size);
+	LIBEASYMCP2221_CPP_API void write(const std::uint8_t* data, std::size_t size);
 
 	/**
 	 * @brief Convenience overload for std::vector payloads.
 	 * @param data Payload bytes.
 	 */
-	void write(const std::vector<std::uint8_t>& data);
+	LIBEASYMCP2221_CPP_API void write(const std::vector<std::uint8_t>& data);
 
 	/**
 	 * @brief Read bytes beginning at a register using the default layout.
@@ -82,7 +82,7 @@ class LIBEASYMCP2221_CPP_API I2cDevice {
 	 * @param size Number of bytes to read.
 	 * @return Received register payload bytes.
 	 */
-	[[nodiscard]] std::vector<std::uint8_t> readRegister(std::uint32_t reg, std::size_t size);
+	[[nodiscard]] LIBEASYMCP2221_CPP_API std::vector<std::uint8_t> readRegister(std::uint32_t reg, std::size_t size);
 
 	/**
 	 * @brief Read bytes beginning at a register with an explicit layout.
@@ -92,7 +92,7 @@ class LIBEASYMCP2221_CPP_API I2cDevice {
 	 * @param byteOrder Register-address byte order.
 	 * @return Received register payload bytes.
 	 */
-	[[nodiscard]] std::vector<std::uint8_t> readRegister(std::uint32_t reg, std::size_t size,
+	[[nodiscard]] LIBEASYMCP2221_CPP_API std::vector<std::uint8_t> readRegister(std::uint32_t reg, std::size_t size,
 														 RegisterWidth registerWidth, ByteOrder byteOrder);
 
 	/**
@@ -101,7 +101,7 @@ class LIBEASYMCP2221_CPP_API I2cDevice {
 	 * @param data Payload pointer.
 	 * @param size Number of payload bytes.
 	 */
-	void writeRegister(std::uint32_t reg, const std::uint8_t* data, std::size_t size);
+	LIBEASYMCP2221_CPP_API void writeRegister(std::uint32_t reg, const std::uint8_t* data, std::size_t size);
 
 	/**
 	 * @brief Write bytes beginning at a register with an explicit layout.
@@ -112,7 +112,7 @@ class LIBEASYMCP2221_CPP_API I2cDevice {
 	 * @param byteOrder Register-address byte order.
 	 * @throws Error on validation or transfer failure.
 	 */
-	void writeRegister(std::uint32_t reg, const std::uint8_t* data, std::size_t size, RegisterWidth registerWidth,
+	LIBEASYMCP2221_CPP_API void writeRegister(std::uint32_t reg, const std::uint8_t* data, std::size_t size, RegisterWidth registerWidth,
 					   ByteOrder byteOrder);
 
 	/**
@@ -120,7 +120,7 @@ class LIBEASYMCP2221_CPP_API I2cDevice {
 	 * @param reg Register address.
 	 * @param data Payload bytes.
 	 */
-	void writeRegister(std::uint32_t reg, const std::vector<std::uint8_t>& data);
+	LIBEASYMCP2221_CPP_API void writeRegister(std::uint32_t reg, const std::vector<std::uint8_t>& data);
 
   private:
 	friend class Device;

@@ -27,15 +27,15 @@ class GpioPollerState;
  * GpioPoller is move-only because copying a polling history would create two
  * independent timelines with initially identical previous-state snapshots.
  */
-class LIBEASYMCP2221_CPP_API GpioPoller {
+class LIBEASYMCP2221_CPP_CLASS_API GpioPoller {
   public:
 	GpioPoller(const GpioPoller&) = delete;
 	GpioPoller& operator=(const GpioPoller&) = delete;
 
-	GpioPoller(GpioPoller&&) noexcept;
-	GpioPoller& operator=(GpioPoller&&) noexcept;
+	LIBEASYMCP2221_CPP_API GpioPoller(GpioPoller&&) noexcept;
+	LIBEASYMCP2221_CPP_API GpioPoller& operator=(GpioPoller&&) noexcept;
 
-	~GpioPoller() noexcept;
+	LIBEASYMCP2221_CPP_API ~GpioPoller() noexcept;
 
 	/**
 	 * @brief Poll GP0 through GP3 and report state changes.
@@ -46,7 +46,7 @@ class LIBEASYMCP2221_CPP_API GpioPoller {
 	 *
 	 * @return Change information for GP0 through GP3.
 	 */
-	[[nodiscard]] std::array<GpioChange, 4> poll();
+	[[nodiscard]] LIBEASYMCP2221_CPP_API std::array<GpioChange, 4> poll();
 
 	/**
 	 * @brief Poll and return filtered edge events.
@@ -59,7 +59,7 @@ class LIBEASYMCP2221_CPP_API GpioPoller {
 	 * @return Filtered GPIO edge events observed during this poll.
 	 * @note Event timestamps use wall-clock time.
 	 */
-	[[nodiscard]] std::vector<GpioEvent> pollEvents(std::size_t maxEvents = 4);
+	[[nodiscard]] LIBEASYMCP2221_CPP_API std::vector<GpioEvent> pollEvents(std::size_t maxEvents = 4);
 
 	/**
 	 * @brief Replace the persistent edge-event selection.
@@ -69,10 +69,10 @@ class LIBEASYMCP2221_CPP_API GpioPoller {
 	 *
 	 * @param filter Typed persistent edge-event selection.
 	 */
-	void setFilter(const GpioEventFilter& filter);
+	LIBEASYMCP2221_CPP_API void setFilter(const GpioEventFilter& filter);
 
 	/** @brief Clear the event filter so that all edges are accepted. */
-	void clearFilter();
+	LIBEASYMCP2221_CPP_API void clearFilter();
 
   private:
 	friend class Device;
