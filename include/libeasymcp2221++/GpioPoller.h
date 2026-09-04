@@ -81,7 +81,7 @@ class LIBEASYMCP2221_CPP_API GpioPoller {
 	 * @brief Construct a poller from internal device state.
 	 * @param state Owned internal polling state.
 	 */
-	explicit GpioPoller(std::unique_ptr<detail::GpioPollerState> state);
+	LIBEASYMCP2221_CPP_LOCAL explicit GpioPoller(std::unique_ptr<detail::GpioPollerState> state);
 
 	std::unique_ptr<detail::GpioPollerState> state_;
 };

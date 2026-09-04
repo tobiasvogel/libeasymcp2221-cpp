@@ -129,7 +129,7 @@ class LIBEASYMCP2221_CPP_API I2cDevice {
 	 * @brief Construct an adapter from shared internal target state.
 	 * @param state Shared internal I2C target state.
 	 */
-	explicit I2cDevice(std::shared_ptr<detail::I2cDeviceState> state);
+	LIBEASYMCP2221_CPP_LOCAL explicit I2cDevice(std::shared_ptr<detail::I2cDeviceState> state);
 
 	std::shared_ptr<detail::I2cDeviceState> state_;
 };

@@ -10,10 +10,15 @@
 
 #  if defined(LIBEASYMCP2221_CPP_STATIC)
 #    define LIBEASYMCP2221_CPP_API
+#    define LIBEASYMCP2221_CPP_LOCAL
 #  elif defined(LIBEASYMCP2221_CPP_BUILDING)
 #    define LIBEASYMCP2221_CPP_API __declspec(dllexport)
 #  else
 #    define LIBEASYMCP2221_CPP_API __declspec(dllimport)
+#  endif
+
+#  if !defined(LIBEASYMCP2221_CPP_STATIC)
+#    define LIBEASYMCP2221_CPP_LOCAL
 #  endif
 
 #  if defined(LIBEASYMCP2221_CPP_QT_STATIC)
@@ -28,8 +33,10 @@
 
 #  if defined(LIBEASYMCP2221_CPP_STATIC)
 #    define LIBEASYMCP2221_CPP_API
+#    define LIBEASYMCP2221_CPP_LOCAL
 #  else
 #    define LIBEASYMCP2221_CPP_API __attribute__((visibility("default")))
+#    define LIBEASYMCP2221_CPP_LOCAL __attribute__((visibility("hidden")))
 #  endif
 
 #  if defined(LIBEASYMCP2221_CPP_QT_STATIC)
@@ -41,6 +48,7 @@
 #else
 
 #  define LIBEASYMCP2221_CPP_API
+#  define LIBEASYMCP2221_CPP_LOCAL
 #  define LIBEASYMCP2221_CPP_QT_API
 
 #endif

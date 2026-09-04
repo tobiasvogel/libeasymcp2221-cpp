@@ -3,8 +3,6 @@ libeasymcp2221++.so.0 libeasymcp2221++0 #MINVER#
  _ZN14libeasymcp222110GpioPoller11clearFilterEv@Base 0.1.0
  _ZN14libeasymcp222110GpioPoller4pollEv@Base 0.1.0
  _ZN14libeasymcp222110GpioPoller9setFilterERKNS_15GpioEventFilterE@Base 0.1.0
- _ZN14libeasymcp222110GpioPollerC1ESt10unique_ptrINS_6detail15GpioPollerStateESt14default_deleteIS3_EE@Base 0.1.0
- _ZN14libeasymcp222110GpioPollerC2ESt10unique_ptrINS_6detail15GpioPollerStateESt14default_deleteIS3_EE@Base 0.1.0
  _ZN14libeasymcp222110GpioPollerC1EOS0_@Base 0.2.0
  _ZN14libeasymcp222110GpioPollerC2EOS0_@Base 0.2.0
  _ZN14libeasymcp222110GpioPolleraSEOS0_@Base 0.2.0
@@ -22,8 +20,6 @@ libeasymcp2221++.so.0 libeasymcp2221++0 #MINVER#
  _ZN14libeasymcp222111SmbusDevice17writeI2cBlockDataEhRKSt6vectorIhSaIhEE@Base 0.1.0
  _ZN14libeasymcp222111SmbusDevice8readByteEv@Base 0.1.0
  _ZN14libeasymcp222111SmbusDevice9writeByteEh@Base 0.1.0
- _ZN14libeasymcp222111SmbusDeviceC1ESt10shared_ptrINS_6detail16SmbusDeviceStateEE@Base 0.1.0
- _ZN14libeasymcp222111SmbusDeviceC2ESt10shared_ptrINS_6detail16SmbusDeviceStateEE@Base 0.1.0
  _ZN14libeasymcp22215ErrorC1ENS_9ErrorCodeEiRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE@Base 0.1.0
  _ZN14libeasymcp22215ErrorC2ENS_9ErrorCodeEiRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE@Base 0.1.0
  _ZN14libeasymcp22216Device10gpioPollerEv@Base 0.1.0
@@ -73,8 +69,6 @@ libeasymcp2221++.so.0 libeasymcp2221++0 #MINVER#
  _ZN14libeasymcp22219I2cDevice13writeRegisterEjRKSt6vectorIhSaIhEE@Base 0.1.0
  _ZN14libeasymcp22219I2cDevice5writeERKSt6vectorIhSaIhEE@Base 0.1.0
  _ZN14libeasymcp22219I2cDevice9isPresentEv@Base 0.1.0
- _ZN14libeasymcp22219I2cDeviceC1ESt10shared_ptrINS_6detail14I2cDeviceStateEE@Base 0.1.0
- _ZN14libeasymcp22219I2cDeviceC2ESt10shared_ptrINS_6detail14I2cDeviceStateEE@Base 0.1.0
  _ZNK14libeasymcp222111SmbusDevice7addressEv@Base 0.1.0
  _ZNK14libeasymcp22215Error10nativeCodeEv@Base 0.1.0
  _ZNK14libeasymcp22215Error4codeEv@Base 0.1.0

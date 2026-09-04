@@ -144,7 +144,7 @@ class LIBEASYMCP2221_CPP_API SmbusDevice {
 	 * @brief Construct an adapter from shared internal SMBus state.
 	 * @param state Shared internal SMBus target state.
 	 */
-	explicit SmbusDevice(std::shared_ptr<detail::SmbusDeviceState> state);
+	LIBEASYMCP2221_CPP_LOCAL explicit SmbusDevice(std::shared_ptr<detail::SmbusDeviceState> state);
 
 	std::shared_ptr<detail::SmbusDeviceState> state_;
 };
