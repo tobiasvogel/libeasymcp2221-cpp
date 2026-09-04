@@ -76,11 +76,13 @@ libeasymcp2221++.so.0 libeasymcp2221++0 #MINVER#
  _ZNK14libeasymcp22216Device6isOpenEv@Base 0.1.0
  _ZNK14libeasymcp22219I2cDevice7addressEv@Base 0.1.0
  _ZTIN14libeasymcp22215ErrorE@Base 0.1.0
- (optional)_ZTISt11_Mutex_baseILN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
- (optional)_ZTISt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
+ (regex|optional)"^_ZTISt11_Mutex_baseILN9__gnu_cxx12_Lock_policyE[0-9]+EE@Base$" 0.1.0
+ (regex|optional)"^_ZTISt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE[0-9]+EE@Base$" 0.1.0
+ (regex|optional)"^_ZTIN9__gnu_cxx7__mutexE@Base$" 0.2.0
  _ZTSN14libeasymcp22215ErrorE@Base 0.1.0
- (optional)_ZTSSt11_Mutex_baseILN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
- (optional)_ZTSSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE@Base 0.1.0
+ (regex|optional)"^_ZTSSt11_Mutex_baseILN9__gnu_cxx12_Lock_policyE[0-9]+EE@Base$" 0.1.0
+ (regex|optional)"^_ZTSSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE[0-9]+EE@Base$" 0.1.0
+ (regex|optional)"^_ZTSN9__gnu_cxx7__mutexE@Base$" 0.2.0
  (optional)_ZTSSt19_Sp_make_shared_tag@Base 0.1.0
  (optional)_ZTVN14libeasymcp22215ErrorE@Base 0.1.0
  (optional)_ZZNSt19_Sp_make_shared_tag5_S_tiEvE5__tag@Base 0.1.0
