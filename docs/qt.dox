@@ -107,23 +107,14 @@
 
 /**
  * @example qt_gpio_monitor.cpp
- *
- * Qt Widgets example demonstrating event-loop-driven GPIO monitoring with
- * libeasymcp2221::qt::GpioMonitor.
  */
 
 /**
  * @example qt_pin_configurator.cpp
- *
- * Qt Widgets example demonstrating interactive runtime configuration of the
- * MCP2221 GP pins using the strongly typed C++ API.
  */
 
 /**
  * @example qt_analog_lab.cpp
- *
- * Qt Widgets example demonstrating periodic ADC acquisition and interactive
- * DAC control.
  */
 
 /**
