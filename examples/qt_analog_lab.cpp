@@ -13,6 +13,7 @@
 #include <QWidget>
 
 #include <Qt>
+
 #include <cstdint>
 
 using namespace libeasymcp2221;
