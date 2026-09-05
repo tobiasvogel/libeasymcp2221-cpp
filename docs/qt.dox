@@ -45,6 +45,61 @@
  *
  * The Qt integration requires Qt 6 Core. The core
  * `libeasymcp2221::cpp` target remains independent of Qt.
+ *
+ * @par Examples
+ *
+ * The repository contains three small Qt Widgets examples. They are intended
+ * as programming examples rather than as a complete MCP2221 configuration
+ * utility.
+ *
+ * @anchor qt_gpio_monitor_example
+ * @par GPIO monitor
+ *
+ * `examples/qt_gpio_monitor.cpp` demonstrates the event-loop integration
+ * provided by libeasymcp2221::qt::GpioMonitor. GPIO edge events are delivered
+ * as Qt signals and used to update rising- and falling-edge counters without
+ * an application-managed polling loop.
+ *
+ * GP0 through GP3 are configured as GPIO inputs at runtime. No configuration
+ * is written to flash.
+ *
+ * @image html qt_gpio_monitor.png "Qt GPIO monitor"
+ *
+ * @anchor qt_pin_configurator_example
+ * @par Pin configurator
+ *
+ * `examples/qt_pin_configurator.cpp` demonstrates using the strongly typed
+ * C++ pin-configuration API from a small interactive Qt user interface. Each
+ * GP pin can be assigned one of the functions supported by that pin, and GPIO
+ * outputs can be initialized high or low.
+ *
+ * Applying a configuration changes runtime state immediately. The example
+ * does not write configuration to flash and does not restore the previous
+ * runtime configuration when it exits.
+ *
+ * @image html qt_pin_configurator.png "Qt pin configurator"
+ *
+ * @anchor qt_analog_lab_example
+ * @par Analog lab
+ *
+ * `examples/qt_analog_lab.cpp` demonstrates periodic ADC acquisition and
+ * interactive DAC control in the Qt event loop. GP1 and GP2 are configured
+ * as ADC inputs and GP3 is configured as a DAC output.
+ *
+ * ADC values are displayed as raw 10-bit readings and the DAC slider controls
+ * the raw 5-bit output value, keeping the example independent of the actual
+ * MCP2221 supply voltage.
+ *
+ * @image html qt_analog_lab.png "Qt analog lab"
+ *
+ * Together, the examples illustrate three common integration patterns:
+ *
+ * - libeasymcp2221::qt::GpioMonitor for asynchronous hardware events;
+ * - synchronous libeasymcp2221++ operations driven by Qt user interaction;
+ * - periodic hardware I/O driven by a Qt timer.
+ *
+ * The Qt integration library itself depends only on Qt 6 Core. Qt Widgets is
+ * used by these examples only to provide small graphical front ends.
  */
 
 /**
